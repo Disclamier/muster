@@ -624,18 +624,18 @@ html[data-theme="dark"] .metatabs button.on { border-color: var(--green); }
 @media (max-width: 420px) { #hdr .brand > span { display: none; } }
 @media (max-width: 360px) { .hbtn { min-width: 40px; padding: 4px 3px; } #hdr { padding: 0 3px; } }
 
-/* Bigger list names and faction names (James, Oct 8) */
-.lgroup h3 { font-size: 17px; margin: 14px 0 6px; display: flex; align-items: center; }
-.lgroup .fthumb { width: 28px; height: 28px; }
-.lrow { padding: 7px 10px; min-height: 44px; }
-.lrow .name { font-size: 16px; }
-.lrow .lthumb { width: 32px; height: 32px; }
-.pick .t { font-size: 15px; }
-.pick .t small { font-size: 11px; }
+/* Bigger list names and faction names (James, Oct 8; toned down halfway) */
+.lgroup h3 { font-size: 15.5px; margin: 13px 0 5px; display: flex; align-items: center; }
+.lgroup .fthumb { width: 25px; height: 25px; }
+.lrow { padding: 6px 9px; min-height: 40px; }
+.lrow .name { font-size: 15px; }
+.lrow .lthumb { width: 29px; height: 29px; }
+.pick .t { font-size: 14px; }
+.pick .t small { font-size: 10.5px; }
 @media (max-width: 760px) {
-  .lgroup h3 { font-size: 19px; }
-  .lrow { min-height: 52px; }
-  .lrow .name { font-size: 17px; }
-  .pick { min-height: 44px; }
-  .pick .t { font-size: 16px; }
+  .lgroup h3 { font-size: 16.5px; }
+  .lrow { min-height: 46px; }
+  .lrow .name { font-size: 15.5px; }
+  .pick { min-height: 40px; }
+  .pick .t { font-size: 14.5px; }
 }
