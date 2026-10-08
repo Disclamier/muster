@@ -602,7 +602,9 @@ test("leader attachment: Lord on Juggernaut + Master of Executions join Khorne B
   assert.equal(loj.attach, kb1.uid);
   // nested under the bodyguard, not in the Character section
   const grp = d.querySelector(".roster [data-testid=attached-group]");
-  assert.ok(grp); assert.equal(grp.querySelector(".urow").dataset.uid, kb1.uid);
+  assert.ok(grp);
+  // character above the unit it leads: Leader row first, bodyguard row last
+  assert.deepEqual([...grp.querySelectorAll(".urow")].map((x) => x.dataset.uid), [loj.uid, kb1.uid]);
   assert.equal(grp.querySelector("[data-testid=attached-row]").dataset.uid, loj.uid);
   const charSect = [...d.querySelectorAll(".roster .card")].find((c) => /^\s*Character/.test(c.querySelector(".sect-h").textContent));
   assert.ok(charSect && !charSect.querySelector(`.urow[data-uid="${loj.uid}"]`), "attached Leader is not listed again under Character");
@@ -723,7 +725,10 @@ test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highli
   assert.match(d.querySelector(".roster [data-testid=combo-pts]").textContent, new RegExp(`Σ ${rk.total + rl.total} pts`));
   // roster eye icon -> popup sheet with the combined datasheet
   click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
-  const m = d.querySelector("#modal .modal.sheet"); assert.ok(m); assert.match(m.textContent, /Khorne Berzerkers \+ Lord on Juggernaut/);
+  const m = d.querySelector("#modal .modal.sheet"); assert.ok(m); assert.match(m.textContent, /Lord on Juggernaut \+ Khorne Berzerkers/);
+  { const jn = m.querySelector("[data-testid=ds-joined]"), bg = m.querySelector("[data-testid=ds-bodyguard]");
+    assert.ok(jn && bg && (jn.compareDocumentPosition(bg) & w.Node.DOCUMENT_POSITION_FOLLOWING), "Leader datasheet above the bodyguard's");
+    assert.match(jn.querySelector(".ds-jh").textContent, /Lord on Juggernaut/); assert.match(bg.querySelector(".ds-jh").textContent, /Khorne Berzerkers/); }
   assert.ok(m.querySelector("[data-testid=ds-stats]")); assert.equal(m.querySelectorAll("[data-testid=ds-joined]").length, 1);
   click(w, d.querySelector("#modal [data-action=close-modal]"));
   // option eye icon -> just that wargear's profile
@@ -808,13 +813,14 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   // every plain ability is its own card with a bold name
   const plain = A.ab.filter((a) => !/aura/i.test(a[0]) && !/^damaged/i.test(a[0]));
   assert.equal(ab.querySelectorAll("[data-testid=ab-datasheet] .ab-card").length, plain.length);
-  // combined card: bodyguard + attached Leader each get their own structured sections
+  // combined card: attached Leader + bodyguard each get their own structured sections
   click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
   const m = d.querySelector("#modal .modal.sheet");
   const secs = [...m.querySelectorAll("[data-testid=ds-abilities]")];
   assert.equal(secs.length, 2);
-  assert.ok(secs[0].querySelector("[data-testid=ab-wargear]") && secs[0].querySelector("[data-testid=ab-leader]"));
-  assert.match(secs[1].querySelector("[data-testid=ab-leader]").textContent, /Leader[\s\S]*Khorne Berzerkers[\s\S]*Attached/);
+  // character above the unit: the attached Leader's sections come first, the bodyguard's second
+  assert.match(secs[0].querySelector("[data-testid=ab-leader]").textContent, /Leader[\s\S]*Khorne Berzerkers[\s\S]*Attached/);
+  assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
   assert.match(read("sw.js"), /muster-shell-v9/);
@@ -1011,4 +1017,40 @@ test("accounts on: create account with email confirmation ON, confirmation link 
   assert.equal(JSON.parse(b.w.localStorage.getItem("muster.auth")).user.email, "buddy@example.com");
   await until(() => !b.d.querySelector("#acct").hidden);
   b.dom.window.close();
+});
+
+test("enhancement dropdown: collapsed New Recruit-style row, opens to pick, shows choice + points, stays open across re-renders", async () => {
+  const { w, d, l, rowOf } = await weEditor(["Cult of Blood"], ["Master of Executions", "Lord on Juggernaut", "Khorne Berzerkers"]);
+  click(w, rowOf(0));
+  const dd = () => d.querySelector(".panel details[data-testid=enh-grp]");
+  assert.ok(dd(), "enhancement section is a <details> dropdown");
+  assert.equal(dd().open, false, "collapsed by default");
+  assert.match(dd().querySelector("summary").textContent, /^\s*Enhancement/);
+  assert.match(d.querySelector(".panel [data-testid=enh-current]").textContent, /None/);
+  // open it (as a click on the summary would), then a background re-render keeps it open
+  dd().open = true; dd().dispatchEvent(new w.Event("toggle"));
+  assert.equal(w.Muster.S.ui.enhOpen, l.entries[0].uid);
+  w.Muster.route(); assert.equal(dd().open, true, "still open after re-render");
+  // pick one -> stored, dropdown closes, collapsed row shows the name + points
+  const opt = d.querySelector('.panel [data-testid=enh-opt][data-enh="Butcher Lord"] input');
+  assert.ok(opt && !opt.disabled);
+  change(w, opt, true);
+  assert.deepEqual({ ...l.entries[0].enh }, { det: "Cult of Blood", name: "Butcher Lord" });
+  assert.equal(dd().open, false, "closed after picking");
+  const cur = d.querySelector(".panel [data-testid=enh-current]");
+  const cost = w.Muster.S.idx.factions["world-eaters"].dets["Cult of Blood"].enh.find((e) => e[0] === "Butcher Lord")[1];
+  assert.match(cur.textContent, /Butcher Lord/); assert.match(cur.textContent, new RegExp(`${cost} pts`));
+  // another character: taken one is disabled with its reason inside the dropdown; Escape closes an open dropdown
+  click(w, rowOf(1));
+  assert.equal(dd().open, false, "dropdown state is per unit");
+  assert.match(d.querySelector('.panel [data-testid=enh-opt][data-enh="Butcher Lord"]').textContent, /Already taken|model only/);
+  dd().open = true; dd().dispatchEvent(new w.Event("toggle"));
+  const radio = dd().querySelector("input[data-change=enh]");
+  radio.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  assert.equal(dd().open, false, "Escape closes the dropdown"); assert.ok(w.Muster.S.ui.panel, "…without closing the panel");
+  // 'None' clears it
+  click(w, rowOf(0)); change(w, d.querySelector('.panel input[data-change=enh][value=""]'), true);
+  assert.equal(l.entries[0].enh, null);
+  // non-characters still have no enhancement section
+  click(w, rowOf(2)); assert.equal(dd(), null);
 });

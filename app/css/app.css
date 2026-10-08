@@ -389,6 +389,7 @@ details.cfgdet .rules { font-size: 12px; margin-bottom: 4px; white-space: pre-li
 /* ---- attached leaders nested under their bodyguard */
 .ugroup { border-left: 3px solid var(--blue); margin: 2px 0; }
 .urow.attached { margin-left: 18px; border-left: 1px dashed var(--border); }
+.ugroup > .urow.attached + .urow:not(.attached) { border-top: 1px dashed var(--border); }
 .urow .att { color: var(--blue); font-weight: 700; margin-right: 2px; }
 
 /* ---------- datasheet / Profiles (New Recruit style) ---------- */
@@ -412,6 +413,7 @@ details.cfgdet .rules { font-size: 12px; margin-bottom: 4px; white-space: pre-li
 details.ds-ab summary { cursor: pointer; }
 .ds-note { font-size: 12px; margin: -4px 0 8px; }
 .ds-join { margin-top: 14px; border-top: 2px dashed var(--border); padding-top: 8px; }
+.ds-join.ds-lead:first-child { margin-top: 0; border-top: 0; padding-top: 0; }
 .ds-jh { font-weight: 700; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .profiles .cb { overflow-x: auto; }
 .ibtn.eye-s { width: 26px; height: 26px; margin-left: 4px; opacity: .7; flex: none; }
@@ -485,3 +487,35 @@ body.auth-wall #hdr [data-action=new-list], body.auth-wall #hdr [data-action=che
 html[data-theme="dark"] .auth-card { box-shadow: none; }
 html[data-theme="dark"] .auth-msg.err { color: #ff8a8a; }
 html[data-theme="dark"] .auth-tabs button.on { background: #3a3d42; color: #fff; box-shadow: inset 0 -2px 0 var(--green2); }
+
+/* ---- enhancement dropdown (New Recruit-style collapsed row; opens to the option list) */
+details.enh-dd > summary { list-style: none; cursor: pointer; flex-wrap: wrap; row-gap: 3px; user-select: none; }
+details.enh-dd > summary::-webkit-details-marker { display: none; }
+details.enh-dd > summary::before { content: "▶"; font-size: 11px; font-weight: 400; }
+details.enh-dd[open] > summary::before { content: "▼"; }
+details.enh-dd > summary:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+details.enh-dd .enh-count { font-weight: 400; font-size: 11.5px; }
+details.enh-dd .enh-val { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; min-width: 0; max-width: 100%;
+  font-weight: 600; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px 2px 8px; }
+details.enh-dd .enh-val.none .enh-vn { color: var(--gray); font-weight: 400; }
+details.enh-dd .enh-vn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+details.enh-dd .enh-val .muted { font-weight: 400; white-space: nowrap; }
+details.enh-dd .caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; margin-left: 2px; flex: none; transition: transform .12s; }
+details.enh-dd[open] .caret { transform: rotate(180deg); }
+details.enh-dd > summary:hover .enh-val { border-color: var(--gray); }
+details.enh-dd .enh-curwhy { padding: 3px 6px 0; display: block; font-size: 11px; color: var(--red); }
+details.enh-dd .enh-list { max-height: 50vh; overflow-y: auto; border-top: 1px solid var(--border); }
+details.enh-dd .enh-list .opt { border-bottom: 1px solid var(--row); padding: 4px 2px; cursor: pointer; }
+details.enh-dd .enh-list .opt:last-child { border-bottom: 0; }
+details.enh-dd .enh-list .opt.disabled { cursor: not-allowed; }
+details.enh-dd .enh-list .opt.sel { background: var(--cost-bg); border-radius: 3px; }
+details.enh-dd .enh-list .opt .desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
+details.enh-dd .enh-list .opt.sel .desc, details.enh-dd .enh-list .opt:hover .desc, details.enh-dd .enh-list .opt:focus-within .desc { -webkit-line-clamp: unset; display: block; white-space: pre-line; }
+details.enh-dd .enh-list .opt input:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+@media (max-width: 760px) {
+  details.enh-dd > summary { padding: 7px 8px; }
+  details.enh-dd .enh-val { padding: 4px 8px; font-size: 13.5px; }
+  details.enh-dd .enh-list { max-height: 60vh; }
+  details.enh-dd .enh-list .opt { padding: 7px 2px; font-size: 13.5px; }
+}
+html[data-theme="dark"] details.enh-dd .enh-val { background: #1f1f1f; color: var(--text); }

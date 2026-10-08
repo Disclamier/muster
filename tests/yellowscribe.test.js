@@ -85,8 +85,8 @@ test("Yellowscribe export: 11th-ed roster XML with units, model counts, per-mode
   const R = readRoster(r.xml);
   assert.equal(R.system, "sys-352e-adc2-7639-d610", "Yellowscribe treats this id as 11th edition");
   assert.equal(R.root.getAttribute("name"), "YS <Test> & Co", "names are XML-escaped and round-trip");
-  assert.deepEqual(R.units.map((u) => u.name), ["Squad", "Captain", "Tank", "Gone Unit"], "bodyguard, then its attached leader");
-  const [sq, cap, tank, gone] = R.units;
+  assert.deepEqual(R.units.map((u) => u.name), ["Captain", "Squad", "Tank", "Gone Unit"], "attached leader first (above), then its bodyguard");
+  const [cap, sq, tank, gone] = R.units;
   // Squad: 10 models, gear per model
   assert.equal(sq.type, "unit");
   assert.equal(sq.models.reduce((n, m) => n + m.n, 0), 10);
@@ -175,7 +175,7 @@ test("real data: World Eaters (attached leader), Space Marines, Aeldari export w
       assert.ok(u.cats.some((c) => c.startsWith("Faction: ")), `${u.name} faction keyword`);
     });
     const bi = R.units.findIndex((u) => u.name === specs[0][0]), li = R.units.findIndex((u) => u.name === specs[1][0]);
-    assert.equal(li, bi + 1, `${fid}: leader exported right after its bodyguard`);
+    assert.equal(li, bi - 1, `${fid}: leader exported right before (above) its bodyguard`);
     assert.ok(R.units[li].models[0].abilities.includes("Attached (Leader)"), `${fid} leader attached`);
     assert.ok(R.units[bi].models[0].abilities.includes("Joined by"));
   }

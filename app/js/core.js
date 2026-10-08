@@ -946,9 +946,9 @@
       (o.cats && o.cats.length ? `<categories>${o.cats.map((c, i) => `<category id="${id()}" name="${xmlEsc(c)}" entryId="muster::cat::${xmlEsc(norm(c))}" primary="${i === 0}"/>`).join("")}</categories>` : "") + `</selection>`;
     const rule = (name, text) => `<rule id="${id()}" name="${xmlEsc(name)}" hidden="false"><description>${xmlEsc(text)}</description></rule>`;
 
-    // bodyguards first, each followed by the characters attached to it (so they sit together in Yellowscribe)
+    // each bodyguard preceded by the characters attached to it (character above its unit, together in Yellowscribe)
     const rows = X.rows.filter((r) => !r.attachedTo);
-    const ordered = []; for (const r of rows) { ordered.push(r); for (const a of X.rows.filter((x) => x.attachedTo === r)) ordered.push(a); }
+    const ordered = []; for (const r of rows) { for (const a of X.rows.filter((x) => x.attachedTo === r)) ordered.push(a); ordered.push(r); }
     for (const r of X.rows) if (!ordered.includes(r)) ordered.push(r);
     for (const r of X.c.entries.filter((x) => x.missing)) ordered.push(r);
 

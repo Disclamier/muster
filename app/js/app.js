@@ -630,9 +630,9 @@
     const rowHtml = (r, nested) => {
       const errs = errsFor(r.uid); const bits = entrySummary(r);
       return `<div class="urow${nested ? " attached" : ""}${sel.type === "unit" && sel.uid === r.uid ? " sel" : ""}" data-action="select-entry" data-uid="${esc(r.uid)}"${nested ? ` data-testid="attached-row" data-to="${esc(r.attachedTo.uid)}"` : ""}>
-            <div class="line">${nested ? `<span class="att" title="${esc(r.attachKind === "support" ? "Support unit attached" : "Leader attached")}">↳</span>` : ""}${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : "Leader"}</span>` : ""}</span>
+            <div class="line">${nested ? `<span class="att" title="${esc(r.attachKind === "support" ? "Support unit attached" : "Leader attached")} to ${esc(r.attachedTo.name)} (below)">↓</span>` : ""}${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : "Leader"}</span>` : ""}</span>
               ${errs.some((x) => c.errors.includes(x)) ? `<span class="dot err" title="${esc(errs.map((x) => x.msg).join("\n"))}">!</span>` : ""}
-              ${pts(r.total)}${!nested && r.attached && r.attached.length ? `<span class="combo" title="Attached unit: ${esc([r.name, ...r.attached.map((x) => x.name)].join(" + "))}" data-testid="combo-pts">Σ ${r.total + r.attached.reduce((a, x) => a + x.total, 0)} pts</span>` : ""}
+              ${pts(r.total)}${!nested && r.attached && r.attached.length ? `<span class="combo" title="Attached unit: ${esc([...r.attached.map((x) => x.name), r.name].join(" + "))}" data-testid="combo-pts">Σ ${r.total + r.attached.reduce((a, x) => a + x.total, 0)} pts</span>` : ""}
               <button class="ibtn" data-action="ds-pop" data-uid="${esc(r.uid)}" title="View datasheet">${icon("eye")}</button>
               ${nested ? `<button class="ibtn" data-action="unlink" data-uid="${esc(r.uid)}" title="Detach from ${esc(r.attachedTo.name)}" data-testid="unlink">⛓✕</button>` : ""}
               <button class="ibtn" data-action="dup-entry" data-uid="${esc(r.uid)}" title="Duplicate">${icon("copy")}</button>
@@ -649,7 +649,7 @@
       const top = R.entries.filter((x) => own || !x.attachedTo);
       const ptsSum = own ? top.reduce((a, r) => a + r.total, 0) : top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total, 0), 0);
       return `<div class="card${collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}">${esc(role)} ${pts(ptsSum)}<span class="tri"></span></div><div class="sect-body">
-        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group">${rowHtml(r, false)}${r.attached.map((x) => rowHtml(x, true)).join("")}</div>` : rowHtml(r, false))).join("")}</div></div>`;
+        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group">${r.attached.map((x) => rowHtml(x, true)).join("")}${rowHtml(r, false)}</div>` : rowHtml(r, false))).join("")}</div></div>`;
     }).join("");
     const missing = c.entries.filter((r) => r.missing);
     const miss = missing.length ? `<div class="card"><div class="sect-h">Not in current data</div>${missing.map((r) => `<div class="urow" data-uid="${esc(r.uid)}"><div class="line"><span class="n err">${esc(r.name)}</span>
@@ -757,9 +757,11 @@
   }
   /* combined card for an attached unit: bodyguard + its Leader/Support (New Recruit's combined unit card) */
   function combinedDatasheet(F, r) {
-    let h = datasheetHtml(F, r.unit, r);
-    for (const x of r.attached || []) h += `<div class="ds-join" data-testid="ds-joined"><div class="ds-jh">+ ${esc(x.name)} <span class="tag">${x.attachKind === "support" ? "Support" : "Leader"}</span> ${pts(x.total)}</div>${datasheetHtml(F, x.unit, x, { noPoints: true })}</div>`;
-    return h;
+    // attached Leaders/Support units first, then the bodyguard they lead (character above the unit)
+    const at = r.attached || [];
+    if (!at.length) return datasheetHtml(F, r.unit, r);
+    return at.map((x) => `<div class="ds-join ds-lead" data-testid="ds-joined"><div class="ds-jh">${esc(x.name)} <span class="tag">${x.attachKind === "support" ? "Support" : "Leader"}</span> ${pts(x.total)}</div>${datasheetHtml(F, x.unit, x, { noPoints: true })}</div>`).join("") +
+      `<div class="ds-join ds-body" data-testid="ds-bodyguard"><div class="ds-jh">+ ${esc(r.name)} <span class="tag">Bodyguard</span> ${pts(r.total)}</div>${datasheetHtml(F, r.unit, r)}</div>`;
   }
   function pointsTable(u) {
     return `<table class="ptable"><tr><th>Copies</th><th>Size</th><th>Points</th></tr>${(u.t || []).map((t) => t[2].map((r, i) => `<tr><td>${i ? "" : esc(t[1] === null ? (t[0] === 1 ? "any" : `${t[0]}+`) : t[0] === t[1] ? `#${t[0]}` : `${t[0]}–${t[1]}`)}</td>
@@ -791,16 +793,27 @@
     const shown = choices.filter((ch) => (isChar && !C.isEpicHero(u)) || elig(ch) || (e.enh && e.enh.det === ch.d.n && e.enh.name === ch.en[0]));
     let enhHtml = "";
     if (shown.length || (isChar && !C.isEpicHero(u)) || e.enh) {
+      // New Recruit-style dropdown: one collapsed row showing the current pick (or None) + its points; opening it
+      // lists the options (same eligibility / taken / reason rules as before). Picking one closes it again.
       const upgradesOnly = !isChar || C.isEpicHero(u);
-      const used = c.enhLimit != null ? ` <span class="muted" data-testid="enh-count">${c.enhCount} / ${c.enhLimit} used</span>` : "";
-      enhHtml = `<div class="grp" data-testid="enh-grp"><div class="gh">${upgradesOnly && shown.every((ch) => ch.en[3]) ? "Upgrades" : "Enhancement"}${used}</div><div class="gb">
-        <label class="opt"><input type="radio" name="enh" value="" ${!e.enh ? "checked" : ""} data-change="enh"><span class="on">None</span></label>
+      const label = upgradesOnly && shown.every((ch) => ch.en[3]) ? "Upgrades" : "Enhancement";
+      const usedTxt = c.enhLimit != null ? `<span class="muted enh-count" data-testid="enh-count">${c.enhCount} / ${c.enhLimit} used</span>` : "";
+      const cur = e.enh ? shown.find((ch) => ch.d.n === e.enh.det && ch.en[0] === e.enh.name) || choices.find((ch) => ch.d.n === e.enh.det && ch.en[0] === e.enh.name) : null;
+      const curBad = cur && !cur.ok && cur.reason ? cur.reason : e.enh && !cur ? `${e.enh.name} is not available in the selected detachments` : "";
+      const curName = e.enh ? (cur ? cur.en[0] : e.enh.name) : "None";
+      const open = S.ui.enhOpen === uid;
+      const val = `<span class="enh-val${e.enh ? "" : " none"}" data-testid="enh-current"><span class="enh-vn">${esc(curName)}</span>${cur && dets.length > 1 ? ` <span class="muted">(${esc(cur.d.n)})</span>` : ""}${curBad ? ` <span class="need" title="${esc(curBad)}">!</span>` : ""}${cur ? pts(cur.en[1]) : ""}<span class="caret" aria-hidden="true"></span></span>`;
+      enhHtml = `<details class="grp enh-dd" data-testid="enh-grp" data-uid="${esc(uid)}"${open ? " open" : ""}>
+        <summary class="gh" data-testid="enh-sum" aria-label="${esc(label)}: ${esc(curName)}${cur ? ` (${cur.en[1]} pts)` : ""}. ${open ? "Close" : "Open"} to change"${cur && cur.en[2] ? ` title="${esc(clean(cur.en[2]))}"` : ""}><span class="enh-lbl">${label}</span>${usedTxt}${val}</summary>
+        ${curBad ? `<div class="why err enh-curwhy">${esc(curBad)}</div>` : ""}
+        <div class="gb enh-list" role="radiogroup" aria-label="${esc(label)}">
+        <label class="opt enh-none"><input type="radio" name="enh" value="" ${!e.enh ? "checked" : ""} data-change="enh"><span class="on">None</span></label>
         ${shown.length ? shown.map(({ d, en, ok, reason, taken }) => {
           const checked = e.enh && e.enh.det === d.n && e.enh.name === en[0];
           const dis = !ok && !checked;
-          return `<label class="opt${dis ? " disabled" : ""}" data-testid="enh-opt" data-enh="${esc(en[0])}"${dis ? ` title="${esc(reason)}"` : ""}><input type="radio" name="enh" value="${esc(d.n + "||" + en[0])}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="enh">
+          return `<label class="opt${dis ? " disabled" : ""}${checked ? " sel" : ""}" data-testid="enh-opt" data-enh="${esc(en[0])}"${dis ? ` title="${esc(reason)}"` : ""}><input type="radio" name="enh" value="${esc(d.n + "||" + en[0])}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="enh">
             <span class="on">${esc(en[0])}${en[3] ? ` <span class="tag">Upgrade</span>` : ""}${taken ? ` <span class="tag">taken</span>` : ""}${dets.length > 1 ? ` <span class="muted">(${esc(d.n)})</span>` : ""}${dis && reason ? `<span class="why" data-testid="enh-why">${esc(reason)}</span>` : ""}${checked && !ok && reason ? `<span class="why err">${esc(reason)}</span>` : ""}${en[2] ? `<span class="desc">${esc(clean(en[2]))}</span>` : ""}</span>${pts(en[1])}</label>`;
-        }).join("") : `<div class="muted">${dets.length ? "No enhancements available to this unit." : "Select a detachment to see its enhancements."}</div>`}</div></div>`;
+        }).join("") : `<div class="muted">${dets.length ? "No enhancements available to this unit." : "Select a detachment to see its enhancements."}</div>`}</div></details>`;
     }
     // Attach to: bodyguard units in the list this Leader / Support unit can join
     let attachHtml = "";
@@ -841,7 +854,7 @@
         ${attachHtml}${attachedHere}
         ${enhHtml}
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
-        <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(combined with ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : ""}</summary><div class="cb">${combinedDatasheet(F, r)}</div></details>
+        <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(led by ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : ""}</summary><div class="cb">${combinedDatasheet(F, r)}</div></details>
         ${dets.length ? `<details class="coll" data-testid="unit-strats"><summary>Stratagems (${strats.length})${dets.length > 1 ? ` <span class="muted">– ${dets.length} detachments</span>` : ""}</summary><div class="cb">${dets.map((d) => `<div class="stgrp" data-det="${esc(d.n)}"><div class="stgrp-h">${esc(d.n)}${d.rule ? ` <span class="muted">– ${esc(d.rule[0])}</span>` : ""}</div>${d.rule ? `<div class="rules small">${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div>`).join("")}</div></details>` : ""}
       </div>`;
   }
@@ -1252,7 +1265,7 @@
       const F = C.getFaction(S.idx, CUR); if (!F) return;
       if (t.dataset.uid) {
         const c = C.calcList(CUR, S.idx); const r = c.entries.find((x) => x.uid === t.dataset.uid); if (!r || !r.unit) return;
-        modal(r.attached && r.attached.length ? `${r.name} + ${r.attached.map((x) => x.name).join(" + ")}` : r.name, combinedDatasheet(F, r), { wide: true, sheet: true });
+        modal(r.attached && r.attached.length ? `${r.attached.map((x) => x.name).join(" + ")} + ${r.name}` : r.name, combinedDatasheet(F, r), { wide: true, sheet: true });
       } else {
         const u = F.units[t.dataset.unit]; if (!u) return;
         const c = C.calcList(CUR, S.idx); const r = S.ui.panel && S.ui.panel.uid ? c.entries.find((x) => x.uid === S.ui.panel.uid && x.unit === u) : null;
@@ -1345,7 +1358,7 @@
     "models": (t) => { const uid = S.ui.panel.uid; mutate((l) => { l.entries.find((x) => x.uid === uid).models = t.value === "null" ? null : +t.value; }); },
     "addon": (t) => { const uid = S.ui.panel.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); e.addons = (e.addons || []).filter((a) => a !== t.value); if (t.checked) e.addons.push(t.value); }); },
     "warlord": (t) => { const uid = S.ui.panel.uid; mutate((l) => { for (const e of l.entries) e.warlord = t.checked ? e.uid === uid : (e.uid === uid ? false : e.warlord); }); },
-    "enh": (t) => { const uid = S.ui.panel.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (!t.value) e.enh = null; else { const [det, name] = t.value.split("||"); e.enh = { det, name }; } }); },
+    "enh": (t) => { const uid = S.ui.panel.uid; S.ui.enhOpen = null; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (!t.value) e.enh = null; else { const [det, name] = t.value.split("||"); e.enh = { det, name }; } }); },
     "note": (t) => { const uid = S.ui.panel.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); const v = t.value.trim(); if (v) e.note = v; else delete e.note; }); },
     "new-size": (t) => { NEW.size = t.value; },
     "lo-pick": (t) => withLo((lo, r, u) => {
@@ -1387,7 +1400,12 @@
   }, { passive: true });
   document.addEventListener("change", (ev) => { const t = ev.target.closest("[data-change]"); if (t && changes[t.dataset.change]) changes[t.dataset.change](t, ev); });
   document.addEventListener("input", (ev) => { const t = ev.target.closest("[data-input]"); if (t && inputs[t.dataset.input]) inputs[t.dataset.input](t, ev); });
-  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { if ($("#modal").innerHTML) closeModal(); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
+  // enhancement dropdown: remember which one is open so background re-renders (sync, data refresh) don't snap it shut
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("enh-dd")) return;
+    if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
+    const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
+    if (ev.key === "Escape") { if ($("#modal").innerHTML) closeModal(); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
   window.Muster = { S, SY, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
