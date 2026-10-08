@@ -14,6 +14,8 @@ const VERSION = JSON.parse(read("data/version.json"));
 const DS = fs.existsSync(path.join(APP, "data/datasheets.json")) ? JSON.parse(read("data/datasheets.json")) : null;
 const WR = fs.existsSync(path.join(APP, "data/winrates.json")) ? JSON.parse(read("data/winrates.json")) : null;
 
+const OPEN = [];   // accounts-enabled windows are closed after each test (the 60 s sync poll would keep node alive)
+test.afterEach(() => { while (OPEN.length) { try { OPEN.pop().window.close(); } catch (e) { /* already closed */ } } });
 function makeApp(opts) {
   opts = opts || {};
   const server = { version: { ...VERSION }, points: POINTS, winrates: WR, datasheets: opts.noDatasheets ? null : DS, offline: false, requests: [] };
@@ -26,9 +28,11 @@ function makeApp(opts) {
       w.scrollTo = () => {};
       w.navigator.clipboard = { writeText: async (t) => { server.clipboard = t; } };
       w.URL.createObjectURL = () => "blob:x"; w.URL.revokeObjectURL = () => {};
-      w.fetch = async (url) => {
+      if (opts.beforeParse) opts.beforeParse(w);
+      w.fetch = async (url, init) => {
         server.requests.push(String(url));
         if (server.offline) throw new TypeError("Failed to fetch");
+        if (opts.supabase && String(url).startsWith(opts.supabase.base)) return opts.supabase.handle(String(url), init || {});
         const p = String(url).split("?")[0];
         const body = p.endsWith("version.json") ? server.version : p.endsWith("points.json") ? server.points : p.endsWith("winrates.json") ? server.winrates : p.endsWith("datasheets.json") ? server.datasheets : null;
         if (!body) return { ok: false, status: 404, json: async () => ({}) };
@@ -37,7 +41,12 @@ function makeApp(opts) {
     },
   });
   const w = dom.window;
+  if (opts.config) OPEN.push(dom);
+  w.eval(read("js/config.js"));
+  // the real config.js holds the live Supabase project; tests run local-only unless a test passes its own config
+  w.MUSTER_CONFIG = opts.config || { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
   w.eval(read("js/core.js"));
+  w.eval(read("js/sync.js"));
   w.eval(read("js/app.js"));
   return { dom, w, d: w.document, server };
 }
@@ -808,5 +817,198 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.match(secs[1].querySelector("[data-testid=ab-leader]").textContent, /Leader[\s\S]*Khorne Berzerkers[\s\S]*Attached/);
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v8/);
+  assert.match(read("sw.js"), /muster-shell-v9/);
+});
+
+/* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
+const SB = "https://test.supabase.co";
+function mockSupabase(o) {
+  o = o || {};
+  const sb = { base: SB, rows: [], calls: [], confirm: !!o.confirm, users: { "james@example.com": { pw: "secret123", id: "u-1" } } };
+  const res = (status, body) => ({ ok: status >= 200 && status < 300, status, text: async () => (body === undefined ? "" : JSON.stringify(body)), json: async () => body });
+  const sess = (id, email) => ({ access_token: `at-${id}-${sb.calls.length}`, token_type: "bearer", expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600, refresh_token: `rt-${id}`, user: { id, email } });
+  sb.handle = async (url, init) => {
+    const u = new URL(url); const body = init.body ? JSON.parse(init.body) : null; const h = init.headers || {};
+    sb.calls.push({ method: init.method || "GET", path: u.pathname, search: u.search, body, headers: h });
+    if (h.apikey !== "anon-key") return res(401, { message: "No API key found in request" });
+    if (u.pathname === "/auth/v1/token") {
+      if (u.searchParams.get("grant_type") === "password") {
+        const usr = sb.users[body.email];
+        return usr && usr.pw === body.password ? res(200, sess(usr.id, body.email)) : res(400, { code: 400, error_code: "invalid_credentials", msg: "Invalid login credentials" });
+      }
+      if (u.searchParams.get("grant_type") === "refresh_token") return /^rt-/.test(body.refresh_token) ? res(200, sess(body.refresh_token.slice(3), null)) : res(400, { msg: "Invalid Refresh Token" });
+    }
+    if (u.pathname === "/auth/v1/signup") {
+      const id = `u-${Object.keys(sb.users).length + 1}`; sb.users[body.email] = { pw: body.password, id };
+      return res(200, sb.confirm ? { id, email: body.email } : sess(id, body.email));
+    }
+    if (u.pathname === "/auth/v1/logout") return res(204);
+    if (u.pathname === "/auth/v1/recover") return res(200, {});
+    if (u.pathname === "/rest/v1/lists") {
+      if (!/^Bearer at-/.test(h.Authorization || "")) return res(401, { message: "JWT expired" });
+      const uid = h.Authorization.split("-")[1] + "-" + h.Authorization.split("-")[2];
+      if ((init.method || "GET") === "GET") return res(200, sb.rows.filter((r) => r.user_id === uid).map(({ id, data, updated_at, deleted }) => ({ id, data, updated_at, deleted })));
+      for (const r of body) { const i = sb.rows.findIndex((x) => x.id === r.id && x.user_id === r.user_id); if (i >= 0) sb.rows[i] = { ...sb.rows[i], ...r }; else sb.rows.push({ ...r }); }
+      return res(201);
+    }
+    return res(404, { message: "not found" });
+  };
+  return sb;
+}
+const CFG = { SUPABASE_URL: SB + "/", SUPABASE_ANON_KEY: "anon-key" };
+const submitForm = (w, f) => f.dispatchEvent(new w.Event("submit", { bubbles: true, cancelable: true }));
+function fillAuth(w, d, email, pw) { d.querySelector("[data-testid=auth-email]").value = email; d.querySelector("[data-testid=auth-password]").value = pw; submitForm(w, d.querySelector("[data-form=auth]")); }
+
+test("accounts off (empty Supabase config): no sign-in wall, no account button, nothing sent to Supabase", async () => {
+  const cfg = read("js/config.js");
+  const live = {}; new Function("window", cfg)(live);
+  assert.match(live.MUSTER_CONFIG.SUPABASE_URL, /^https:\/\/[a-z0-9]+\.supabase\.co$/); assert.match(live.MUSTER_CONFIG.SUPABASE_ANON_KEY, /^eyJ/);
+  const { w, d, server } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  assert.equal(d.querySelector("[data-testid=auth-screen]"), null);
+  assert.ok(d.querySelector("#acct").hidden);
+  assert.ok(!server.requests.some((u) => /supabase|\/auth\/v1\/|\/rest\/v1\//.test(u)));
+  assert.equal(w.Muster.SY.configured, false);
+  const idx = read("index.html");
+  assert.ok(idx.indexOf("js/config.js") < idx.indexOf("js/core.js") && idx.indexOf("js/sync.js") < idx.indexOf("js/app.js"));
+  const sw = read("sw.js");
+  assert.match(sw, /"js\/config\.js"/); assert.match(sw, /"js\/sync\.js"/);
+  assert.match(sw, /url\.origin !== location\.origin\) return/); assert.match(sw, /\(auth\|rest\|realtime\|storage\)\\\/v1/);
+});
+
+test("accounts on: sign-in wall on open, share link survives sign-in, local lists upload, edits/deletes sync, remote changes pull", async () => {
+  // a share link made by a friend
+  const pre = makeApp(); await until(() => pre.d.querySelector(".lists-page"));
+  const shared = { id: "x", name: "Friend Orks", faction: "orks", sub: "orks", size: "strikeforce", dets: [], entries: [], app: "muster", schema: 1 };
+  const payload = await pre.w.Muster.encodeShare(shared);
+  pre.dom.window.close();
+
+  const sb = mockSupabase();
+  const pcList = { id: "pc1", name: "PC list", faction: "orks", sub: "orks", size: "incursion", dets: [], entries: [], app: "muster", schema: 1, updated: "2026-10-01T00:00:00.000Z" };
+  const { dom, w, d } = makeApp({ config: CFG, supabase: sb, storage: { "muster.lists": JSON.stringify([pcList]) },
+    beforeParse(win) { win.history.replaceState(null, "", `#/share/${payload}`); } });
+  await until(() => d.querySelector("[data-testid=auth-screen]"));
+  assert.ok(d.body.classList.contains("auth-wall")); assert.ok(d.querySelector("#acct").hidden);
+  assert.match(d.querySelector(".auth-card").textContent, /add the shared list/);
+  assert.match(d.querySelector(".auth-links").textContent, /Forgot password/);
+  // the Meta tab and other buttons still lead to the sign-in screen
+  await tick(30); click(w, d.querySelector("#hdr [data-action=new-list]"));
+  assert.ok(d.querySelector("[data-testid=auth-screen]")); assert.equal(d.querySelector("#modal").innerHTML, "");
+  // create-account tab + forgot-password screen render
+  click(w, d.querySelector("[data-action=auth-mode][data-mode=signup]"));
+  assert.ok(d.querySelector("input[name=password2]")); assert.match(d.querySelector("[data-testid=auth-submit]").textContent, /Create free account/);
+  click(w, d.querySelector("[data-action=auth-mode][data-mode=signin]"));
+  // wrong password
+  fillAuth(w, d, "james@example.com", "nope123");
+  await until(() => d.querySelector(".auth-msg.err"));
+  assert.match(d.querySelector(".auth-msg.err").textContent, /Wrong email or password/);
+  assert.equal(w.location.hash, `#/share/${payload}`, "share link kept while signing in");
+  // correct sign-in -> share import dialog appears
+  fillAuth(w, d, "James@Example.com ", "secret123");
+  await until(() => /Import shared list/.test(d.querySelector("#modal").textContent));
+  assert.ok(!d.body.classList.contains("auth-wall"));
+  assert.equal(JSON.parse(w.localStorage.getItem("muster.auth")).user.email, "james@example.com");
+  click(w, d.querySelector("#modal [data-ok]"));
+  await tick(5); w.Muster.route();
+  const sharedId = w.Muster.S.lists.find((l) => l.name === "Friend Orks").id;
+  // the pre-account PC list and the imported list end up in the account
+  await until(() => sb.rows.some((r) => r.id === "pc1") && sb.rows.some((r) => r.id === sharedId), 5000);
+  const up = sb.calls.find((c) => c.method === "POST" && c.path === "/rest/v1/lists");
+  assert.match(up.search, /on_conflict=user_id,id/); assert.match(up.headers.Prefer, /resolution=merge-duplicates/);
+  assert.match(up.headers.Authorization, /^Bearer at-u-1/); assert.equal(up.headers.apikey, "anon-key");
+  assert.ok(sb.rows.every((r) => r.user_id === "u-1" && r.deleted === false));
+  assert.equal(sb.rows.find((r) => r.id === "pc1").data.name, "PC list");
+  await until(() => !d.querySelector("#acct").hidden && d.querySelector("#acct").classList.contains("s-synced"));
+  assert.match(d.querySelector("#acct").title, /james@example\.com · All lists synced/);
+  // rename -> pushed (debounced)
+  await go(w, "#/lists");
+  click(w, d.querySelector('[data-action=rename-list][data-id="pc1"]'));
+  d.querySelector("[data-prompt]").value = "PC list renamed"; click(w, d.querySelector("#modal [data-ok]"));
+  await until(() => sb.rows.find((r) => r.id === "pc1").data.name === "PC list renamed", 4000);
+  // delete -> soft-delete tombstone
+  click(w, d.querySelector('[data-action=del-list][data-id="pc1"]')); click(w, d.querySelector("#modal [data-ok]"));
+  await until(() => sb.rows.find((r) => r.id === "pc1").deleted === true, 4000);
+  assert.equal(sb.rows.find((r) => r.id === "pc1").data, null);
+  // another device adds a list and deletes the shared one -> pulled here
+  const later = new Date(Date.now() + 60000).toISOString();
+  sb.rows.push({ id: "phone1", user_id: "u-1", updated_at: later, deleted: false, data: { id: "phone1", name: "Phone list", faction: "orks", sub: "orks", size: "strikeforce", dets: [], entries: [], updated: later } });
+  Object.assign(sb.rows.find((r) => r.id === sharedId), { deleted: true, data: null, updated_at: later });
+  sb.rows.push({ id: "other", user_id: "u-9", updated_at: later, deleted: false, data: { id: "other", name: "Not mine", faction: "orks", entries: [] } });
+  assert.equal(await w.Muster.SY.syncNow({ pull: true }), true);
+  const names = w.Muster.S.lists.map((l) => l.name);
+  assert.equal(names.join("|"), "Phone list");
+  await until(() => d.querySelector('.lrow[data-id="phone1"]'));
+  // account modal + sign out clears this device's copy (everything is in the account)
+  click(w, d.querySelector("#acct"));
+  assert.match(d.querySelector("[data-testid=account-info]").textContent, /james@example\.com/);
+  click(w, d.querySelector("[data-action=sign-out]"));
+  await until(() => d.querySelector("[data-testid=auth-screen]"));
+  assert.equal(w.localStorage.getItem("muster.lists"), null); assert.equal(w.localStorage.getItem("muster.auth"), null);
+  assert.ok(sb.calls.some((c) => c.path === "/auth/v1/logout"));
+  // signing back in brings the lists back from the account
+  fillAuth(w, d, "james@example.com", "secret123");
+  await until(() => w.Muster.S.lists.some((l) => l.id === "phone1"));
+  dom.window.close();
+});
+
+test("accounts on: saved session skips the wall, expired token is refreshed before syncing; offline edits queue", async () => {
+  const sb = mockSupabase();
+  const auth = { access_token: "stale", refresh_token: "rt-u-1", expires_at: Math.floor(Date.now() / 1000) - 10, user: { id: "u-1", email: "james@example.com" } };
+  const mine = { id: "m1", name: "Mine", faction: "orks", sub: "orks", size: "strikeforce", dets: [], entries: [], app: "muster", schema: 1, updated: "2026-10-02T00:00:00.000Z" };
+  const { dom, w, d, server } = makeApp({ config: CFG, supabase: sb, storage: { "muster.auth": JSON.stringify(auth), "muster.sync.owner": "u-1", "muster.lists": JSON.stringify([mine]) } });
+  await until(() => d.querySelector(".lists-page"));
+  assert.equal(d.querySelector("[data-testid=auth-screen]"), null);
+  await until(() => sb.rows.some((r) => r.id === "m1"));
+  const iRefresh = sb.calls.findIndex((c) => c.path === "/auth/v1/token" && /refresh_token/.test(c.search));
+  const iPull = sb.calls.findIndex((c) => c.path === "/rest/v1/lists");
+  assert.ok(iRefresh >= 0 && iRefresh < iPull, "token refreshed before the first REST call");
+  // go offline, edit: queued, status shows offline, then flushed when back online
+  server.offline = true;
+  w.Muster.S.lists[0].name = "Mine (offline edit)"; w.Muster.S.lists[0].updated = new Date().toISOString();
+  w.Muster.SY.schedulePush(0);
+  await until(() => d.querySelector("#acct").classList.contains("s-offline"));
+  assert.match(d.querySelector("#acct").title, /Offline/);
+  assert.equal(w.Muster.SY.info().pending, 1);
+  server.offline = false;
+  w.dispatchEvent(new w.Event("online"));
+  await until(() => sb.rows.find((r) => r.id === "m1").data.name === "Mine (offline edit)");
+  await until(() => w.Muster.SY.info().pending === 0 && w.Muster.SY.info().status === "synced");
+  dom.window.close();
+});
+
+test("accounts on: create account with email confirmation ON, confirmation link signs in and returns to the Meta tab", async () => {
+  const sb = mockSupabase({ confirm: true });
+  const a = makeApp({ config: CFG, supabase: sb, beforeParse(win) { win.history.replaceState(null, "", "#/meta"); } });
+  await until(() => a.d.querySelector("[data-testid=auth-screen]"));
+  assert.match(a.d.querySelector(".auth-card").textContent, /Meta Win Rates/);
+  click(a.w, a.d.querySelector("[data-action=auth-mode][data-mode=signup]"));
+  a.d.querySelector("input[name=email]").value = "buddy@example.com";
+  a.d.querySelector("input[name=password]").value = "hunter22"; a.d.querySelector("input[name=password2]").value = "hunter2x";
+  submitForm(a.w, a.d.querySelector("[data-form=auth]"));
+  await until(() => /don't match/.test(a.d.querySelector(".auth-card").textContent));
+  a.d.querySelector("input[name=password]").value = "hunter22"; a.d.querySelector("input[name=password2]").value = "hunter22";
+  submitForm(a.w, a.d.querySelector("[data-form=auth]"));
+  await until(() => /confirmation link to buddy@example\.com/.test(a.d.querySelector(".auth-card").textContent));
+  const su = sb.calls.find((c) => c.path === "/auth/v1/signup");
+  assert.match(decodeURIComponent(su.search), /redirect_to=http:\/\/localhost:8765\//);
+  assert.equal(a.w.localStorage.getItem("muster.auth"), null);
+  // forgot password posts to /recover
+  click(a.w, a.d.querySelector("[data-action=auth-mode][data-mode=forgot]"));
+  a.d.querySelector("input[name=email]").value = "buddy@example.com"; submitForm(a.w, a.d.querySelector("[data-form=auth]"));
+  await until(() => sb.calls.some((c) => c.path === "/auth/v1/recover" && c.body.email === "buddy@example.com"));
+  await until(() => /reset link is on its way/.test(a.d.querySelector(".auth-card").textContent));
+  const pending = a.w.localStorage.getItem("muster.pendingHash");
+  assert.equal(pending, "#/meta");
+  a.dom.window.close();
+  // the emailed link opens the site (same device) with the session in the hash
+  sb.handleUser = true;
+  const orig = sb.handle;
+  sb.handle = async (url, init) => (new URL(url).pathname === "/auth/v1/user" ? { ok: true, status: 200, text: async () => JSON.stringify({ id: "u-2", email: "buddy@example.com" }) } : orig(url, init));
+  const b = makeApp({ config: CFG, supabase: sb, storage: { "muster.pendingHash": pending },
+    beforeParse(win) { win.history.replaceState(null, "", "#access_token=at-u-2-1&refresh_token=rt-u-2&expires_in=3600&token_type=bearer&type=signup"); } });
+  await until(() => b.d.querySelector("[data-testid=meta-table]"));
+  assert.equal(b.w.location.hash, "#/meta");
+  assert.equal(JSON.parse(b.w.localStorage.getItem("muster.auth")).user.email, "buddy@example.com");
+  await until(() => !b.d.querySelector("#acct").hidden);
+  b.dom.window.close();
 });

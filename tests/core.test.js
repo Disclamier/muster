@@ -334,3 +334,59 @@ test("enhancement restriction parsing + eligibility on the real data", () => {
   assert.equal(C.enhEligible(deceiver, nec.dets["Pantheon of Woe"].enh.find((e) => e[0] === "Singularity Matrix"), nec).ok, true);
   assert.equal(C.enhEligible(deceiver, nec.dets["Pantheon of Woe"].enh.find((e) => e[0] === "Animus Damper"), nec).ok, false);
 });
+
+/* ---------------------------------------------------------------- cloud sync merge (last write wins per list) */
+const T0 = "2026-10-07T10:00:00.000Z", T1 = "2026-10-07T11:00:00.000Z", T2 = "2026-10-07T12:00:00.000Z";
+const L = (id, updated, name) => ({ id, name: name || id, faction: "fx", sub: "fx", size: "strikeforce", dets: [], entries: [], updated });
+const row = (id, updated_at, extra) => ({ id, updated_at, deleted: false, data: L(id, updated_at, `${id} (remote)`), ...(extra || {}) });
+
+test("sync merge: newer copy wins in both directions, Postgres timestamps compare at ms precision", () => {
+  assert.equal(C.syncTime("2026-10-07T11:00:00.000123+00:00"), C.syncTime(T1));
+  assert.equal(C.syncTime("2026-10-07 11:00:00+00"), C.syncTime(T1));
+  const local = { lists: [L("a", T1, "a local"), L("b", T1, "b local"), L("c", T1, "c local")], tombs: {} };
+  const r = C.mergeLists(local, [row("a", T2), row("b", T0), row("c", "2026-10-07T11:00:00+00:00")]);
+  assert.equal(r.lists.find((l) => l.id === "a").name, "a (remote)", "remote newer replaces local");
+  assert.equal(r.lists.find((l) => l.id === "a").updated, T2);
+  assert.equal(r.lists.find((l) => l.id === "b").name, "b local", "local newer is kept");
+  assert.equal(r.lists.find((l) => l.id === "c").name, "c local", "same time: no change");
+  assert.deepEqual(r.push, ["b"], "only the locally newer list is pushed");
+  assert.deepEqual(r.replaced, ["a"]); assert.ok(r.changed);
+  assert.deepEqual(r.lists.map((l) => l.id), ["a", "b", "c"], "local order kept");
+});
+
+test("sync merge: remote-only lists are added, remote tombstones never resurrect", () => {
+  const r = C.mergeLists({ lists: [], tombs: {} }, [row("n", T1), { id: "gone", updated_at: T1, deleted: true, data: null }]);
+  assert.deepEqual(r.lists.map((l) => l.id), ["n"]); assert.deepEqual(r.added, ["n"]); assert.deepEqual(r.push, []);
+});
+
+test("sync merge: tombstones – remote deletion removes a list, local deletion is pushed, newer edit beats older deletion", () => {
+  // deleted on another device after our last edit -> dropped here
+  let r = C.mergeLists({ lists: [L("a", T1)], tombs: {} }, [{ id: "a", updated_at: T2, deleted: true, data: null }]);
+  assert.deepEqual(r.lists, []); assert.deepEqual(r.removed, ["a"]); assert.deepEqual(r.push, []);
+  // deleted here after the server copy -> tombstone pushed as a soft delete
+  r = C.mergeLists({ lists: [], tombs: { b: T2 } }, [row("b", T1)]);
+  assert.deepEqual(r.lists, [], "server's older copy does not come back"); assert.deepEqual(r.push, ["b"]);
+  assert.deepEqual(C.syncRow(r, "b", "u1"), { id: "b", data: null, updated_at: T2, deleted: true, user_id: "u1" });
+  // our deletion is already on the server -> tombstone pruned, nothing to push
+  r = C.mergeLists({ lists: [], tombs: { c: T2 } }, [{ id: "c", updated_at: T2, deleted: true, data: null }]);
+  assert.deepEqual(r.tombs, {}); assert.deepEqual(r.push, []);
+  // edited here after another device deleted it -> local edit wins and is re-uploaded
+  r = C.mergeLists({ lists: [L("d", T2)], tombs: {} }, [{ id: "d", updated_at: T1, deleted: true, data: null }]);
+  assert.deepEqual(r.lists.map((l) => l.id), ["d"]); assert.deepEqual(r.push, ["d"]);
+  // tie between an edit and a deletion: deletion wins
+  r = C.mergeLists({ lists: [L("e", T1)], tombs: {} }, [{ id: "e", updated_at: T1, deleted: true, data: null }]);
+  assert.deepEqual(r.lists, []);
+});
+
+test("sync merge: lists made before the first sign-in (local-only) are uploaded, offline edits queue via pendingPush", () => {
+  const local = { lists: [L("pc1", T0), L("pc2", T1)], tombs: { old: T1 } };
+  const r = C.mergeLists(local, []);
+  assert.deepEqual(r.push.sort(), ["old", "pc1", "pc2"]);
+  const row1 = C.syncRow(local, "pc1", "u1");
+  assert.deepEqual({ ...row1, data: row1.data.id }, { id: "pc1", data: "pc1", updated_at: T0, deleted: false, user_id: "u1" });
+  // after a successful push the server is known to hold these; a later offline edit makes only that list pending
+  const known = { pc1: T0, pc2: T1, old: T1 };
+  assert.deepEqual(C.pendingPush(local, known), []);
+  local.lists[1].updated = T2;
+  assert.deepEqual(C.pendingPush(local, known), ["pc2"]);
+});

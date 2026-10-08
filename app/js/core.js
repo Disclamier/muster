@@ -896,7 +896,55 @@
   }
   const fmtPct = (v) => v === null || v === undefined || v === "" || isNaN(v) ? "—" : `${Number(v).toFixed(1)}%`;
 
-  return { attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
+  /* ---------------------------------------------------------------- cloud sync (Supabase) merge – pure, last write wins per list
+     local  = { lists: [list], tombs: { id: deletedAtISO } }   (tombstone = list deleted on this device)
+     rows   = [{ id, data, updated_at, deleted }]               (the account's rows from /rest/v1/lists)
+     known  = { id: updated_at }                                (what the server is known to hold, per id) */
+  function syncTime(s) {
+    if (s === null || s === undefined || s === "") return null;
+    const m = String(s).trim().replace(" ", "T").replace(/(\.\d{3})\d+/, "$1").replace(/([+-]\d\d)$/, "$1:00");
+    const t = Date.parse(m); return isNaN(t) ? null : t;
+  }
+  /* ids whose local state (edit or deletion) is newer than what the server holds -> need pushing */
+  function pendingPush(local, known) {
+    known = known || {}; const out = [];
+    const newer = (id, iso) => { const lt = syncTime(iso) || 0, k = syncTime(known[id]); return k === null || lt > k; };
+    for (const l of local.lists || []) if (newer(l.id, l.updated)) out.push(l.id);
+    for (const [id, iso] of Object.entries(local.tombs || {})) if (!(local.lists || []).some((l) => l.id === id) && newer(id, iso)) out.push(id);
+    return out;
+  }
+  /* row to upsert for one id (live list or tombstone) */
+  function syncRow(local, id, userId) {
+    const l = (local.lists || []).find((x) => x.id === id);
+    const r = l ? { id, data: l, updated_at: l.updated, deleted: false } : { id, data: null, updated_at: (local.tombs || {})[id], deleted: true };
+    if (userId) r.user_id = userId;
+    return r;
+  }
+  function mergeLists(local, rows) {
+    const lists = new Map((local.lists || []).map((l) => [l.id, l]));
+    const tombs = { ...(local.tombs || {}) };
+    const known = {}; let changed = false; const added = [], replaced = [], removed = [];
+    for (const r of rows || []) {
+      if (!r || !r.id) continue;
+      known[r.id] = r.updated_at;
+      const l = lists.get(r.id), t = tombs[r.id];
+      const rt = syncTime(r.updated_at) || 0;
+      const lt = l ? (syncTime(l.updated) || 0) : t ? (syncTime(t) || 0) : null;
+      const adopt = () => ({ ...r.data, id: r.id, updated: r.updated_at });
+      if (lt === null) {                                   // only on the server
+        if (!r.deleted && r.data) { lists.set(r.id, adopt()); added.push(r.id); changed = true; }
+        continue;
+      }
+      if (rt > lt || (rt === lt && r.deleted && l)) {      // server copy is newer (deletion wins a tie)
+        if (r.deleted) { if (l) { lists.delete(r.id); removed.push(r.id); changed = true; } delete tombs[r.id]; }
+        else if (r.data) { lists.set(r.id, adopt()); delete tombs[r.id]; (l ? replaced : added).push(r.id); changed = true; }
+      } else if (rt === lt && r.deleted && !l) delete tombs[r.id];   // our deletion already on the server
+    }
+    const merged = { lists: [...lists.values()], tombs };
+    return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
+  }
+
+  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

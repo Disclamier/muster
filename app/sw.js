@@ -1,9 +1,11 @@
 /* Muster service worker.
    - App shell: precached, served stale-while-revalidate (works offline, picks up new code on next load).
    - data/*.json: network-first (fresh points when online), falling back to the cached copy offline.
-   - Faction artwork: precached from assets/factions/index.json, cache-first. */
-const SHELL = "muster-shell-v8", DATA = "muster-data-v1", ART = "muster-art-v1";
-const SHELL_FILES = ["./", "index.html", "css/app.css", "js/core.js", "js/app.js", "manifest.webmanifest",
+   - Faction artwork: precached from assets/factions/index.json, cache-first.
+   - Accounts/sync (Supabase /auth/v1/, /rest/v1/) are never cached: they are cross-origin and/or non-GET, and are
+     ignored explicitly below as well, so the browser talks to Supabase directly every time. */
+const SHELL = "muster-shell-v9", DATA = "muster-data-v1", ART = "muster-art-v1";
+const SHELL_FILES = ["./", "index.html", "css/app.css", "js/config.js", "js/core.js", "js/sync.js", "js/app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png"];
 
 self.addEventListener("install", (ev) => {
@@ -29,7 +31,8 @@ self.addEventListener("activate", (ev) => {
 });
 self.addEventListener("fetch", (ev) => {
   const req = ev.request; if (req.method !== "GET") return;
-  const url = new URL(req.url); if (url.origin !== location.origin) return;
+  const url = new URL(req.url); if (url.origin !== location.origin) return;            // Supabase + any other cross-origin call: network only
+  if (/\/(auth|rest|realtime|storage)\/v1\//.test(url.pathname)) return;              // never cache account / sync API calls
   const path = url.pathname;
   if (/\/data\/[^/]+\.json$/.test(path)) {
     ev.respondWith((async () => {

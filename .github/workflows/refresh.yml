@@ -24,6 +24,23 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      # Supabase free projects pause after ~7 days without activity; one tiny read a day keeps accounts/sync awake.
+      # URL/key come from repo secrets SUPABASE_URL / SUPABASE_ANON_KEY if set, else from app/js/config.js (the anon key
+      # is public by design). Skipped when sync isn't configured; never fails the run.
+      - name: Keep Supabase project awake
+        if: github.event_name != 'push'
+        continue-on-error: true
+        env:
+          SB_URL: ${{ secrets.SUPABASE_URL }}
+          SB_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          url="${SB_URL:-$(sed -nE 's/.*SUPABASE_URL:[[:space:]]*"([^"]*)".*/\1/p' app/js/config.js | head -1)}"
+          key="${SB_KEY:-$(sed -nE 's/.*SUPABASE_ANON_KEY:[[:space:]]*"([^"]*)".*/\1/p' app/js/config.js | head -1)}"
+          if [ -z "$url" ] || [ -z "$key" ]; then echo "Supabase not configured - skipping keep-alive"; exit 0; fi
+          code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 30 "${url%/}/rest/v1/lists?select=id&limit=1" \
+            -H "apikey: $key" -H "Authorization: Bearer $key" || echo "000")
+          echo "Supabase keep-alive ping: HTTP $code"
+          case "$code" in 2*) exit 0;; *) echo "::warning::Supabase keep-alive got HTTP $code"; exit 0;; esac
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

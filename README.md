@@ -1,15 +1,16 @@
 # Muster – offline 40K army list builder (unofficial)
 
 Personal-use Progressive Web App with current **Munitorum Field Manual** points, laid out like New Recruit.
-Static files only (no backend, no CDN); works offline once loaded. Not affiliated with Games Workshop –
+Static files only (no CDN; optional free Supabase backend for accounts + list sync); works offline once loaded. Not affiliated with Games Workshop –
 faction names/artwork are © Games Workshop and are mirrored here for personal use only.
 
 ```
 app/                    the PWA (deploy this folder)
   index.html  manifest.webmanifest  sw.js
-  css/app.css  js/core.js (pure logic, UMD)  js/app.js (UI)
+  css/app.css  js/core.js (pure logic, UMD)  js/app.js (UI)  js/sync.js (accounts + sync)  js/config.js
   icons/  assets/factions/ (MFM artwork, 30 factions)  data/{points,version,winrates}.json
 scraper/                fetch_mfm.py · fetch_grimslate.py · fetch_winrates.py · fetch_images.py · build_data.py
+supabase/schema.sql     table + row-level security for accounts/sync
 scripts/refresh.sh      one-command, fail-safe refresh
 tests/                  node:test unit tests + jsdom smoke tests + refresh fail-safe test
 .github/workflows/refresh.yml   daily refresh + GitHub Pages publish (prepared, not pushed)
@@ -79,6 +80,29 @@ If the hash changed it downloads the new `points.json`, recalculates every saved
 which lists changed (old → new total, per unit/enhancement/detachment) plus all unit/enhancement/detachment
 changes. Offline it keeps using the cached data; the service worker also serves the last data files.
 Saved lists live in localStorage on the device (export/import JSON to move them).
+
+## Accounts & sync (Supabase, free tier)
+Free accounts with automatic cloud sync of saved lists. Plain `fetch` to Supabase's REST APIs – no SDK, no CDN.
+* **Config**: `app/js/config.js` (`SUPABASE_URL`, `SUPABASE_ANON_KEY` – public client values; row-level security
+  protects the data). Leave both empty and the app runs exactly as before: local-only, no sign-in.
+* **Database**: run `supabase/schema.sql` once in the Supabase SQL Editor (idempotent): table `lists`
+  (`id`, `user_id`, `data` jsonb, `updated_at`, `deleted`; PK `(user_id, id)`), RLS on, own-rows-only policies.
+* **Auth** (`js/sync.js`, GoTrue REST): sign up, sign in with password, forgot password (`/recover` → email link →
+  "Set a new password"), refresh-token renewal before expiry, sign out. When configured, every page shows the
+  sign-in / create-account screen until signed in; share links and the Meta tab resume after signing in. The session
+  is kept in localStorage, so the app stays signed in and works offline.
+* **Sync**: every create / edit / rename / delete / import saves locally, then upserts to `/rest/v1/lists`
+  (debounced 1 s, `Prefer: resolution=merge-duplicates`). Deletes are soft (tombstones) so other devices drop them.
+  Pulls on sign-in, app open, window focus / tab visible, coming back online and every 60 s while visible.
+  Merge is last-write-wins per list on its `updated` time (`MusterCore.mergeLists`, unit-tested). Lists made before
+  the first sign-in are uploaded to the account; offline edits stay pending and upload when back online. Signing in
+  with a different account parks the previous account's local lists under `muster.stash.<id>` (nothing is mixed).
+  Header cloud icon: green = synced, blue = syncing, grey = offline, red = error (tooltip has details); click it
+  for the account / Sync now / Sign out dialog.
+* **Auth settings** (Supabase → Authentication): Site URL and Redirect URL `https://disclamier.github.io/muster/`.
+  Email confirmation OFF = friends can sign up and use it instantly; ON also works (the confirmation link signs them in).
+* **Keep-alive**: free projects pause after ~7 idle days; the daily workflow pings `/rest/v1/lists` with the anon
+  key (repo secrets `SUPABASE_URL`/`SUPABASE_ANON_KEY` or `config.js`). Non-fatal.
 
 ## Deploy (GitHub Pages) – prepared, not pushed
 This folder is already a git repo (branch `main`, one local commit, no remote). What gets committed:

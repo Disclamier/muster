@@ -3,12 +3,13 @@
   "use strict";
   const C = window.MusterCore;
   const LS_LISTS = "muster.lists", LS_THEME = "muster.theme", LS_FMT = "muster.exportFormat", LS_REPORT = "muster.updateReport",
-    LS_COLL = "muster.collapsed", LS_WRRANGE = "muster.metaRange";
+    LS_COLL = "muster.collapsed", LS_WRRANGE = "muster.metaRange", LS_TOMBS = "muster.tombs", LS_OWNER = "muster.sync.owner",
+    LS_PENDING = "muster.pendingHash";
   const ROLE_ICON = "unit";
 
   /* ------------------------------------------------------------------ state */
   const S = {
-    data: null, idx: null, meta: null, wr: null, lists: [], report: null,
+    data: null, idx: null, meta: null, wr: null, lists: [], tombs: {}, report: null, sync: null,
     ui: { panel: null, q: "", tab: "roster", focusDet: null, collapsed: {}, listQ: "", metaSort: { key: "win_rate", dir: "desc" },
       detSort: { key: "games", dir: "desc" }, muSort: { key: "win_rate", dir: "desc" }, detMode: "combos", metaRange: "weekend", showSmall: false },
   };
@@ -52,8 +53,16 @@
   const fileSafe = (s) => String(s || "list").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_") || "list";
 
   /* ------------------------------------------------------------------ storage: lists in localStorage, data in IndexedDB */
-  function loadLists() { try { S.lists = JSON.parse(localStorage.getItem(LS_LISTS) || "[]"); } catch (e) { S.lists = []; } }
-  function saveLists() { try { localStorage.setItem(LS_LISTS, JSON.stringify(S.lists)); } catch (e) { toast("Could not save – storage full?"); } }
+  function loadLists() {
+    try { S.lists = JSON.parse(localStorage.getItem(LS_LISTS) || "[]"); } catch (e) { S.lists = []; }
+    try { S.tombs = JSON.parse(localStorage.getItem(LS_TOMBS) || "{}") || {}; } catch (e) { S.tombs = {}; }
+  }
+  function storeLists() {
+    try { localStorage.setItem(LS_LISTS, JSON.stringify(S.lists)); } catch (e) { toast("Could not save – storage full?"); }
+    try { if (Object.keys(S.tombs).length) localStorage.setItem(LS_TOMBS, JSON.stringify(S.tombs)); else localStorage.removeItem(LS_TOMBS); } catch (e) { /* ignore */ }
+  }
+  /* every list change (create / edit / rename / delete / import) goes through here: saved locally, then pushed to the account (debounced) */
+  function saveLists() { storeLists(); if (SY && SY.configured && SY.session()) SY.schedulePush(); }
   const mem = {};
   const idb = {
     db: null,
@@ -78,6 +87,182 @@
       return new Promise((res) => { try { const t = db.transaction("kv", "readwrite"); t.objectStore("kv").put(v, k); t.oncomplete = () => res(); t.onerror = () => res(); } catch (e) { res(); } });
     },
   };
+
+  /* ------------------------------------------------------------------ accounts + cloud sync (Supabase; js/sync.js) */
+  const SY = window.MusterSync ? window.MusterSync.create(window.MUSTER_CONFIG || {}, {
+    getLocal: () => ({ lists: S.lists, tombs: S.tombs }),
+    apply: (res) => applyMerge(res),
+    onStatus: (i) => { S.sync = i; renderAcct(); },
+    onSignedOut: (reason) => { if (reason === "expired") { AUTH.msg = { err: true, text: "Your session expired – please sign in again. Your lists are safe on this device." }; route(); } },
+  }) : null;
+  const authWall = () => !!(SY && SY.configured && !SY.session());
+  /* in-place update keeps references (CUR, open panels) pointing at the live list object */
+  function applyMerge(res) {
+    S.tombs = res.tombs;
+    if (!res.changed) { storeLists(); return; }
+    const byId = new Map(S.lists.map((l) => [l.id, l]));
+    S.lists = res.lists.map((l) => {
+      const old = byId.get(l.id);
+      if (old && old !== l) { for (const k of Object.keys(old)) delete old[k]; Object.assign(old, l); l = old; }
+      if (S.idx && (res.added.includes(l.id) || res.replaced.includes(l.id))) { try { l.total = C.calcList(l, S.idx).total; } catch (e) { /* ignore */ } }
+      return l;
+    });
+    storeLists();
+    const h = location.hash || "#/lists";
+    const curId = CUR && CUR.id;
+    if (curId && res.removed.includes(curId) && h.startsWith("#/list/")) { CUR = null; toast("This list was deleted on another device", 3000); location.hash = "#/lists"; return; }
+    const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && document.activeElement.closest("#main");
+    if ($("#modal").innerHTML || typing) return;
+    if (!h.startsWith("#/list/") && !h.startsWith("#/meta") && !h.startsWith("#/share/")) route();
+    else if (curId && res.replaced.includes(curId) && h.startsWith("#/list/")) route();
+  }
+  /* which account the lists in localStorage belong to. Lists made before the first sign-in (no owner) are uploaded
+     to the account; a different account's lists are parked under muster.stash.<id> so nothing is lost or mixed. */
+  function adoptAccount(user) {
+    const owner = localStorage.getItem(LS_OWNER);
+    if (owner === user.id) return;
+    if (owner) stashAccount(owner);
+    try {
+      const st = JSON.parse(localStorage.getItem(`muster.stash.${user.id}`) || "null");
+      if (st) {
+        const have = new Set(S.lists.map((l) => l.id));
+        S.lists.push(...(st.lists || []).filter((l) => !have.has(l.id)));
+        S.tombs = { ...(st.tombs || {}), ...S.tombs };
+        if (st.known) localStorage.setItem(SY.LS_KNOWN, JSON.stringify(st.known));
+        localStorage.removeItem(`muster.stash.${user.id}`);
+      }
+    } catch (e) { /* ignore */ }
+    for (const l of S.lists) if (!l.updated) l.updated = now();
+    localStorage.setItem(LS_OWNER, user.id);
+    storeLists();
+  }
+  function stashAccount(owner) {
+    try { localStorage.setItem(`muster.stash.${owner}`, JSON.stringify({ lists: S.lists, tombs: S.tombs, known: JSON.parse(localStorage.getItem(SY.LS_KNOWN) || "{}") })); } catch (e) { /* ignore */ }
+    clearLocalAccountData();
+  }
+  function clearLocalAccountData() {
+    S.lists = []; S.tombs = {}; CUR = null;
+    for (const k of [LS_LISTS, LS_TOMBS, LS_OWNER, SY.LS_KNOWN]) localStorage.removeItem(k);
+  }
+  function afterSignIn() {
+    adoptAccount(SY.user());
+    document.body.classList.remove("auth-wall");
+    AUTH.msg = null; closeModal();
+    let pend = null; try { pend = localStorage.getItem(LS_PENDING); localStorage.removeItem(LS_PENDING); } catch (e) { /* ignore */ }
+    const h = location.hash || "";
+    if (pend && (!h || h === "#" || h === "#/lists" || !h.startsWith("#/"))) { history.replaceState(null, "", pend); }
+    route(); renderAcct();
+    SY.syncNow({ pull: true }).then((ok) => { if (ok && S.lists.length) renderAcct(); });
+  }
+  const SYNC_TXT = { synced: "Synced", syncing: "Syncing…", offline: "Offline", error: "Sync error", idle: "Signed in", signedout: "Signed out" };
+  function syncTooltip(i) {
+    if (!i) return "";
+    const t = { synced: `All lists synced${i.lastSync ? " · " + localTime(i.lastSync) : ""}`, syncing: "Syncing your lists…",
+      offline: `Offline – ${i.pending ? i.pending + " change(s) will upload when you're back online" : "changes upload when you're back online"}`,
+      error: `Sync error: ${i.error || "unknown"} – will retry`, idle: "Signed in", signedout: "Not signed in" }[i.status] || "";
+    return `${i.email ? i.email + " · " : ""}${t}`;
+  }
+  function renderAcct() {
+    const b = $("#acct"); if (!b) return;
+    if (!SY || !SY.configured || !SY.session()) { b.hidden = true; return; }
+    const i = S.sync || SY.info();
+    b.hidden = false; b.className = `hbtn acct s-${i.status}`; b.title = syncTooltip(i);
+    $(".lbl", b).textContent = SYNC_TXT[i.status] || "Account";
+  }
+  function accountModal() {
+    if (!SY || !SY.session()) return;
+    const i = SY.info();
+    const m = modal("Account", `<table class="ptable" data-testid="account-info"><tr><td>Signed in as</td><td><b>${esc(i.email || "")}</b></td></tr>
+      <tr><td>Sync</td><td><span class="sync-pill s-${esc(i.status)}">${esc(SYNC_TXT[i.status] || i.status)}</span> ${esc(syncTooltip({ ...i, email: null }))}</td></tr>
+      <tr><td>Lists</td><td>${S.lists.length} – saved on this device and in your account; changes sync automatically to every device you sign in on.</td></tr></table>
+      <div class="mfoot wrap"><button class="btn secondary" data-action="sync-now">${icon("refresh")} Sync now</button><button class="btn danger" data-action="sign-out">Sign out</button><button class="btn" data-action="close-modal">Close</button></div>`);
+    return m;
+  }
+  async function signOut() {
+    const i = await SY.flush();
+    const go = async () => {
+      if (i.pending) stashAccount(localStorage.getItem(LS_OWNER) || SY.user().id);   // unsynced changes stay on this device for next sign-in
+      else clearLocalAccountData();                                                       // everything is in the account
+      await SY.signOut(); closeModal(); AUTH.mode = "signin"; AUTH.msg = { text: "Signed out." };
+      if (location.hash !== "#/lists") location.hash = "#/lists"; route();
+    };
+    if (i.pending) confirmModal(`${i.pending} change${i.pending === 1 ? " hasn't" : "s haven't"} uploaded yet (offline?). Sign out anyway? They stay on this device and upload the next time you sign in here.`, "Sign out", go);
+    else go();
+  }
+  /* sign-in / create-account screen (shown instead of every page while signed out, when accounts are configured) */
+  const AUTH = { mode: "signin", msg: null, busy: false, email: "" };
+  function renderAuth() {
+    document.body.classList.add("auth-wall"); document.body.classList.remove("app-fixed");
+    const h = location.hash || "";
+    if (/^#\/(share|list|meta)\//.test(h) || h === "#/meta") { try { localStorage.setItem(LS_PENDING, h); } catch (e) { /* ignore */ } }
+    const ctx = h.startsWith("#/share/") ? "Sign in or create a free account to add the shared list to your lists."
+      : h.startsWith("#/meta") ? "Sign in or create a free account to view Meta Win Rates."
+      : "Create a free account so your lists sync automatically between your PC and phone.";
+    const M = AUTH.mode;
+    const ttl = M === "signup" ? "Create account" : M === "forgot" ? "Reset password" : "Sign in";
+    $("#main").innerHTML = `<div class="auth-page"><form class="auth-card" data-form="auth" data-testid="auth-screen" novalidate>
+      <div class="auth-brand"><img src="icons/icon-192.png" alt=""><div><b>Muster</b><small>40K army list builder</small></div></div>
+      ${M !== "forgot" ? `<div class="seg auth-tabs"><button type="button" class="${M === "signin" ? "on" : ""}" data-action="auth-mode" data-mode="signin">Sign in</button><button type="button" class="${M === "signup" ? "on" : ""}" data-action="auth-mode" data-mode="signup">Create account</button></div>` : `<h3>${ttl}</h3>`}
+      <p class="muted small">${M === "forgot" ? "Enter your account email and we'll send you a link to set a new password." : esc(ctx)}</p>
+      ${AUTH.msg ? `<div class="auth-msg${AUTH.msg.err ? " err" : ""}" role="status">${esc(AUTH.msg.text)}</div>` : ""}
+      <label class="l" for="auth-email">Email</label><input id="auth-email" type="email" name="email" autocomplete="email" inputmode="email" required value="${esc(AUTH.email)}" data-testid="auth-email">
+      ${M !== "forgot" ? `<label class="l" for="auth-pw">Password</label><input id="auth-pw" type="password" name="password" required minlength="6" autocomplete="${M === "signup" ? "new-password" : "current-password"}" data-testid="auth-password">` : ""}
+      ${M === "signup" ? `<label class="l" for="auth-pw2">Confirm password</label><input id="auth-pw2" type="password" name="password2" required minlength="6" autocomplete="new-password">` : ""}
+      <button class="btn auth-go" type="submit" ${AUTH.busy ? "disabled" : ""} data-testid="auth-submit">${AUTH.busy ? "Please wait…" : M === "signup" ? "Create free account" : M === "forgot" ? "Send reset link" : "Sign in"}</button>
+      <div class="auth-links">${M === "signin" ? `<a href="#" data-action="auth-mode" data-mode="forgot">Forgot password?</a>` : `<a href="#" data-action="auth-mode" data-mode="signin">Back to sign in</a>`}</div>
+      <p class="muted small">Your lists are private to your account. Muster is an unofficial fan tool.</p>
+    </form></div>`;
+    $("#banner").innerHTML = "";
+    if (S.meta) renderFooter(); else $("#footer").innerHTML = "Muster is an <b>unofficial</b> fan tool, not affiliated with or endorsed by Games Workshop.";
+    setActiveNav();
+  }
+  async function submitAuth(form) {
+    if (AUTH.busy) return;
+    const fv = (n) => { const el = form.querySelector(`[name=${n}]`); return el ? el.value : ""; };
+    const email = fv("email").trim(), pw = fv("password"), M = AUTH.mode;
+    AUTH.email = email;
+    const fail = (text) => { AUTH.busy = false; AUTH.msg = { err: true, text }; renderAuth(); };
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Enter a valid email address.");
+    if (M !== "forgot" && pw.length < 6) return fail("Password must be at least 6 characters.");
+    if (M === "signup" && pw !== fv("password2")) return fail("The passwords don't match.");
+    AUTH.busy = true; AUTH.msg = null; renderAuth();
+    try {
+      if (M === "forgot") { await SY.recover(email); AUTH.busy = false; AUTH.mode = "signin"; AUTH.msg = { text: `If ${email} has an account, a password reset link is on its way. Open it on this device.` }; renderAuth(); return; }
+      const r = M === "signup" ? await SY.signUp(email, pw) : await SY.signIn(email, pw);
+      AUTH.busy = false;
+      if (r.confirm) { AUTH.mode = "signin"; AUTH.msg = { text: `Almost done: we sent a confirmation link to ${email}. Open it, then sign in here.` }; renderAuth(); return; }
+      toast(M === "signup" ? "Account created – your lists now sync" : "Signed in");
+      afterSignIn();
+    } catch (e) {
+      const m = String(e.message || e);
+      fail(e.kind === "offline" ? "You're offline – connect to the internet to sign in." : /invalid login/i.test(m) ? "Wrong email or password." : /not confirmed/i.test(m) ? "Please confirm your email first (check your inbox), then sign in." : m);
+    }
+  }
+  function newPasswordModal() {
+    const m = modal("Set a new password", `<label class="l">New password</label><input type="password" class="wide" minlength="6" autocomplete="new-password" autofocus data-newpw>
+      <div class="mfoot"><button class="btn secondary" data-action="close-modal">Later</button><button class="btn" data-ok>Save password</button></div>`);
+    $("[data-ok]", m).onclick = async () => {
+      const v = $("[data-newpw]", m).value; if (v.length < 6) { toast("At least 6 characters"); return; }
+      try { await SY.updatePassword(v); closeModal(); toast("Password updated"); } catch (e) { toast(`Could not update password: ${e.message}`, 3500); }
+    };
+  }
+  async function initSync() {
+    if (!SY || !SY.configured) return;
+    const h = location.hash || "";
+    if (/(^#|&)(access_token|error_description|error)=/.test(h.replace(/^#\/?/, "#"))) {   // email confirmation / password reset link
+      const r = await SY.consumeRedirect(h);
+      history.replaceState(null, "", location.pathname + location.search + "#/lists");
+      if (r && r.error) AUTH.msg = { err: true, text: `That link didn't work: ${r.error}. Try again or request a new one.` };
+      else if (r && r.session) { afterSignIn(); if (r.type === "recovery") newPasswordModal(); else toast("Email confirmed – you're signed in", 3000); }
+    }
+    if (SY.session()) { adoptAccount(SY.user()); renderAcct(); SY.syncNow({ pull: true }); }
+    const pullSoon = () => { if (SY.session() && document.visibilityState !== "hidden" && Date.now() - SY.lastPull() > 5000) SY.syncNow({ pull: true }); };
+    window.addEventListener("focus", pullSoon);
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pullSoon(); });
+    window.addEventListener("online", () => { if (SY.session()) SY.syncNow({ pull: true }); });
+    window.addEventListener("offline", () => { if (SY.session()) { S.sync = { ...SY.info(), status: "offline" }; renderAcct(); } });
+    setInterval(() => { if (SY.session() && document.visibilityState !== "hidden") SY.syncNow({ pull: true }); }, 60000);
+  }
 
   /* ------------------------------------------------------------------ data loading + points update flow */
   async function fetchJSON(url, opts) {
@@ -149,13 +334,17 @@
   }
   async function boot() {
     loadLists();
+    if (authWall()) renderAuth();
+    const syncReady = initSync().catch(() => {});
     try { S.report = JSON.parse(localStorage.getItem(LS_REPORT) || "null"); } catch (e) { S.report = null; }
     const cached = await idb.get("points");
     if (cached && cached.factions) setData(cached);
     S.wr = (await idb.get("winrates")) || null;
     S.ds = (await idb.get("datasheets")) || null;
+    await syncReady;
     if (S.data) route();
     const r = await checkForUpdates(false);
+    if (!S.data && authWall()) { renderAuth(); return; }
     if (!S.data) { $("#main").innerHTML = `<div class="empty">No points data available${r.offline ? " offline" : ""}. Connect once to download the Munitorum Field Manual data.</div>`; return; }
     route();
     if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) {
@@ -203,7 +392,9 @@
 
   /* ------------------------------------------------------------------ router */
   function route() {
-    if (!S.data) return;
+    if (authWall()) { closeMenus(); renderAuth(); return; }
+    document.body.classList.remove("auth-wall");
+    if (!S.data) { if ($(".auth-page")) $("#main").innerHTML = `<div class="empty">Loading…</div>`; return; }
     const h = location.hash || "#/lists";
     const parts = h.replace(/^#\/?/, "").split("/");
     closeMenus();
@@ -855,7 +1046,9 @@
   function deleteList(id) {
     const l = findList(id); if (!l) return;
     confirmModal(`Delete <b>${esc(l.name)}</b>? This cannot be undone.`, "Delete", () => {
-      S.lists = S.lists.filter((x) => x.id !== id); saveLists();
+      S.lists = S.lists.filter((x) => x.id !== id);
+      if (SY && SY.configured) S.tombs[id] = now();   // tombstone: other devices drop it on their next sync
+      saveLists();
       if (CUR && CUR.id === id) { CUR = null; location.hash = "#/lists"; } else route();
       toast("List deleted");
     });
@@ -974,7 +1167,8 @@
       <table class="ptable"><tr><td>Points</td><td>Munitorum Field Manual ${esc(m.mfm_version || "?")}, fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}</td></tr>
       <tr><td>Rules text &amp; stratagems</td><td>GrimSlate (secondary), ${esc(m.gs_fetched_at ? localTime(m.gs_fetched_at) : "?")}</td></tr>
       <tr><td>Win rates</td><td>${W ? `listhammer.info, ${esc((W.date_range || {}).label || "")} ${esc((W.date_range || {}).dates || "")}, fetched ${esc(localTime(W.fetched_at))}` : "not loaded"}</td></tr>
-      <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} (stored only on this device)</td></tr></table>
+      <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} ${SY && SY.session() ? `(synced to your account)` : "(stored only on this device)"}</td></tr>
+      ${SY && SY.session() ? `<tr><td>Account</td><td>${esc(SY.user().email || "")} · ${esc(SYNC_TXT[(S.sync || SY.info()).status] || "")} <a href="#" data-action="account">Manage / sign out</a></td></tr>` : ""}</table>
       <div class="mfoot wrap">${S.report ? `<button class="btn secondary" data-action="show-report">Show last points-update report</button>` : ""}<button class="btn secondary" data-action="check-update">Check for points updates</button><button class="btn" data-action="close-modal">Close</button></div>`);
   }
   function toggleTheme() {
@@ -1014,6 +1208,10 @@
     "export-all": () => download(`muster-lists-${new Date().toISOString().slice(0, 10)}.json`, C.exportLists(S.lists), "application/json"),
     "toggle-theme": () => toggleTheme(),
     "about": () => about(),
+    "account": () => accountModal(),
+    "sync-now": async () => { closeModal(); const ok = await SY.syncNow({ pull: true }); toast(ok ? "Lists synced" : `Sync failed – ${SYNC_TXT[(S.sync || {}).status] || "will retry"}`); },
+    "sign-out": () => signOut(),
+    "auth-mode": (t) => { AUTH.mode = t.dataset.mode; AUTH.msg = null; const e = $("#auth-email"); if (e) AUTH.email = e.value; renderAuth(); },
     "check-update": async () => { const r = await checkForUpdates(true); if (r.updated || r.wrUpdated) route(); },
     "dismiss-report": () => { if (S.report) { S.report.dismissed = true; try { localStorage.setItem(LS_REPORT, JSON.stringify(S.report)); } catch (e) { /* ignore */ } } renderBanner(); },
     "show-report": () => { if (S.report) { S.report.dismissed = false; closeModal(); renderBanner(); window.scrollTo(0, 0); } },
@@ -1145,10 +1343,13 @@
     if (!ev.target.closest(".menu")) closeMenus();
     const t = ev.target.closest("[data-action]"); if (!t) return;
     const a = actions[t.dataset.action]; if (!a) return;
+    if (authWall() && !AUTH_OK.has(t.dataset.action)) { ev.preventDefault(); closeModal(); route(); return; }
     if (t.tagName === "A" && t.getAttribute("href") && !t.getAttribute("href").startsWith("#")) return;
     if (t.tagName === "BUTTON" || t.tagName === "A") ev.preventDefault();
     a(t, ev);
   });
+  const AUTH_OK = new Set(["auth-mode", "toggle-theme", "about", "close-modal", "modal-bg", "check-update", "show-report", "dismiss-report"]);
+  document.addEventListener("submit", (ev) => { const f = ev.target.closest("[data-form=auth]"); if (!f) return; ev.preventDefault(); submitAuth(f); });
   let SW = null;
   document.addEventListener("touchstart", (ev) => { const row = ev.target.closest && ev.target.closest(".roster .urow"); if (!row || !ev.touches || !ev.touches[0]) { SW = null; return; } SW = { row, x: ev.touches[0].clientX, y: ev.touches[0].clientY }; }, { passive: true });
   document.addEventListener("touchend", (ev) => {
@@ -1164,6 +1365,6 @@
   document.addEventListener("input", (ev) => { const t = ev.target.closest("[data-input]"); if (t && inputs[t.dataset.input]) inputs[t.dataset.input](t, ev); });
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { if ($("#modal").innerHTML) closeModal(); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
-  window.Muster = { S, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
+  window.Muster = { S, SY, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

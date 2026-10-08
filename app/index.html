@@ -24,6 +24,7 @@
   <a class="hbtn" href="#/meta" data-nav="#/meta" title="Meta win rates (listhammer.info)"><svg class="i"><use href="#i-chart"/></svg><span>Meta Win Rates</span></a>
   <button class="hbtn green" data-action="new-list" title="Create list"><svg class="i"><use href="#i-plus"/></svg><span>New</span></button>
   <span class="spacer"></span>
+  <button class="hbtn acct" id="acct" data-action="account" title="Account &amp; sync" hidden><span class="sico"><svg class="i"><use href="#i-cloud"/></svg><span class="sdot"></span></span><span class="lbl lbl-opt">Account</span></button>
   <button class="hbtn" data-action="check-update" title="Check for points updates"><svg class="i"><use href="#i-refresh"/></svg><span class="lbl-opt">Points</span></button>
   <button class="hbtn" data-action="toggle-theme" title="Dark / light mode"><svg class="i"><use href="#i-moon"/></svg><span class="lbl-opt">Theme</span></button>
   <button class="hbtn" data-action="about" title="About"><svg class="i"><use href="#i-info"/></svg><span class="lbl-opt">About</span></button>
@@ -55,10 +56,13 @@
     <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 15V4M8 8l4-4 4 4M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"/></symbol>
     <symbol id="i-text" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 14h7M9 17h5"/></symbol>
     <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><path d="M8 16v-5M12 16V8M16 16v-7M20 16v-3" stroke-width="2.4"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10.5a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.4 9.1 4.5 4.5 0 0 0 7 18z"/></symbol>
     <symbol id="i-sort" viewBox="0 0 24 24"><path d="M7 4v16M4 17l3 3 3-3M14 5h6M14 10h4M14 15h6"/></symbol>
   </defs>
 </svg>
+<script src="js/config.js"></script>
 <script src="js/core.js"></script>
+<script src="js/sync.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
