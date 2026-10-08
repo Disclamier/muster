@@ -523,25 +523,36 @@
       if (eq && !filt && ds.wp.some((w) => !(eq.w.get(C.norm(w[0])) > 0))) html += `<div class="ds-note muted">Highlighted: current loadout (× = number of models carrying it). Dimmed: other wargear options.</div>`;
       const fr = (S.ds.factions[F.f.id] || {}).rules || [];
       const frText = (n) => { const x = fr.find((y) => C.norm(y[0]) === C.norm(n)); return x ? x[1] : ""; };
+      // abilities, split New Recruit-style into clearly separated sub-sections, one card per ability
+      const isAura = (a) => /\baura\b/i.test(a[0] || "") || /^\W*aura\b/i.test(clean(a[1] || ""));
+      const isDmg = (a) => /^damaged\b/i.test(a[0] || "");
+      const card = (name, text, cls, extra) => `<div class="ab-card${cls ? " " + cls : ""}" data-testid="ab-card"><div class="ab-n">${name}${extra || ""}</div>${text ? `<div class="ab-t">${text}</div>` : ""}</div>`;
+      const sub = (key, label, body) => (body ? `<div class="ab-sub ab-${key}" data-testid="ab-${key}"><div class="ab-h">${label}</div>${body}</div>` : "");
+      const auraBadge = `<span class="aura-badge">Aura</span>`;
       const wa = ds.wa.filter((a) => matchItem(a[0]) || matchItem(a[1]));
+      const waHtml = wa.map((a) => { const on = eq && (eq.picks.has(C.norm(a[0])) || eq.w.has(C.norm(a[0]))); const aura = isAura([a[1], a[2]]);
+        return card(`${esc(a[1])}${C.norm(a[0]) !== C.norm(a[1]) ? ` <span class="muted">(${esc(a[0])})</span>` : ""}`, esc(clean(a[2])), `${eq ? (on ? "eq" : "uneq") : ""}${aura ? " aura" : ""}`, aura ? auraBadge : ""); }).join("");
       if (!filt) {
+        const core = ds.cr.length ? `<div class="ab-card core"><div class="ab-chips">${ds.cr.map((n) => `<span class="ab-chip kwc"${kwTip(n)}>${esc(n)}</span>`).join("")}</div></div>` : "";
+        const fac = ds.fa.map((n) => `<details class="ab-card fac"><summary class="ab-n">${esc(n)}</summary><div class="ab-t">${esc(clean(frText(n)) || "")}</div></details>`).join("");
+        const plain = ds.ab.filter((a) => !isAura(a) && !isDmg(a)).map((a) => card(esc(a[0]), esc(clean(a[1])))).join("");
+        const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a)).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("");
+        const dmg = ds.ab.filter(isDmg).map((a) => card(esc(a[0]), esc(clean(a[1])), "dmg")).join("");
+        const by = F.f.units.filter((x) => (x.ldr || []).concat(x.sup || []).some((y) => C.norm(y) === C.norm(u.n))).map((x) => x.n);
+        const lead = [
+          u.ldr && u.ldr.length ? card("Leader", `This model can be attached to the following units:<ul class="ab-ul">${u.ldr.map((x) => `<li>${esc(title(x))}</li>`).join("")}</ul>`, "lead") : "",
+          u.sup && u.sup.length ? card("Support", `This unit can be attached to:<ul class="ab-ul">${u.sup.map((x) => `<li>${esc(title(x))}</li>`).join("")}</ul>`, "lead") : "",
+          by.length ? card("Can be joined by", esc(by.join(", ")), "lead") : "",
+          r && r.attachedTo ? card("Attached", `${esc(r.attachKind === "support" ? "Support unit" : "Leader")} attached to <b>${esc(r.attachedTo.name)}</b>`, "lead") : "",
+          ds.tr ? card("Transport", esc(clean(typeof ds.tr === "string" ? ds.tr : JSON.stringify(ds.tr))), "lead") : ""].join("");
         html += `<div class="ds-sec" data-testid="ds-abilities"><div class="ds-h">Abilities</div>
-          ${ds.cr.length ? `<div class="ds-ab"><b>Core:</b> ${ds.cr.map((n) => `<span class="kwc"${kwTip(n)}>${esc(n)}</span>`).join(", ")}</div>` : ""}
-          ${ds.fa.length ? ds.fa.map((n) => `<details class="ds-ab"><summary><b>Faction:</b> ${esc(n)}</summary><div class="rules">${esc(clean(frText(n)) || "")}</div></details>`).join("") : ""}
-          ${ds.ab.map((a) => `<div class="ds-ab"><b>${esc(a[0])}:</b> ${esc(clean(a[1]))}</div>`).join("")}
-          ${u.ldr && u.ldr.length ? `<div class="ds-ab"><b>Leader:</b> This model can be attached to the following units: ${u.ldr.map((x) => `■ ${esc(title(x))}`).join(" ")}</div>` : ""}
-          ${u.sup && u.sup.length ? `<div class="ds-ab"><b>Support:</b> This unit can be attached to: ${u.sup.map((x) => `■ ${esc(title(x))}`).join(" ")}</div>` : ""}
-          ${(() => { const by = F.f.units.filter((x) => (x.ldr || []).concat(x.sup || []).some((y) => C.norm(y) === C.norm(u.n))).map((x) => x.n); return by.length ? `<div class="ds-ab"><b>Can be joined by:</b> ${esc(by.join(", "))}</div>` : ""; })()}
-          ${ds.tr ? `<div class="ds-ab"><b>Transport:</b> ${esc(clean(typeof ds.tr === "string" ? ds.tr : JSON.stringify(ds.tr)))}</div>` : ""}</div>`;
-      }
-      if (wa.length) html += `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${wa.map((a) => { const on = eq && (eq.picks.has(C.norm(a[0])) || eq.w.has(C.norm(a[0])));
-        return `<div class="ds-ab${eq ? (on ? " eq" : " uneq") : ""}"><b>${esc(a[1])}</b>${C.norm(a[0]) !== C.norm(a[1]) ? ` <span class="muted">(${esc(a[0])})</span>` : ""}: ${esc(clean(a[2]))}</div>`; }).join("")}</div>`;
+          ${sub("core", "Core", core)}${sub("faction", "Faction", fac)}${sub("datasheet", "Abilities", plain)}${sub("aura", "Auras", auras)}${sub("wargear", "Wargear Abilities", waHtml)}${sub("damaged", "Damaged", dmg)}${sub("leader", "Leader &amp; attachment", lead)}</div>`;
+      } else if (wa.length) html += `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${waHtml}</div>`;
       if (filt && !html.includes("<table") && !wa.length) html += `<div class="muted">No separate profile for ${esc(String(o.item).replace(/\|/g, ", "))}.</div>`;
     }
     if (!filt) {
       html += `<div class="ds-sec" data-testid="ds-keywords"><div class="ds-h">Keywords</div><div class="ds-ab">${esc((u.kw || []).join(", ") || "—")}</div>
         <div class="ds-ab"><b>Faction keywords:</b> ${esc(u.fk || F.f.name)}</div></div>`;
-      if (r && r.attachedTo) html += `<div class="ds-sec"><div class="ds-h">Attached</div><div class="ds-ab">${esc(r.attachKind === "support" ? "Support unit" : "Leader")} attached to <b>${esc(r.attachedTo.name)}</b></div></div>`;
       if (!o.noPoints) html += `<div class="ds-sec"><div class="ds-h">Points (MFM)</div>${pointsTable(u)}</div>`;
     }
     return `<div class="ds" data-testid="datasheet">${html}</div>`;

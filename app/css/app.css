@@ -422,3 +422,26 @@ details.ds-ab summary { cursor: pointer; }
 .urow.swiped .swipe-acts { display: flex; gap: 6px; justify-content: flex-end; padding: 6px 0 2px; }
 .swipe-acts button { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; padding: 6px 10px; font: inherit; }
 .swipe-acts button.danger { background: var(--red, #c0392b); color: #fff; border-color: transparent; }
+
+/* ---------- datasheet abilities: separated sub-sections, one card per ability ---------- */
+.ab-sub { margin: 10px 0 4px; }
+.ab-h { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--gray); margin: 0 0 4px; display: flex; align-items: center; gap: 6px; }
+.ab-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.ab-card { background: var(--sect); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 6px; padding: 6px 9px; margin: 0 0 6px; line-height: 1.4; }
+.ab-n { font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.ab-t { margin-top: 2px; }
+.ab-ul { margin: 2px 0 0; padding-left: 18px; }
+.ab-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ab-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1px 9px; font-size: 12px; font-weight: 600; }
+details.ab-card summary { cursor: pointer; list-style: revert; }
+details.ab-card summary.ab-n { display: list-item; }
+.ab-card.fac { border-left-color: var(--cost); }
+.ab-card.aura { border-left-color: #8a5cd1; background: color-mix(in srgb, #8a5cd1 9%, var(--sect)); }
+.aura-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: #8a5cd1; border-radius: 4px; padding: 1px 6px; }
+.ab-card.dmg { border-left-color: var(--red); background: color-mix(in srgb, var(--red) 8%, var(--sect)); }
+.ab-card.lead { border-left-color: var(--green); }
+.ab-card.eq { border-left-color: var(--cost); }
+.ab-card.uneq { opacity: .55; }
+html[data-theme="dark"] .ab-card.aura { border-left-color: #b08cf0; background: color-mix(in srgb, #b08cf0 12%, var(--sect)); }
+html[data-theme="dark"] .aura-badge { background: #7a4fc4; }
+@media (max-width: 760px) { .ab-card { padding: 7px 8px; } }

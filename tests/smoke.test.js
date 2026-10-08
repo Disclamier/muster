@@ -697,11 +697,11 @@ test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highli
   assert.ok(wrow(melee, "Khornate eviscerator").classList.contains("uneq"));
   assert.match(wrow(ranged, "Plasma pistol").nextElementSibling.textContent, /supercharge/, "multi-profile weapon rows");
   assert.match(ranged.textContent, /Pistol/);
-  const ab = prof.querySelector("[data-testid=ds-abilities]"); assert.match(ab.textContent, /Blood Surge:/); assert.match(ab.textContent, /Faction: Blessings of Khorne/);
-  assert.match(prof.querySelector("[data-testid=ds-wargear-ab]").textContent, /Icon of Khorne/);
+  const ab = prof.querySelector("[data-testid=ds-abilities]"); assert.match(ab.querySelector("[data-testid=ab-datasheet]").textContent, /Blood Surge/); assert.match(ab.querySelector("[data-testid=ab-faction]").textContent, /Blessings of Khorne/);
+  assert.match(ab.querySelector("[data-testid=ab-wargear]").textContent, /Icon of Khorne/);
   assert.match(prof.querySelector("[data-testid=ds-keywords]").textContent, /Infantry/i);
   assert.match(prof.querySelector("[data-testid=ds-keywords]").textContent, /World Eaters/i);
-  assert.match(ab.textContent, /Can be joined by:.*Lord on Juggernaut/);
+  assert.match(ab.querySelector("[data-testid=ab-leader]").textContent, /Can be joined by.*Lord on Juggernaut/);
   // Angron: invulnerable save column
   click(w, rowOf(2));
   assert.equal(d.querySelector(".panel [data-testid=ds-inv]").textContent, DS.factions["world-eaters"].units.Angron.inv);
@@ -777,4 +777,36 @@ test("leader attachment (New Recruit style): candidates show size/points/differi
   // desktop unlink control
   loj.attach = kb2.uid; w.Muster.route();
   click(w, d.querySelector(".roster [data-testid=unlink]")); assert.equal(loj.attach, undefined);
+});
+
+test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear / Damaged / Leader sub-sections, one card each (combined cards too)", async () => {
+  const { w, d, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khorne Berzerkers", "Lord on Juggernaut", "Angron"]);
+  const [kb, loj, angron] = l.entries; loj.warlord = true; loj.attach = kb.uid;
+  await until(() => w.Muster.S.ds); w.Muster.route();
+  const A = DS.factions["world-eaters"].units.Angron;
+  click(w, d.querySelector(`.roster .urow[data-uid="${angron.uid}"]`));
+  const ab = d.querySelector(".panel [data-testid=ds-abilities]");
+  const subs = [...ab.querySelectorAll(".ab-sub")].map((x) => x.dataset.testid);
+  assert.deepEqual(subs, ["ab-core", "ab-faction", "ab-datasheet", "ab-aura", "ab-damaged"], "Angron's sub-sections in order");
+  assert.deepEqual([...ab.querySelectorAll(".ab-h")].map((x) => x.textContent), ["Core", "Faction", "Abilities", "Auras", "Damaged"]);
+  const auraNames = A.ab.filter((a) => /aura/i.test(a[0])).map((a) => a[0].replace(/\s*\(aura\)\s*/i, " ").trim());
+  assert.ok(auraNames.length >= 2);
+  const auraCards = [...ab.querySelectorAll("[data-testid=ab-aura] .ab-card.aura")];
+  assert.deepEqual(auraCards.map((c) => c.querySelector(".ab-n").textContent.replace("Aura", "").trim()), auraNames);
+  assert.ok(auraCards.every((c) => c.querySelector(".aura-badge")));
+  assert.equal(ab.querySelector("[data-testid=ab-datasheet]").textContent.match(/Aura/), null, "auras are not mixed into plain abilities");
+  assert.match(ab.querySelector("[data-testid=ab-damaged] .ab-card.dmg").textContent, /Damaged: 1-6 wounds remaining/);
+  // every plain ability is its own card with a bold name
+  const plain = A.ab.filter((a) => !/aura/i.test(a[0]) && !/^damaged/i.test(a[0]));
+  assert.equal(ab.querySelectorAll("[data-testid=ab-datasheet] .ab-card").length, plain.length);
+  // combined card: bodyguard + attached Leader each get their own structured sections
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
+  const m = d.querySelector("#modal .modal.sheet");
+  const secs = [...m.querySelectorAll("[data-testid=ds-abilities]")];
+  assert.equal(secs.length, 2);
+  assert.ok(secs[0].querySelector("[data-testid=ab-wargear]") && secs[0].querySelector("[data-testid=ab-leader]"));
+  assert.match(secs[1].querySelector("[data-testid=ab-leader]").textContent, /Leader[\s\S]*Khorne Berzerkers[\s\S]*Attached/);
+  const css = read("css/app.css");
+  assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
+  assert.match(read("sw.js"), /muster-shell-v7/);
 });
