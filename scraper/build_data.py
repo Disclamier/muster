@@ -471,7 +471,8 @@ def main():
     dsb = {"source": "GrimSlate (profiles, abilities, keywords)", "gs_fetched_at": gs.get("fetched_at"),
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
            "weapon_keywords": gs.get("weapon_keywords") or {}, "factions": merge.datasheets}
-    dsc = json.dumps(dsb, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    # hash the content only (not the fetch time) so an unchanged GrimSlate isn't republished every day
+    dsc = json.dumps({k: v for k, v in dsb.items() if k != "gs_fetched_at"}, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     dsh = hashlib.sha256(dsc.encode()).hexdigest()[:16]
     dsj = os.path.join(a.outdir, "datasheets.json")
     with open(dsj + ".tmp", "w", encoding="utf-8") as f:
