@@ -800,6 +800,9 @@
       <div class="expfmts">${C.EXPORT_FORMATS.map((f) => `<label class="opt"><input type="radio" name="fmt" value="${f.id}" ${f.id === fmt ? "checked" : ""} data-change="fmt"><span class="on"><b>${esc(f.name)}</b><span class="desc">${esc(f.desc)}</span></span></label>`).join("")}
         <label class="opt"><input type="checkbox" ${EXP.md ? "checked" : ""} data-change="md"><span class="on">Markdown formatting</span></label></div>
       <textarea readonly data-testid="export-text">${esc(text)}</textarea></div>
+      <div class="ys-box" data-testid="ys-box"><div class="ys-txt"><b>Tabletop Simulator (Yellowscribe)</b><span class="muted">Download a roster file, upload it at
+        <a href="${YS_URL}" target="_blank" rel="noopener">yellowscribe.link</a>, then paste the code it gives you into the Yellowscribe mod in Tabletop Simulator.</span></div>
+        <button class="btn" data-action="exp-ys" data-testid="exp-ys">${icon("import")} Export for Yellowscribe</button></div>
       <div class="mfoot wrap">
         <button class="btn" data-action="exp-copy">${icon("copy")} Copy</button>
         <button class="btn secondary" data-action="exp-txt">${icon("import")} Download .txt</button>
@@ -825,6 +828,25 @@
     w.document.close(); w.focus(); setTimeout(() => w.print(), 200);
   }
 
+  /* Yellowscribe (Tabletop Simulator): BattleScribe-style .rosz built from Muster's own profiles + loadouts */
+  const YS_URL = "https://yellowscribe.link/";
+  function exportYellowscribe() {
+    const l = CUR; if (!l) return;
+    if (!S.ds) { toast("Unit profiles aren't downloaded yet – go online once, then try again", 4000); return; }
+    const r = C.exportYellowscribeRosz(l, S.idx, S.ds, S.meta);
+    download(r.filename, r.bytes, "application/octet-stream");
+    const m = modal("Export for Yellowscribe", `<div class="ys-help" data-testid="ys-help">
+      <p>Downloaded <b>${esc(r.filename)}</b>. To get the army into Tabletop Simulator:</p>
+      <ol><li>Open <a href="${YS_URL}" target="_blank" rel="noopener">yellowscribe.link</a> and choose <b>Upload</b>, then pick <b>${esc(r.filename)}</b> (on a phone it's in your Downloads / Files).</li>
+        <li>Check the units, then press <b>Submit</b> at the bottom and copy the code.</li>
+        <li>In Tabletop Simulator, load the <b>Yellowscribe v2</b> mod from the Steam Workshop, paste the code, pick a model for each model type and press <b>Create Army</b>.</li></ol>
+      <p class="muted">Yellowscribe keeps the upload for about 10 minutes. Stats, weapons and abilities come from Muster's datasheets.</p>
+      ${r.issues.length ? `<details class="ys-issues"><summary>${r.issues.length} item${r.issues.length === 1 ? "" : "s"} exported without full profiles</summary><ul>${r.issues.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
+      </div><div class="mfoot wrap"><a class="btn" href="${YS_URL}" target="_blank" rel="noopener">Open yellowscribe.link</a>
+        <button class="btn secondary" data-action="exp-ys">Download again</button><button class="btn secondary" data-action="close-modal">Close</button></div>`);
+    return m;
+  }
+
   /* ------------------------------------------------------------------ list options menu */
   function closeMenus() { $$(".menu").forEach((m) => m.remove()); }
   function openMenu(anchor, items) {
@@ -843,6 +865,7 @@
       { label: "Rename", icon: "pencil", fn: () => renameList(l.id) },
       { label: "Duplicate", icon: "copy", fn: () => { const d = C.duplicateList(l); S.lists.push(d); saveLists(); location.hash = `#/list/${d.id}`; toast("List duplicated"); } },
       { label: "Export…", icon: "export", fn: openExport },
+      { label: "Export for Yellowscribe (TTS)", icon: "export", fn: exportYellowscribe },
       { label: "Download JSON", icon: "import", fn: () => download(`${fileSafe(l.name)}.muster.json`, C.exportLists([l]), "application/json") },
       { label: "Print", icon: "text", fn: printList },
       { label: "Delete", icon: "trash", danger: true, fn: () => deleteList(l.id) },
@@ -1058,6 +1081,7 @@
     "exp-link": async () => copyText(`${shareBase()}#/share/${await encodeShare(CUR)}`),
     "exp-share": async () => { try { await navigator.share({ title: CUR.name, text: exportTextFor(CUR), url: `${shareBase()}#/share/${await encodeShare(CUR)}` }); } catch (e) { /* cancelled */ } },
     "exp-print": () => printList(),
+    "exp-ys": () => exportYellowscribe(),
     // meta
     "meta-faction": (t) => { location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
     "meta-range": (t) => { S.ui.metaRange = t.dataset.range; try { localStorage.setItem(LS_WRRANGE, S.ui.metaRange); } catch (e) { /* ignore */ } renderMeta(null); },
