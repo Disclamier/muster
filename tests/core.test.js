@@ -314,3 +314,23 @@ test("unit names are unique per faction in the built data (lists reference units
   const sw = P.factions.find((f) => f.id === "space-wolves");
   assert.ok(sw.units.find((u) => u.n === "Venerable Dreadnought" && !u.lg) && sw.units.find((u) => u.n === "Venerable Dreadnought [Legends]" && u.lg));
 });
+
+test("enhancement restriction parsing + eligibility on the real data", () => {
+  const P = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "app", "data", "points.json"), "utf8"));
+  const I = C.indexData(P);
+  const r = C.enhRestriction(["X", 0, "Flavour text. ADEPTA SORORITAS CHARACTER model only (excluding PENITENT units). Effect."]);
+  assert.deepEqual([...r.alts], ["ADEPTA SORORITAS CHARACTER"]); assert.deepEqual([...r.excl], ["PENITENT"]);
+  assert.deepEqual([...C.enhRestriction(["X", 0, "CANONESS, PALATINE or MINISTORUM PRIEST model only."]).alts], ["CANONESS", "PALATINE", "MINISTORUM PRIEST"]);
+  assert.deepEqual([...C.enhRestriction(["X", 0, "Big Mek/Mek model only."]).alts], ["BIG MEK", "MEK"]);
+  assert.equal(C.enhRestriction(["X", 0, "The bearer has the Infiltrators ability."]), null);
+  const elig = (fid, unit, det, enh) => { const F = I.factions[fid]; const en = F.dets[det].enh.find((e) => e[0] === enh); return C.enhEligible(F.units[unit], en, F).ok; };
+  assert.equal(elig("world-eaters", "Master of Executions", "Cult of Blood", "Butcher Lord"), true);
+  assert.equal(elig("world-eaters", "Lord on Juggernaut", "Cult of Blood", "Butcher Lord"), false);
+  assert.equal(elig("world-eaters", "Bloodthirster", "Khorne Daemonkin", "Blood-Forged Armour"), true);
+  assert.equal(elig("world-eaters", "Bloodthirster", "Khorne Daemonkin", "Icon of War"), false);
+  assert.equal(elig("world-eaters", "Angron", "Berzerker Warband", "Battle-lust"), false);
+  // text written for units that normally can't take enhancements
+  const nec = I.factions.necrons; const deceiver = nec.f.units.find((u) => /Deceiver/.test(u.n));
+  assert.equal(C.enhEligible(deceiver, nec.dets["Pantheon of Woe"].enh.find((e) => e[0] === "Singularity Matrix"), nec).ok, true);
+  assert.equal(C.enhEligible(deceiver, nec.dets["Pantheon of Woe"].enh.find((e) => e[0] === "Animus Damper"), nec).ok, false);
+});

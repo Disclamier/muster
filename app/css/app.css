@@ -371,3 +371,13 @@ details.cfgdet .rules { font-size: 12px; margin-bottom: 4px; white-space: pre-li
 .stgrp + .stgrp { margin-top: 8px; border-top: 1px solid var(--border); padding-top: 6px; }
 .stgrp-h { font-weight: 700; margin-bottom: 2px; }
 .rules.small { font-size: 12px; white-space: pre-line; margin-bottom: 4px; }
+
+/* ---- detachment-locked catalog units */
+.crow.locked { opacity: .55; cursor: default; }
+.crow.locked .why, .opt .why { display: block; font-size: 11px; color: var(--warn); font-weight: 400; }
+.opt .why.err { color: var(--red); }
+.locktoggle { display: flex; gap: 6px; align-items: center; padding: 6px 8px; font-size: 12px; border-bottom: 1px solid var(--border); }
+/* ---- attached leaders nested under their bodyguard */
+.ugroup { border-left: 3px solid var(--blue); margin: 2px 0; }
+.urow.attached { margin-left: 18px; border-left: 1px dashed var(--border); }
+.urow .att { color: var(--blue); font-weight: 700; margin-right: 2px; }

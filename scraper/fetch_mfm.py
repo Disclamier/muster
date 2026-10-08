@@ -318,11 +318,20 @@ def parse_faction_page(tree, uuid_names):
                 units.append(parse_unit_card(card, legends, None))
             for grp in kids(sec)[1:]:
                 gname = uuid_names.get(re.sub(r"-sub$", "", grp[2] or ""))
+                ids = {c[2] for c in find_all(grp, lambda e: CARD_CLS in cls(e))}
                 if gname:
-                    ids = {c[2] for c in find_all(grp, lambda e: CARD_CLS in cls(e))}
                     for u in units:
                         if u["id"] in ids:
                             u["_group"] = gname
+                elif (grp[2] or "").endswith("-sub") and ids:
+                    # a named sub-group that is not an MFM faction, e.g. World Eaters "BLOOD LEGIONS" (daemon units),
+                    # Aeldari "HARLEQUINS"/"YNNARI": heading = the group's first child when it is not a unit card
+                    ks = kids(grp)
+                    head = clean(text_of(ks[0])) if ks and not find_all(ks[0], lambda e: CARD_CLS in cls(e)) else ""
+                    if head and len(head) <= 60:
+                        for u in units:
+                            if u["id"] in ids:
+                                u["unit_group"] = head
         elif T == "DETACHMENTS":
             for card in find_all(sec, lambda e: CARD_CLS in cls(e) and e[1] == "div"):
                 if card[2] in seen:

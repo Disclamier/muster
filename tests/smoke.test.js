@@ -476,7 +476,7 @@ test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath sh
   await until(() => d.querySelector(".lists-page"));
   const C = w.MusterCore;
   const l = C.newList({ name: "Khorne", faction: "world-eaters", sub: "world-eaters" });
-  const charU = weF.units.find((u) => C.isCharacter(u) && !C.isEpicHero(u) && !u.lg);
+  const charU = weF.units.find((u) => u.n === "Lord on Juggernaut");
   const e = C.newEntry(charU); e.warlord = true; l.entries.push(e);
   w.Muster.S.lists.push(l);
   await go(w, "#/list/" + l.id);
@@ -533,4 +533,139 @@ test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath sh
     const t = C.EXPORT_FORMATS.find((x) => x.id === f).fn(l, w.Muster.S.idx, w.Muster.S.meta);
     assert.ok(new RegExp(BW.n, "i").test(t) && new RegExp(VW.n, "i").test(t), f);
   }
+});
+
+/* ---------------------------------------------------------------- detachment-locked units, leaders, enhancement rules */
+const WE = () => POINTS.factions.find((f) => f.id === "world-eaters");
+async function weEditor(dets, units, size) {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore;
+  const l = C.newList({ name: "WE", faction: "world-eaters", sub: "world-eaters", size: size || "strikeforce" }); l.dets = dets.slice();
+  for (const n of units) l.entries.push(C.newEntry(WE().units.find((u) => u.n === n)));
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  return { ...app, C, l, rowOf: (i) => d.querySelector(`.roster .urow[data-uid="${l.entries[i].uid}"]`) };
+}
+
+test("detachment-restricted units: World Eaters Bloodletters need Khorne Daemonkin (all factions derived from data)", async () => {
+  // data: MFM 'BLOOD LEGIONS' sub-group + GrimSlate faction keyword + the detachment rule naming them
+  const req = (fid, n) => (POINTS.factions.find((f) => f.id === fid).units.find((u) => u.n === n) || {}).req;
+  assert.deepEqual(req("world-eaters", "Bloodletters"), ["Khorne Daemonkin"]);
+  for (const n of ["Bloodcrushers", "Bloodthirster", "Flesh Hounds", "Skarbrand"]) assert.deepEqual(req("world-eaters", n), ["Khorne Daemonkin"], n);
+  assert.deepEqual(req("death-guard", "Plaguebearers"), ["Tallyband Summoners"]);
+  assert.deepEqual(req("thousand-sons", "Pink Horrors"), ["Changehost of Deceit"]);
+  assert.deepEqual(req("emperors-children", "Daemonettes"), ["Carnival of Excess"]);
+  for (const [fid, n] of [["world-eaters", "Khorne Berzerkers"], ["aeldari", "Death Jester"], ["aeldari", "Yvraine"], ["space-marines", "Marneus Calgar"]]) assert.equal(req(fid, n), undefined, n);
+  const { w, d, C, l } = await weEditor(["Berzerker Warband"], []);
+  // hidden by default; toggle shows them greyed with the reason and no add action
+  assert.equal(d.querySelector('#catbody .crow[data-unit="Bloodletters"]'), null);
+  const tog = d.querySelector("[data-testid=lock-toggle]"); assert.ok(tog); assert.match(tog.textContent, /5 units.*Khorne Daemonkin/s);
+  change(w, tog.querySelector("input"), true);
+  const row = d.querySelector('#catbody .crow.locked[data-unit="Bloodletters"]');
+  assert.ok(row); assert.match(row.textContent, /Only with the Khorne Daemonkin detachment/);
+  assert.equal(row.getAttribute("data-action"), null); assert.ok(row.querySelector("button.add").disabled);
+  click(w, row); assert.equal(l.entries.length, 0, "locked unit can't be added");
+  // select Khorne Daemonkin -> addable
+  l.dets = ["Khorne Daemonkin"]; w.Muster.route();
+  const add = d.querySelector('#catbody .crow[data-unit="Bloodletters"] .add');
+  assert.ok(!add.disabled); click(w, add);
+  assert.equal(l.entries.length, 1);
+  assert.ok(!C.calcList(l, w.Muster.S.idx).errors.some((x) => /Bloodletters/.test(x.msg)));
+  // remove the detachment -> error on the unit, still shown in the catalog
+  click(w, d.querySelector("[data-testid=cfg-dets]"));
+  change(w, [...d.querySelectorAll(".panel input[data-change=det]")].find((b) => b.value === "Khorne Daemonkin"), false);
+  const errs = C.calcList(l, w.Muster.S.idx).errors.map((x) => x.msg);
+  assert.ok(errs.includes("Bloodletters: only available with the Khorne Daemonkin detachment"), errs.join("; "));
+  assert.ok(d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"] .dot.err`));
+  assert.ok(d.querySelector('#catbody .crow[data-unit="Bloodletters"]'), "in-list unit stays visible");
+});
+
+test("leader attachment: Lord on Juggernaut + Master of Executions join Khorne Berzerkers; nested roster, exports, one Leader per unit", async () => {
+  const { w, d, C, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khorne Berzerkers", "Khorne Berzerkers", "Lord on Juggernaut", "Master of Executions", "Jakhals"]);
+  const [kb1, kb2, loj, moe, jak] = l.entries; loj.warlord = true;
+  click(w, rowOf(2));
+  const opts = [...d.querySelectorAll(".panel [data-testid=attach-opt]")];
+  assert.deepEqual(opts.map((o) => o.dataset.to), [kb1.uid, kb2.uid], "only eligible bodyguards in the list (no Jakhals)");
+  assert.match(opts[0].textContent, /Khorne Berzerkers #1/);
+  change(w, opts[0].querySelector("input"), true, kb1.uid);
+  assert.equal(loj.attach, kb1.uid);
+  // nested under the bodyguard, not in the Character section
+  const grp = d.querySelector(".roster [data-testid=attached-group]");
+  assert.ok(grp); assert.equal(grp.querySelector(".urow").dataset.uid, kb1.uid);
+  assert.equal(grp.querySelector("[data-testid=attached-row]").dataset.uid, loj.uid);
+  const charSect = [...d.querySelectorAll(".roster .card")].find((c) => /^\s*Character/.test(c.querySelector(".sect-h").textContent));
+  assert.ok(charSect && !charSect.querySelector(`.urow[data-uid="${loj.uid}"]`), "attached Leader is not listed again under Character");
+  // Master of Executions: Berzerkers #1 already has a Leader -> disabled with reason; #2 free
+  click(w, rowOf(3));
+  const o2 = [...d.querySelectorAll(".panel [data-testid=attach-opt]")];
+  assert.ok(o2[0].querySelector("input").disabled); assert.match(o2[0].textContent, /Already has a Leader: Lord on Juggernaut/);
+  assert.ok(!o2[1].querySelector("input").disabled);
+  change(w, o2[1].querySelector("input"), true, kb2.uid);
+  let c = C.calcList(l, w.Muster.S.idx);
+  assert.equal(c.errors.length, 0, c.errors.map((x) => x.msg).join("; "));
+  // exports show the attachment
+  const gw = C.EXPORT_FORMATS.find((f) => f.id === "gw").fn(l, w.Muster.S.idx, w.Muster.S.meta);
+  assert.match(gw, /Lord on Juggernaut \(\d+ Points\)\n(?:.*\n)*?\s+• Attached to: Khorne Berzerkers #1/);
+  assert.match(gw, /Master of Executions[^\n]*\n(?:.*\n)*?\s+• Attached to: Khorne Berzerkers #2/);
+  for (const f of ["wtc", "wtc-full", "simple"]) assert.match(C.EXPORT_FORMATS.find((x) => x.id === f).fn(l, w.Muster.S.idx, w.Muster.S.meta), /Attached to: Khorne Berzerkers #1/, f);
+  // share link keeps the attachment
+  const back = C.listFromShareable(await w.Muster.decodeShare(await w.Muster.encodeShare(l)));
+  assert.equal(back.entries[2].attach, back.entries[0].uid); assert.equal(back.entries[3].attach, back.entries[1].uid);
+  // invalid states are flagged: two Leaders on one unit (error), ineligible bodyguard (warning)
+  moe.attach = kb1.uid; c = C.calcList(l, w.Muster.S.idx);
+  assert.ok(c.errors.some((x) => /Khorne Berzerkers has 2 Leaders attached/.test(x.msg)), c.errors.map((x) => x.msg).join("; "));
+  moe.attach = jak.uid; c = C.calcList(l, w.Muster.S.idx);
+  assert.ok(c.warnings.some((x) => /Master of Executions cannot be attached to Jakhals/.test(x.msg)));
+  moe.attach = kb2.uid; w.Muster.route();
+  // deleting the bodyguard detaches its Leader
+  click(w, d.querySelector(`.roster [data-action=del-entry][data-uid="${kb2.uid}"]`));
+  assert.equal(moe.attach, undefined);
+  assert.equal(d.querySelectorAll(".roster [data-testid=attached-row]").length, 1);
+});
+
+test("enhancements: keyword restrictions, taken-once, one per attached unit, army limit, Epic Heroes", async () => {
+  const { w, d, C, l, rowOf } = await weEditor(["Cult of Blood", "Possessed Slaughterband"],
+    ["Lord on Juggernaut", "Master of Executions", "Daemon Prince of Khorne", "Angron", "Khorne Berzerkers"]);
+  const [loj, moe, dp, angron, kb] = l.entries;
+  const opt = (name) => d.querySelector(`.panel [data-testid=enh-opt][data-enh="${name}"]`);
+  // Lord on Juggernaut is MOUNTED: "WORLD EATERS INFANTRY model only" is greyed with the reason
+  click(w, rowOf(0));
+  assert.ok(opt("Butcher Lord").querySelector("input").disabled);
+  assert.match(opt("Butcher Lord").querySelector("[data-testid=enh-why]").textContent, /WORLD EATERS INFANTRY model only/);
+  assert.ok(opt("Frenzied Focus").querySelector("input").disabled, "World Eaters Daemon model only");
+  assert.ok(opt("Malicious Vigour").querySelector("input").disabled, "Slaughterbound model only");
+  assert.ok(!opt("Strategic Slaughter").querySelector("input").disabled);
+  change(w, opt("Strategic Slaughter").querySelector("input"), true, "Cult of Blood||Strategic Slaughter");
+  // Master of Executions (INFANTRY): Butcher Lord allowed; Strategic Slaughter taken by Lord on Juggernaut
+  click(w, rowOf(1));
+  assert.ok(!opt("Butcher Lord").querySelector("input").disabled);
+  assert.ok(opt("Strategic Slaughter").querySelector("input").disabled);
+  assert.match(opt("Strategic Slaughter").textContent, /Already taken by Lord on Juggernaut/);
+  // Daemon Prince (MONSTER, DAEMON): Brazen Form + Frenzied Focus allowed
+  click(w, rowOf(2));
+  for (const n of ["Brazen Form", "Frenzied Focus"]) assert.ok(!opt(n).querySelector("input").disabled, n);
+  assert.ok(opt("Butcher Lord").querySelector("input").disabled);
+  // Epic Hero: no enhancement section
+  click(w, rowOf(3));
+  assert.equal(d.querySelector(".panel [data-testid=enh-grp]"), null);
+  // one enhancement per attached unit (bodyguard + its Leaders)
+  loj.attach = kb.uid; w.Muster.route(); click(w, rowOf(1));
+  // MoE not attached yet: free to choose
+  assert.ok(!opt("Butcher Lord").querySelector("input").disabled);
+  moe.attach = kb.uid; w.Muster.route(); click(w, rowOf(1));
+  assert.ok(opt("Butcher Lord").querySelector("input").disabled);
+  assert.match(opt("Butcher Lord").textContent, /same attached unit already has Strategic Slaughter/);
+  moe.enh = { det: "Cult of Blood", name: "Butcher Lord" };
+  assert.ok(C.calcList(l, w.Muster.S.idx).errors.some((x) => /No unit \(including attached units\) can have more than one enhancement/.test(x.msg)));
+  moe.enh = null; delete moe.attach; delete loj.attach;
+  // army limit: Incursion allows 2
+  l.size = "incursion"; l.dets = ["Cult of Blood"]; loj.enh = { det: "Cult of Blood", name: "Strategic Slaughter" }; moe.enh = { det: "Cult of Blood", name: "Butcher Lord" };
+  w.Muster.route(); click(w, rowOf(2));
+  assert.match(d.querySelector(".panel [data-testid=enh-count]").textContent, /2 \/ 2 used/);
+  assert.ok(opt("Brazen Form").querySelector("input").disabled);
+  assert.match(opt("Brazen Form").textContent, /Enhancement limit reached \(2\/2\)/);
+  // a forced ineligible enhancement is a validation error
+  loj.enh = { det: "Cult of Blood", name: "Butcher Lord" }; moe.enh = null;
+  assert.ok(C.calcList(l, w.Muster.S.idx).errors.some((x) => /Lord on Juggernaut cannot take Butcher Lord: WORLD EATERS INFANTRY model only/.test(x.msg)));
 });

@@ -12,6 +12,8 @@
   "enhancements": 978,
   "enhancements_with_text": 802,
   "gs_only_detachments": 99,
+  "detachment_restricted_units": 22,
+  "restricted_groups": 4,
   "renamed_duplicate_units": 1,
   "factions_with_images": 30
  },

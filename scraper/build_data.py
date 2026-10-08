@@ -195,6 +195,10 @@ def merge(mfm, gs):
                 stats["wargear_linked"] += len({o[3] for m in lo["m"] for sl in m[4] for o in sl[1] if o[3] is not None} |
                                                {o[3] for sl in lo.get("u", []) for o in sl[1] if o[3] is not None})
             stats["wargear_priced"] += len(u.get("wargear_costs") or [])
+            if (gu or {}).get("faction_keyword"):
+                cu["fk"] = gu["faction_keyword"]
+            if u.get("unit_group"):
+                cu["grp"] = title_name(u["unit_group"])
             if u.get("leader_of"):
                 cu["ldr"] = u["leader_of"]
             if u.get("support_for"):
@@ -269,8 +273,43 @@ def merge(mfm, gs):
                 cd["rule"] = [gd["rule"].get("name"), gd["rule"].get("text")]
             dets.append(cd)
         dets.sort(key=lambda d: (d["src"] != "mfm", d["n"].lower()))
+        apply_detachment_restrictions(mf, units, dets, stats)
         out_factions.append({"id": mf["id"], "name": mf["name"], "url": mf["url"], "units": units, "dets": dets})
     return out_factions, stats, unmatched_dets
+
+
+def apply_detachment_restrictions(mf, units, dets, stats):
+    """Units that can only be taken with particular detachments -> unit["req"] = [detachment names].
+    Neither MFM nor GrimSlate has an explicit field, so this is derived from both (conservatively):
+      1. MFM lists the unit in a named sub-group of the faction page that is not an MFM faction
+         (e.g. World Eaters "BLOOD LEGIONS", Death Guard "PLAGUE LEGIONS"),
+      2. the unit is not part of the army faction: it has a GrimSlate faction keyword that differs from the army's and it
+         has neither the army's faction keyword nor the faction name among its keywords
+         (Harlequins / Ynnari carry AELDARI, Ultramarines characters carry ADEPTUS ASTARTES -> not restricted),
+      3. the group's name appears in the rule text of some (not all) of the faction's detachments
+         (BLOOD LEGIONS -> Khorne Daemonkin). Those detachments unlock the unit."""
+    main_fk = Counter(u.get("fk") for u in units if u.get("fk") and not u.get("grp")).most_common(1)
+    main_fk = main_fk[0][0] if main_fk else None
+    ident = {norm(mf["name"])} | ({norm(main_fk)} if main_fk else set())
+    groups = {}
+    for u in units:
+        if u.get("grp"):
+            groups.setdefault(u["grp"], []).append(u)
+    for g, us in groups.items():
+        if norm(g) in ident:
+            continue
+        outsiders = [u for u in us if u.get("fk") and norm(u["fk"]) not in ident and not ({norm(k) for k in u.get("kw") or []} & ident)]
+        if not outsiders:
+            continue
+        pat = re.compile(r"\b" + re.escape(g).replace(r"\ ", r"\s+") + r"\b", re.I)
+        unlock = [d["n"] for d in dets if d.get("rule") and pat.search(f"{d['rule'][0]} {d['rule'][1]}")]
+        if not unlock or len(unlock) == len(dets):
+            continue
+        for u in outsiders:
+            u["req"] = unlock
+            stats["detachment_restricted_units"] += 1
+        stats["restricted_groups"] += 1
+        print(f"  restricted: {mf['id']}: {g} ({len(outsiders)} units) -> only with {', '.join(unlock)}", file=sys.stderr)
 
 
 def main():

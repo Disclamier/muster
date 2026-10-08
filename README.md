@@ -47,6 +47,20 @@ Defaults come from GrimSlate's default choices. Options whose name/weapon matche
 (e.g. Macro Plasma Incinerator +10) are priced automatically from the MFM. Roster rows and all exports show loadout lines
 ("1x Intercessor Sergeant: Bolt pistol, Bolt Rifle, Close combat weapon"). Loadout problems are warnings, not errors.
 
+## In the app: list-building rules
+* **Multiple detachments**: every selected detachment's rule, enhancements and stratagems are shown, grouped under
+  its name (Detachment panel, Configuration card, unit Stratagems, Stratagems export).
+* **Detachment-locked units** (`u.req`): neither source has an explicit field, so `build_data.py` derives it from
+  the MFM page's named sub-groups (e.g. World Eaters "BLOOD LEGIONS"), the GrimSlate faction keyword, and the
+  detachment whose rule names that group. Currently: Blood Legions → Khorne Daemonkin, Plague Legions → Tallyband
+  Summoners, Scintillating Legions → Changehost of Deceit, Legions of Excess → Carnival of Excess. Hidden in the
+  catalog unless the detachment is selected (toggle shows them greyed); an error if the detachment is removed.
+* **Leaders / Support** (MFM "Leader"/"Support" lists): "Attach to" in the unit panel, one Leader + one Support per
+  bodyguard, nested in the roster, "Attached to: …" in exports, warnings for invalid attachments.
+* **Enhancements**: keyword restrictions parsed from the text ("WORLD EATERS INFANTRY model only", "(excluding …)"),
+  each once per army, one per attached unit, the battle-size limit, no Epic Heroes (unless the text names them).
+  Restrictions whose wording can't be mapped to keywords fall back to the basic rules.
+
 ## In the app: points updates
 On start the app shows cached data (IndexedDB) immediately, then fetches `data/version.json` network-first.
 If the hash changed it downloads the new `points.json`, recalculates every saved list and shows a banner:

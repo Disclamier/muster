@@ -358,14 +358,24 @@
   function renderCatalogBody(l, F, c) {
     const copies = {}; for (const e of l.entries) copies[e.unit] = (copies[e.unit] || 0) + 1;
     let units = F.f.units.filter((u) => l.showLegends || !u.lg || copies[u.n]);
+    // units that need a detachment the list doesn't have (e.g. Blood Legions daemons -> Khorne Daemonkin)
+    const lockedAll = units.filter((u) => !C.unitAllowed(u, l).ok);
+    units = units.filter((u) => C.unitAllowed(u, l).ok || copies[u.n] || l.showLocked);
     units = C.searchUnits(units, S.ui.q);
+    const lockToggle = lockedAll.length ? `<label class="locktoggle" data-testid="lock-toggle"><input type="checkbox" ${l.showLocked ? "checked" : ""} data-change="show-locked">
+      Show ${lockedAll.length} unit${lockedAll.length === 1 ? "" : "s"} that need${lockedAll.length === 1 ? "s" : ""} another detachment <span class="muted">(${esc([...new Set(lockedAll.flatMap((u) => u.req))].join(", "))})</span></label>` : "";
     const byRole = {}; for (const u of units) (byRole[u.r] = byRole[u.r] || []).push(u);
     const size = c.size;
     const html = C.ROLE_ORDER.filter((r) => byRole[r]).map((role) => {
       const k = `cat:${role}`;
       return `<div class="sect${S.ui.q ? "" : collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}"><span class="tri"></span>${esc(role)} <span class="muted">(${byRole[role].length})</span></div>
         <div class="sect-body">${byRole[role].sort((a, b) => a.n.localeCompare(b.n)).map((u) => {
-          const n = copies[u.n] || 0; const lim = C.unitLimit(u, size);
+          const n = copies[u.n] || 0; const lim = C.unitLimit(u, size); const al = C.unitAllowed(u, l);
+          if (!al.ok) return `<div class="crow locked" data-unit="${esc(u.n)}" data-testid="locked-unit" title="${esc(al.reason)}">
+            ${pts(C.minCost(u, n + 1))}<span class="cname">${esc(u.n)}${u.lg ? `<span class="tag">Legends</span>` : ""}<span class="why">🔒 ${esc(al.reason)}</span></span>
+            <span class="cnt">${n ? n : ""}</span>
+            <button class="ibtn" data-action="preview-unit" data-unit="${esc(u.n)}" title="View">${icon("eye")}</button>
+            <button class="ibtn add" disabled title="${esc(al.reason)}">${icon("plusbox")}</button></div>`;
           return `<div class="crow" data-action="add-unit" data-unit="${esc(u.n)}" title="Add ${esc(u.n)}">
             ${pts(C.minCost(u, n + 1))}<span class="cname">${esc(u.n)}${u.lg ? `<span class="tag">Legends</span>` : ""}${chgMark(u)}</span>
             <span class="cnt${lim != null && n > lim ? " over" : ""}">${lim != null ? `${n}/${lim}` : n ? n : ""}</span>
@@ -373,7 +383,7 @@
             <button class="ibtn add" data-action="add-unit" data-unit="${esc(u.n)}" title="Add">${icon("plusbox", "green")}</button></div>`;
         }).join("")}</div></div>`;
     }).join("");
-    return html || `<div class="empty">No units match.</div>`;
+    return lockToggle + (html || `<div class="empty">No units match.</div>`);
   }
 
   function chgText(u) {
@@ -386,6 +396,7 @@
     const e = r.entry, bits = [];
     if (r.unit && !(r.loLines && r.loLines.length) && C.modelOptions(r.unit, r.copy).length > 1) bits.push(r.modelsLabel);
     if (e.warlord) bits.push("Warlord");
+    if (r.attachedTo) bits.push(`Attached to ${r.attachedTo.name}`);
     if (r.enhName) bits.push(`Enhancement: ${r.enhName} (+${r.enh})`);
     const linked = r.unit ? C.linkedWargear(r.unit) : new Set();
     for (const [w, n] of Object.entries(e.wargear || {})) if (n > 0 && !linked.has((r.unit.w || []).findIndex((x) => x[0] === w))) bits.push(`${n}x ${w}`);
@@ -410,20 +421,24 @@
       <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends"></label>
       <div class="cfgnote">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
     </div></div>`;
-    const roles = C.ROLE_ORDER.filter((r) => c.byRole[r]).map((role) => {
-      const R = c.byRole[role]; const k = `ros:${role}`;
-      return `<div class="card${collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}">${esc(role)} ${pts(R.points)}<span class="tri"></span></div><div class="sect-body">
-        ${R.entries.map((r) => {
-          const errs = errsFor(r.uid); const bits = entrySummary(r);
-          return `<div class="urow${sel.type === "unit" && sel.uid === r.uid ? " sel" : ""}" data-action="select-entry" data-uid="${esc(r.uid)}">
-            <div class="line">${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}</span>
+    const rowHtml = (r, nested) => {
+      const errs = errsFor(r.uid); const bits = entrySummary(r);
+      return `<div class="urow${nested ? " attached" : ""}${sel.type === "unit" && sel.uid === r.uid ? " sel" : ""}" data-action="select-entry" data-uid="${esc(r.uid)}"${nested ? ` data-testid="attached-row" data-to="${esc(r.attachedTo.uid)}"` : ""}>
+            <div class="line">${nested ? `<span class="att" title="${esc(r.attachKind === "support" ? "Support unit attached" : "Leader attached")}">↳</span>` : ""}${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : "Leader"}</span>` : ""}</span>
               ${errs.some((x) => c.errors.includes(x)) ? `<span class="dot err" title="${esc(errs.map((x) => x.msg).join("\n"))}">!</span>` : ""}
               ${pts(r.total)}
               <button class="ibtn" data-action="dup-entry" data-uid="${esc(r.uid)}" title="Duplicate">${icon("copy")}</button>
               <button class="ibtn danger" data-action="del-entry" data-uid="${esc(r.uid)}" title="Remove">${icon("trash")}</button></div>
             ${bits.length || errs.length || (r.loLines && r.loLines.length) ? `<div class="sum">${(r.loLines || []).map((x) => `<span class="lo-line">• ${esc(C.loadoutText(x))}</span>`).join("")}${bits.map((b) => "• " + esc(b)).join(" ")}${errs.map((x) => `<div class="${c.errors.includes(x) ? "err" : "warn"}">${esc(x.msg)}</div>`).join("")}</div>` : ""}
           </div>`;
-        }).join("")}</div></div>`;
+    };
+    // attached Leaders/Support units are shown nested under their bodyguard (and counted in its section)
+    const roles = C.ROLE_ORDER.filter((r) => c.byRole[r] && c.byRole[r].entries.some((x) => !x.attachedTo)).map((role) => {
+      const R = c.byRole[role]; const k = `ros:${role}`;
+      const top = R.entries.filter((x) => !x.attachedTo);
+      const ptsSum = top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total, 0), 0);
+      return `<div class="card${collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}">${esc(role)} ${pts(ptsSum)}<span class="tri"></span></div><div class="sect-body">
+        ${top.map((r) => (r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group">${rowHtml(r, false)}${r.attached.map((x) => rowHtml(x, true)).join("")}</div>` : rowHtml(r, false))).join("")}</div></div>`;
     }).join("");
     const missing = c.entries.filter((r) => r.missing);
     const miss = missing.length ? `<div class="card"><div class="sect-h">Not in current data</div>${missing.map((r) => `<div class="urow" data-uid="${esc(r.uid)}"><div class="line"><span class="n err">${esc(r.name)}</span>
@@ -476,25 +491,43 @@
     const opts = C.modelOptions(u, r.copy), adds = C.addonOptions(u, r.copy);
     const errs = c.errors.filter((x) => x.uid === uid).concat(c.warnings.filter((x) => x.uid === uid));
     const used = {}; for (const x of c.entries) if (x.uid !== uid && x.entry.enh) used[x.entry.enh.name] = (used[x.entry.enh.name] || 0) + 1;
-    // Enhancements: Characters only (never Epic Heroes); non-Characters only see "(Upgrade)" enhancements, if any.
+    // Enhancements: every enhancement of every selected detachment. Characters see all of them, greyed with the
+    // reason when they can't take one (keyword restriction in the text, already taken, one per attached unit,
+    // army limit); other units only see the ones they can take (Upgrades, enhancements written for them).
     const isChar = C.isCharacter(u);
-    const enhRows = C.isEpicHero(u) ? [] : dets.flatMap((d) => d.enh.map((en) => ({ d, en }))).filter(({ en }) => isChar || en[3]);
-    const canEnh = !C.isEpicHero(u) && (isChar || enhRows.length > 0 || !!e.enh);
+    const choices = C.enhancementChoices(l, S.idx, uid);
+    const elig = (ch) => C.enhEligible(u, ch.en, F).ok;
+    const shown = choices.filter((ch) => (isChar && !C.isEpicHero(u)) || elig(ch) || (e.enh && e.enh.det === ch.d.n && e.enh.name === ch.en[0]));
     let enhHtml = "";
-    if (canEnh) {
-      const rows = enhRows;
-      enhHtml = `<div class="grp"><div class="gh">${isChar ? "Enhancement" : "Upgrades"}${isChar ? "" : ` <span class="muted" title="Only (Upgrade) enhancements can be given to non-Character units">(Upgrade enhancements)</span>`}</div><div class="gb">
+    if (shown.length || (isChar && !C.isEpicHero(u)) || e.enh) {
+      const upgradesOnly = !isChar || C.isEpicHero(u);
+      const used = c.enhLimit != null ? ` <span class="muted" data-testid="enh-count">${c.enhCount} / ${c.enhLimit} used</span>` : "";
+      enhHtml = `<div class="grp" data-testid="enh-grp"><div class="gh">${upgradesOnly && shown.every((ch) => ch.en[3]) ? "Upgrades" : "Enhancement"}${used}</div><div class="gb">
         <label class="opt"><input type="radio" name="enh" value="" ${!e.enh ? "checked" : ""} data-change="enh"><span class="on">None</span></label>
-        ${rows.length ? rows.map(({ d, en }) => {
-          const ok = en[3] || C.isCharacter(u); const taken = !en[3] && used[en[0]];
+        ${shown.length ? shown.map(({ d, en, ok, reason, taken }) => {
           const checked = e.enh && e.enh.det === d.n && e.enh.name === en[0];
-          return `<label class="opt${ok && !taken ? "" : " disabled"}"><input type="radio" name="enh" value="${esc(d.n + "||" + en[0])}" ${checked ? "checked" : ""} ${ok ? "" : "disabled"} data-change="enh">
-            <span class="on">${esc(en[0])}${en[3] ? ` <span class="tag">Upgrade</span>` : ""}${taken ? ` <span class="tag">taken</span>` : ""}${dets.length > 1 ? ` <span class="muted">(${esc(d.n)})</span>` : ""}${en[2] ? `<span class="desc">${esc(clean(en[2]))}</span>` : ""}</span>${pts(en[1])}</label>`;
-        }).join("") : `<div class="muted">Select a detachment to see its enhancements.</div>`}</div></div>`;
+          const dis = !ok && !checked;
+          return `<label class="opt${dis ? " disabled" : ""}" data-testid="enh-opt" data-enh="${esc(en[0])}"${dis ? ` title="${esc(reason)}"` : ""}><input type="radio" name="enh" value="${esc(d.n + "||" + en[0])}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="enh">
+            <span class="on">${esc(en[0])}${en[3] ? ` <span class="tag">Upgrade</span>` : ""}${taken ? ` <span class="tag">taken</span>` : ""}${dets.length > 1 ? ` <span class="muted">(${esc(d.n)})</span>` : ""}${dis && reason ? `<span class="why" data-testid="enh-why">${esc(reason)}</span>` : ""}${checked && !ok && reason ? `<span class="why err">${esc(reason)}</span>` : ""}${en[2] ? `<span class="desc">${esc(clean(en[2]))}</span>` : ""}</span>${pts(en[1])}</label>`;
+        }).join("") : `<div class="muted">${dets.length ? "No enhancements available to this unit." : "Select a detachment to see its enhancements."}</div>`}</div></div>`;
     }
-    if (C.isEpicHero(u) && e.enh) enhHtml = `<div class="grp"><div class="gb"><div class="err">Epic Heroes cannot take enhancements.</div><label class="opt"><input type="radio" name="enh" value="" data-change="enh"><span class="on">Remove ${esc(e.enh.name)}</span></label></div></div>`;
-    {
+    // Attach to: bodyguard units in the list this Leader / Support unit can join
+    let attachHtml = "";
+    if (C.canAttach(u)) {
+      const targets = C.attachTargets(l, S.idx, uid);
+      const kindOf = r.attachKind || (u.ldr && u.ldr.length ? "leader" : "support");
+      const can = [...new Set([...(u.ldr || []), ...(u.sup || [])])].map(title);
+      const curBad = e.attach && !targets.some((t) => t.entry.uid === e.attach);
+      attachHtml = `<div class="grp" data-testid="attach-grp"><div class="gh">Attach to <span class="muted">(${kindOf === "support" ? "Support" : "Leader"})</span></div><div class="gb">
+        <label class="opt"><input type="radio" name="attach" value="" ${!e.attach ? "checked" : ""} data-change="attach"><span class="on">Not attached</span></label>
+        ${targets.map((t) => { const sameName = l.entries.filter((x) => x.unit === t.entry.unit).length > 1; const idx = l.entries.filter((x) => x.unit === t.entry.unit).indexOf(t.entry) + 1;
+          const checked = e.attach === t.entry.uid; const dis = t.taken && !checked;
+          return `<label class="opt${dis ? " disabled" : ""}" data-testid="attach-opt" data-to="${esc(t.entry.uid)}"${dis ? ` title="Already has ${esc(t.kind === "support" ? "a Support unit" : "a Leader")}: ${esc(t.by.join(", "))}"` : ""}><input type="radio" name="attach" value="${esc(t.entry.uid)}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="attach">
+            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${dis ? `<span class="why">Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${esc(t.by.join(", "))}</span>` : ""}</span></label>`; }).join("")}
+        ${curBad ? `<div class="warn">Currently attached to a unit it can't join – choose another or "Not attached".</div>` : ""}
+        ${!targets.length ? `<div class="muted">Add a unit it can join: ${esc(can.join(", "))}.</div>` : ""}</div></div>`;
     }
+    const attachedHere = (r.attached || []).length ? `<div class="grp"><div class="gb"><div class="opt"><span class="on"><b>Attached:</b> ${esc(r.attached.map((x) => `${x.name} (${x.attachKind === "support" ? "Support" : "Leader"})`).join(", "))}</span></div></div></div>` : "";
     const strats = dets.flatMap((d) => d.st);
     const linked = C.linkedWargear(u);
     return phead(esc(u.n), `${pts(r.total, "big")} <span class="muted">${esc(u.r)}</span>`,
@@ -508,6 +541,7 @@
         ${(u.w || []).some((w, i) => !linked.has(i)) ? `<div class="grp"><div class="gh">Wargear costs (MFM)</div><div class="gb">${u.w.map((w, i) => linked.has(i) ? "" : `<div class="opt"><span class="on">${esc(w[0])}</span>${pts(w[1])}
           <span class="counter"><button data-action="wg" data-w="${esc(w[0])}" data-d="-1">−</button><span>${esc((e.wargear || {})[w[0]] || 0)}</span><button data-action="wg" data-w="${esc(w[0])}" data-d="1">+</button></span></div>`).join("")}</div></div>` : ""}
         ${C.isCharacter(u) ? `<div class="grp"><div class="gb"><label class="opt"><input type="checkbox" ${e.warlord ? "checked" : ""} data-change="warlord"><span class="on"><b>Warlord</b></span></label></div></div>` : ""}
+        ${attachHtml}${attachedHere}
         ${enhHtml}
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
         <details class="coll"><summary>Points</summary><div class="cb">${pointsTable(u)}</div></details>
@@ -556,7 +590,7 @@
     const u = F.units[name]; if (!u) return phead("Unit not found");
     const n = l.entries.filter((e) => e.unit === name).length;
     return phead(esc(u.n), `${pts(C.minCost(u, n + 1), "big")} <span class="muted">${esc(u.r)}</span>`) + `<div class="pbody scroll" data-sk="panel">
-      <button class="btn" data-action="add-unit" data-unit="${esc(u.n)}">${icon("plus")} Add to roster</button>
+      ${C.unitAllowed(u, l).ok ? `<button class="btn" data-action="add-unit" data-unit="${esc(u.n)}">${icon("plus")} Add to roster</button>` : `<div class="warn">🔒 ${esc(C.unitAllowed(u, l).reason)}</div>`}
       <details class="coll" open><summary>Points</summary><div class="cb">${pointsTable(u)}</div></details>
       <div class="grp"><div class="gb">${unitInfo(u) || "<span class='muted'>No extra info.</span>"}</div></div></div>`;
   }
@@ -885,9 +919,9 @@
     "add-unit": (t) => addUnit(t.dataset.unit),
     "preview-unit": (t) => { S.ui.panel = { type: "preview", unit: t.dataset.unit }; renderEditor(CUR.id); },
     "select-entry": (t) => { S.ui.panel = { type: "unit", uid: t.dataset.uid }; renderEditor(CUR.id); },
-    "dup-entry": (t) => { const e = entryOf(t.dataset.uid); if (!e) return; const c = JSON.parse(JSON.stringify(e)); c.uid = C.uid(); c.warlord = false; c.enh = null;
+    "dup-entry": (t) => { const e = entryOf(t.dataset.uid); if (!e) return; const c = JSON.parse(JSON.stringify(e)); c.uid = C.uid(); c.warlord = false; c.enh = null; delete c.attach;
       mutate((l) => { l.entries.splice(l.entries.indexOf(e) + 1, 0, c); }); },
-    "del-entry": (t) => { const uid = t.dataset.uid; if (S.ui.panel && S.ui.panel.uid === uid) S.ui.panel = null; mutate((l) => { l.entries = l.entries.filter((e) => e.uid !== uid); }); },
+    "del-entry": (t) => { const uid = t.dataset.uid; if (S.ui.panel && S.ui.panel.uid === uid) S.ui.panel = null; mutate((l) => { l.entries = l.entries.filter((e) => e.uid !== uid); for (const e of l.entries) if (e.attach === uid) delete e.attach; }); },
     "open-panel": (t) => { S.ui.panel = { type: t.dataset.panel }; renderEditor(CUR.id); },
     "close-panel": () => { S.ui.panel = null; renderEditor(CUR.id); },
     "focus-det": (t) => { S.ui.focusDet = t.dataset.det; renderEditor(CUR.id); },
@@ -952,6 +986,8 @@
   }
   const changes = {
     "legends": (t) => mutate((l) => { l.showLegends = t.checked; }),
+    "show-locked": (t) => mutate((l) => { l.showLocked = t.checked; }),
+    "attach": (t) => mutate((l) => { const e = l.entries.find((x) => x.uid === S.ui.panel.uid); if (!e) return; if (t.value) e.attach = t.value; else delete e.attach; }),
     "size": (t) => mutate((l) => { l.size = t.value; }),
     "disp": (t) => mutate((l) => { if (t.value) l.disposition = t.value; else delete l.disposition; }),
     "det": (t) => mutate((l) => {
