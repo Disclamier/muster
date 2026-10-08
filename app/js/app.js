@@ -404,6 +404,8 @@
       <div class="cfgrow${sel.type === "size" ? " selrow" : ""}" data-action="open-panel" data-panel="size"><span class="n"><b>Battle Size:</b> ${esc(size ? size.name : "?")}</span>${size ? pts(size.points) : ""}</div>
       <div class="cfgrow${sel.type === "dets" ? " selrow" : ""}" data-action="open-panel" data-panel="dets" data-testid="cfg-dets"><span class="n">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}<b>Detachment:</b> ${dets.length ? dets.map((d) => esc(d.n) + (d.src === "gs" ? `<span class="tag gs">GrimSlate</span>` : "")).join(", ") : `<span class="err">None selected</span>`}</span>
         <span class="dpchip${dpOver ? " over" : ""}" data-testid="dp">${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} DP</span></div>
+      ${dets.map((d) => `<details class="coll cfgdet" data-testid="cfg-det" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ""} <span class="muted">· ${d.st.length} stratagem${d.st.length === 1 ? "" : "s"} · ${d.enh.length} enhancement${d.enh.length === 1 ? "" : "s"}</span></summary>
+        <div class="cb">${d.rule ? `<div class="rules"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
       <div class="cfgrow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? esc(dispName(l.disposition)) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
       <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends"></label>
       <div class="cfgnote">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
@@ -510,7 +512,7 @@
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
         <details class="coll"><summary>Points</summary><div class="cb">${pointsTable(u)}</div></details>
         ${unitInfo(u) ? `<details class="coll"><summary>Unit info</summary><div class="cb">${unitInfo(u)}</div></details>` : ""}
-        ${strats.length ? `<details class="coll"><summary>Stratagems (${strats.length})</summary><div class="cb">${strats.map(stratHtml).join("")}</div></details>` : ""}
+        ${dets.length ? `<details class="coll" data-testid="unit-strats"><summary>Stratagems (${strats.length})${dets.length > 1 ? ` <span class="muted">– ${dets.length} detachments</span>` : ""}</summary><div class="cb">${dets.map((d) => `<div class="stgrp" data-det="${esc(d.n)}"><div class="stgrp-h">${esc(d.n)}${d.rule ? ` <span class="muted">– ${esc(d.rule[0])}</span>` : ""}</div>${d.rule ? `<div class="rules small">${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div>`).join("")}</div></details>` : ""}
       </div>`;
   }
   /* New Recruit-style options tree: model types with counts, fixed weapons, weapon choices per slot */
@@ -563,6 +565,17 @@
     if (!md || !md.games) return "";
     return `<a class="wrchip" href="#/meta/${esc(C.metaFaction(S.wr, l.faction, l.sub).slug)}" title="listhammer.info, ${esc((S.wr.date_range || {}).label || "")}: ${md.wins}-${md.losses}">${C.fmtPct(md.win_rate)} · ${md.games} games</a>`;
   }
+  /* one detachment's rule + enhancements + stratagems, grouped under its name */
+  function detBlock(d, o) {
+    o = o || {};
+    return `<div class="detfocus${o.preview ? " preview" : ""}" data-testid="det-block" data-det="${esc(d.n)}"><h4>${esc(d.n)} <span class="dpchip">${d.dp} DP</span>${o.preview ? ` <span class="tag">not selected</span>` : ""}</h4>
+        ${d.fd && d.fd.length ? `<div class="muted">Force Disposition: ${esc(d.fd.map(dispName).join(", "))}</div>` : ""}
+        ${d.sup ? `<div class="muted">${esc([].concat(d.sup).join("; "))}</div>` : ""}
+        ${d.gs_dp !== undefined && d.gs_dp !== d.dp ? `<div class="warn">GrimSlate lists ${esc(d.gs_dp)} DP (MFM value used)</div>` : ""}
+        ${d.rule ? `<details class="coll"${o.open ? " open" : ""}><summary>Detachment rule: ${esc(d.rule[0])}</summary><div class="cb rules" data-testid="det-rule">${esc(clean(d.rule[1]))}</div></details>` : `<div class="muted">No detachment rule text available.</div>`}
+        ${o.noEnh ? "" : `<details class="coll"${o.open ? " open" : ""}><summary>Enhancements (${d.enh.length})</summary><div class="cb">${d.enh.length ? d.enh.map((e) => `<div class="opt"><span class="on"><b>${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("") : `<span class="muted">None listed.</span>`}</div></details>`}
+        <details class="coll"${o.open ? " open" : ""}><summary>Stratagems (${d.st.length})</summary><div class="cb" data-testid="det-strats">${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details></div>`;
+  }
   function detsPanel(l, F, c) {
     const all = F.f.dets.filter((d) => d.dp !== null && d.dp !== undefined);
     const mfm = all.filter((d) => d.src !== "gs"), gs = all.filter((d) => d.src === "gs");
@@ -574,13 +587,12 @@
         <span>${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>${d.src === "gs" ? `<span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}
         ${d.chg ? `<span class="tag">updated</span>` : ""}${(d.rs || []).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}${metaChip(l, d.n)}</label>
         <button class="ibtn" data-action="focus-det" data-det="${esc(d.n)}" title="View rules">${icon("eye")}</button></div>`;
-    const fd = focus ? `<div class="detfocus"><h4>${esc(focus.n)} <span class="dpchip">${focus.dp} DP</span></h4>
-        ${focus.fd && focus.fd.length ? `<div class="muted">Force Disposition: ${esc(focus.fd.map(dispName).join(", "))}</div>` : ""}
-        ${focus.sup ? `<div class="muted">${esc([].concat(focus.sup).join("; "))}</div>` : ""}
-        ${focus.gs_dp !== undefined && focus.gs_dp !== focus.dp ? `<div class="warn">GrimSlate lists ${esc(focus.gs_dp)} DP (MFM value used)</div>` : ""}
-        ${focus.rule ? `<details class="coll" open><summary>Detachment rule: ${esc(focus.rule[0])}</summary><div class="cb rules">${esc(clean(focus.rule[1]))}</div></details>` : ""}
-        <details class="coll" open><summary>Enhancements (${focus.enh.length})</summary><div class="cb">${focus.enh.length ? focus.enh.map((e) => `<div class="opt"><span class="on"><b>${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("") : `<span class="muted">None listed.</span>`}</div></details>
-        <details class="coll" open><summary>Stratagems (${focus.st.length})</summary><div class="cb">${focus.st.length ? focus.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details></div>` : "";
+    // every selected detachment gets its own block (rule, enhancements, stratagems); an unselected detachment
+    // opened with the eye button is shown as a preview after them
+    const selDets = (l.dets || []).map((n) => F.dets[n]).filter(Boolean);
+    const preview = focus && !selected.has(focus.n) && (S.ui.focusDet === focus.n || !selDets.length) ? focus : null;
+    const fd = (selDets.length ? `<div class="detsel-h">Selected detachment${selDets.length === 1 ? "" : "s"} (${selDets.length})</div>` : "") +
+      selDets.map((d) => detBlock(d, { open: true })).join("") + (preview ? detBlock(preview, { open: true, preview: true }) : "");
     return phead("Detachment", `<span class="${over ? "err" : "muted"}" data-testid="dp-used">${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} Detachment Points used</span>`) +
       `<div class="pbody scroll" data-sk="panel">
         ${size && size.single3dp ? `<div class="cfgnote">${esc(size.name)}: up to ${size.dp} DP, or a single 3 DP detachment.</div>` : ""}

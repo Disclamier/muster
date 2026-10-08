@@ -2,7 +2,7 @@
    - App shell: precached, served stale-while-revalidate (works offline, picks up new code on next load).
    - data/*.json: network-first (fresh points when online), falling back to the cached copy offline.
    - Faction artwork: precached from assets/factions/index.json, cache-first. */
-const SHELL = "muster-shell-v3", DATA = "muster-data-v1", ART = "muster-art-v1";
+const SHELL = "muster-shell-v4", DATA = "muster-data-v1", ART = "muster-art-v1";
 const SHELL_FILES = ["./", "index.html", "css/app.css", "js/core.js", "js/app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png"];
 

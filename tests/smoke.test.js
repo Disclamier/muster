@@ -461,3 +461,76 @@ test("review 2: fixed editor layout, amber warning markers, dark textarea grip, 
   await go(w, "#/lists");
   assert.ok(!d.body.classList.contains("app-fixed"));
 });
+
+test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath show both rules, stratagems and enhancements everywhere", async () => {
+  const weF = POINTS.factions.find((f) => f.id === "world-eaters");
+  const BW = weF.dets.find((x) => x.n === "Berzerker Warband"), VW = weF.dets.find((x) => x.n === "Vessels of Wrath");
+  // data: both detachments are MFM detachments matched to GrimSlate, with rule text and stratagems
+  for (const d of [BW, VW]) {
+    assert.ok(d, "detachment exists"); assert.equal(d.src, "mfm");
+    assert.ok(d.rule && d.rule[0] && d.rule[1], `${d.n} rule text`);
+    assert.ok(d.st.length >= 3, `${d.n} stratagems`); assert.ok(d.enh.length >= 2, `${d.n} enhancements`);
+  }
+  assert.equal(BW.rule[0], "Relentless Rage"); assert.equal(VW.rule[0], "Wrath of Khorne");
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore;
+  const l = C.newList({ name: "Khorne", faction: "world-eaters", sub: "world-eaters" });
+  const charU = weF.units.find((u) => C.isCharacter(u) && !C.isEpicHero(u) && !u.lg);
+  const e = C.newEntry(charU); e.warlord = true; l.entries.push(e);
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  // select both via the Detachment panel
+  click(w, d.querySelector("[data-testid=cfg-dets]"));
+  for (const n of [BW.n, VW.n]) change(w, [...d.querySelectorAll(".panel input[data-change=det]")].find((b) => b.value === n), true);
+  assert.deepEqual([...l.dets], [BW.n, VW.n]);
+  assert.match(d.querySelector("[data-testid=dp]").textContent, /3 \/ 3 DP/);
+  const calc = C.calcList(l, w.Muster.S.idx);
+  assert.equal(calc.errors.length, 0, calc.errors.map((x) => x.msg).join("; "));
+  // Detachment panel: one block per selected detachment with its own rule + stratagems
+  const blocks = [...d.querySelectorAll(".panel [data-testid=det-block]")];
+  assert.deepEqual(blocks.map((b) => b.dataset.det), [BW.n, VW.n]);
+  for (const [b, det] of [[blocks[0], BW], [blocks[1], VW]]) {
+    assert.match(b.textContent, new RegExp(det.rule[0]));
+    assert.equal(b.querySelectorAll("[data-testid=det-strats] .strat").length, det.st.length, det.n);
+    for (const s of det.st) assert.ok(b.textContent.includes(s[0]), `${det.n}: ${s[0]}`);
+  }
+  // the eye button on an unselected detachment adds a preview after the selected ones, without hiding them
+  const other = weF.dets.find((x) => x.src === "mfm" && ![BW.n, VW.n].includes(x.n));
+  click(w, d.querySelector(`.panel [data-action=focus-det][data-det="${other.n}"]`));
+  const b2 = [...d.querySelectorAll(".panel [data-testid=det-block]")];
+  assert.deepEqual(b2.map((b) => b.dataset.det), [BW.n, VW.n, other.n]);
+  assert.ok(b2[2].classList.contains("preview"));
+  // Configuration card: one entry per detachment with rule + its stratagems
+  const cfg = [...d.querySelectorAll(".roster [data-testid=cfg-det]")];
+  assert.deepEqual(cfg.map((x) => x.dataset.det), [BW.n, VW.n]);
+  assert.match(cfg[0].querySelector("summary").textContent, /Relentless Rage/);
+  assert.match(cfg[1].querySelector("summary").textContent, /Wrath of Khorne/);
+  assert.equal(cfg[0].querySelectorAll(".strat").length, BW.st.length);
+  assert.equal(cfg[1].querySelectorAll(".strat").length, VW.st.length);
+  // unit panel: enhancements from BOTH detachments, stratagems grouped under each detachment
+  click(w, [...d.querySelectorAll(".roster .urow")].find((x) => x.textContent.includes(charU.n)));
+  const enhVals = [...d.querySelectorAll(".panel input[data-change=enh]")].map((x) => x.value).filter(Boolean);
+  for (const det of [BW, VW]) for (const en of det.enh) assert.ok(enhVals.includes(det.n + "||" + en[0]), `${det.n}: ${en[0]}`);
+  change(w, d.querySelector(`.panel input[data-change=enh][value="${VW.n}||${VW.enh[0][0]}"]`), true);
+  assert.deepEqual({ ...l.entries[0].enh }, { det: VW.n, name: VW.enh[0][0] });
+  assert.equal(C.calcList(l, w.Muster.S.idx).enhancements, VW.enh[0][1]);
+  const groups = [...d.querySelectorAll(".panel [data-testid=unit-strats] .stgrp")];
+  assert.deepEqual(groups.map((g) => g.dataset.det), [BW.n, VW.n]);
+  assert.equal(groups[0].querySelectorAll(".strat").length, BW.st.length);
+  assert.equal(groups[1].querySelectorAll(".strat").length, VW.st.length);
+  assert.match(groups[1].textContent, /Wrath of Khorne/);
+  // Stratagems export: both detachments, each with its rule and all its stratagems, grouped
+  const txt = C.exportStratagems ? C.exportStratagems(l, w.Muster.S.idx, w.Muster.S.meta) : C.EXPORT_FORMATS.find((f) => f.id === "stratagems").fn(l, w.Muster.S.idx, w.Muster.S.meta);
+  const iB = txt.indexOf("== BERZERKER WARBAND"), iV = txt.indexOf("== VESSELS OF WRATH");
+  assert.ok(iB >= 0 && iV > iB, txt.slice(0, 200));
+  assert.match(txt.slice(iB, iV), /Detachment rule – Relentless Rage/);
+  assert.match(txt.slice(iV), /Detachment rule – Wrath of Khorne/);
+  for (const s of BW.st) assert.ok(txt.slice(iB, iV).includes(s[0]), s[0]);
+  for (const s of VW.st) assert.ok(txt.slice(iV).includes(s[0]), s[0]);
+  // the other export formats list both detachments too
+  for (const f of ["gw", "wtc", "simple"]) {
+    const t = C.EXPORT_FORMATS.find((x) => x.id === f).fn(l, w.Muster.S.idx, w.Muster.S.meta);
+    assert.ok(new RegExp(BW.n, "i").test(t) && new RegExp(VW.n, "i").test(t), f);
+  }
+});
