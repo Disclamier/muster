@@ -960,7 +960,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v15/);
+  assert.match(read("sw.js"), /muster-shell-v16/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1154,6 +1154,83 @@ test("accounts on: create account with email confirmation ON, confirmation link 
   assert.equal(JSON.parse(b.w.localStorage.getItem("muster.auth")).user.email, "buddy@example.com");
   await until(() => !b.d.querySelector("#acct").hidden);
   b.dom.window.close();
+});
+
+test("guest mode: one list without an account, a second list is blocked, the guest list uploads on sign-up", async () => {
+  const sb = mockSupabase();
+  const { w, d } = makeApp({ config: CFG, supabase: sb });
+  await until(() => d.querySelector("[data-testid=auth-screen]"));
+  const start = d.querySelector("[data-testid=guest-start]");
+  assert.match(start.textContent, /Try it without an account/);
+  assert.match(d.querySelector(".auth-guest-note").textContent, /1 list[\s\S]*saved only on this device/);
+  click(w, start);
+  await until(() => d.querySelector(".lists-page"));
+  assert.equal(d.querySelector("[data-testid=auth-screen]"), null);
+  assert.equal(w.localStorage.getItem("muster.guest"), "1");
+  assert.equal(w.Muster.isGuest(), true);
+  assert.match(d.querySelector("[data-testid=guest-note]").textContent, /Guest: 0\/1 list/);
+  assert.match(d.querySelector("#acct").textContent, /Guest/);
+  assert.ok(d.querySelector("#acct").classList.contains("guest"));
+  assert.ok(!sb.calls.some((c) => /\/auth\/v1\/|\/rest\/v1\//.test(c.path)), "guest mode does not talk to the account");
+  // the whole app is open: Meta is not behind the sign-in wall
+  await go(w, "#/meta");
+  assert.equal(d.querySelector("[data-testid=auth-screen]"), null);
+  await go(w, "#/lists");
+  // the one allowed list can be started
+  click(w, d.querySelector("[data-action=new-list]"));
+  assert.equal(d.querySelector("[data-testid=guest-limit]"), null);
+  assert.match(d.querySelector("#modal").textContent, /Create List/);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  const stub = (id, name) => ({ id, name, faction: "orks", sub: "orks", size: "incursion", dets: [], entries: [], app: "muster", schema: 1, updated: "2026-10-08T12:00:00.000Z" });
+  w.Muster.S.lists.push(stub("g1", "Guest Orks")); w.Muster.route();
+  assert.match(d.querySelector("[data-testid=guest-note]").textContent, /Guest: 1\/1 list/);
+  // a second list is blocked from create, duplicate and import
+  click(w, d.querySelector("#hdr [data-action=new-list]"));
+  const lim = () => d.querySelector("[data-testid=guest-limit]");
+  assert.match(lim().textContent, /Guest mode is limited to 1 list/);
+  assert.match(lim().textContent, /Create a free account to save unlimited lists and sync them between your PC and phone/);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  click(w, d.querySelector('[data-action=dup-list][data-id="g1"]'));
+  assert.ok(lim()); assert.equal(w.Muster.S.lists.length, 1);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  click(w, d.querySelector("[data-action=import-text]"));
+  assert.ok(lim()); assert.equal(d.querySelector("[data-import]"), null);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  click(w, d.querySelector("[data-action=import-file]"));
+  assert.ok(lim()); assert.equal(w.Muster.S.lists.length, 1);
+  // an import that would go past 1 keeps the first list only and says why
+  w.Muster.S.lists.length = 0; w.Muster.route();
+  click(w, d.querySelector("[data-action=import-text]"));
+  d.querySelector("[data-import]").value = w.MusterCore.exportLists([stub("a", "One"), stub("b", "Two")]);
+  click(w, d.querySelector("#modal [data-ok]"));
+  assert.equal(w.Muster.S.lists.length, 1);
+  assert.equal(w.Muster.S.lists[0].name, "One");
+  assert.match(lim().textContent, /Imported 1 of 2 lists/);
+  assert.match(lim().textContent, /weren't imported/);
+  // creating the free account uploads that guest list and clears guest mode
+  click(w, d.querySelector("[data-action=guest-signup]"));
+  await until(() => d.querySelector("input[name=password2]"));
+  assert.equal(w.localStorage.getItem("muster.guest"), null);
+  assert.equal(w.Muster.S.lists.length, 1, "the guest list is still here for the new account");
+  assert.match(d.querySelector(".auth-msg").textContent, /added to your account/);
+  d.querySelector("input[name=email]").value = "guest@example.com";
+  d.querySelector("input[name=password]").value = "hunter22";
+  d.querySelector("input[name=password2]").value = "hunter22";
+  submitForm(w, d.querySelector("[data-form=auth]"));
+  await until(() => sb.rows.some((r) => r.data && r.data.name === "One"), 5000);
+  assert.equal(sb.rows.filter((r) => r.data && r.data.name === "One").length, 1);
+  assert.equal(w.localStorage.getItem("muster.guest"), null);
+  assert.equal(w.Muster.isGuest(), false);
+  assert.equal(w.localStorage.getItem("muster.sync.owner"), sb.rows[0].user_id);
+  await until(() => d.querySelector("#acct").classList.contains("s-synced"));
+  // signing out of the real account returns to the wall, not guest mode
+  click(w, d.querySelector("#acct"));
+  click(w, d.querySelector("[data-action=sign-out]"));
+  await until(() => d.querySelector("[data-testid=auth-screen]"));
+  assert.equal(w.localStorage.getItem("muster.guest"), null);
+  assert.equal(w.localStorage.getItem("muster.lists"), null);
+  assert.equal(w.Muster.isGuest(), false);
+  assert.ok(d.querySelector("#acct").hidden);
 });
 
 test("enhancement dropdown: collapsed New Recruit-style row, opens to pick, shows choice + points, stays open across re-renders", async () => {

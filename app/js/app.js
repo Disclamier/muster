@@ -4,7 +4,7 @@
   const C = window.MusterCore;
   const LS_LISTS = "muster.lists", LS_THEME = "muster.theme", LS_FMT = "muster.exportFormat", LS_REPORT = "muster.updateReport",
     LS_COLL = "muster.collapsed", LS_WRRANGE = "muster.metaRange", LS_TOMBS = "muster.tombs", LS_OWNER = "muster.sync.owner",
-    LS_PENDING = "muster.pendingHash", LS_WRRTT = "muster.metaRtt", LS_WRTAB = "muster.metaTab", LS_WRHOME = "muster.metaHome";
+    LS_PENDING = "muster.pendingHash", LS_GUEST = "muster.guest", LS_WRRTT = "muster.metaRtt", LS_WRTAB = "muster.metaTab", LS_WRHOME = "muster.metaHome";
   const ROLE_ICON = "unit";
 
   /* ------------------------------------------------------------------ state */
@@ -97,7 +97,12 @@
     onStatus: (i) => { S.sync = i; renderAcct(); },
     onSignedOut: (reason) => { if (reason === "expired") { AUTH.msg = { err: true, text: "Your session expired – please sign in again. Your lists are safe on this device." }; route(); } },
   }) : null;
-  const authWall = () => !!(SY && SY.configured && !SY.session());
+  /* guest mode ("Try it without an account"): the whole app, lists saved only on this device, nothing syncs, max GUEST_MAX list(s) */
+  const GUEST_MAX = 1;
+  const nLists = (n) => `${n} list${n === 1 ? "" : "s"}`;
+  const guestFlag = () => { try { return localStorage.getItem(LS_GUEST) === "1"; } catch (e) { return false; } };
+  const isGuest = () => !!(SY && SY.configured && !SY.session() && guestFlag());
+  const authWall = () => !!(SY && SY.configured && !SY.session() && !guestFlag());
   /* in-place update keeps references (CUR, open panels) pointing at the live list object */
   function applyMerge(res) {
     S.tombs = res.tombs;
@@ -147,7 +152,8 @@
     for (const k of [LS_LISTS, LS_TOMBS, LS_OWNER, SY.LS_KNOWN]) localStorage.removeItem(k);
   }
   function afterSignIn() {
-    adoptAccount(SY.user());
+    adoptAccount(SY.user());   // guest lists have no owner, so they are kept and uploaded into the account
+    try { localStorage.removeItem(LS_GUEST); } catch (e) { /* ignore */ }
     document.body.classList.remove("auth-wall");
     AUTH.msg = null; closeModal();
     let pend = null; try { pend = localStorage.getItem(LS_PENDING); localStorage.removeItem(LS_PENDING); } catch (e) { /* ignore */ }
@@ -166,10 +172,17 @@
   }
   function renderAcct() {
     const b = $("#acct"); if (!b) return;
+    const use = $("use", b), lbl = $(".lbl", b);
+    if (isGuest()) {
+      b.hidden = false; b.className = "hbtn acct guest"; b.title = `Guest mode – ${S.lists.length}/${nLists(GUEST_MAX)}, saved only on this device. Tap to create a free account.`;
+      b.dataset.action = "guest-info"; b.setAttribute("data-testid", "guest-btn"); if (use) use.setAttribute("href", "#i-user");
+      lbl.textContent = "Guest"; lbl.classList.remove("lbl-opt"); return;
+    }
+    b.dataset.action = "account"; b.removeAttribute("data-testid"); if (use) use.setAttribute("href", "#i-cloud"); lbl.classList.add("lbl-opt");
     if (!SY || !SY.configured || !SY.session()) { b.hidden = true; return; }
     const i = S.sync || SY.info();
     b.hidden = false; b.className = `hbtn acct s-${i.status}`; b.title = syncTooltip(i);
-    $(".lbl", b).textContent = SYNC_TXT[i.status] || "Account";
+    lbl.textContent = SYNC_TXT[i.status] || "Account";
   }
   function accountModal() {
     if (!SY || !SY.session()) return;
@@ -185,12 +198,48 @@
     const go = async () => {
       if (i.pending) stashAccount(localStorage.getItem(LS_OWNER) || SY.user().id);   // unsynced changes stay on this device for next sign-in
       else clearLocalAccountData();                                                       // everything is in the account
+      try { localStorage.removeItem(LS_GUEST); } catch (e) { /* ignore */ }   // back to the sign-in screen, never into guest mode
       await SY.signOut(); closeModal(); AUTH.mode = "signin"; AUTH.msg = { text: "Signed out." };
       if (location.hash !== "#/lists") location.hash = "#/lists"; route();
     };
     if (i.pending) confirmModal(`${i.pending} change${i.pending === 1 ? " hasn't" : "s haven't"} uploaded yet (offline?). Sign out anyway? They stay on this device and upload the next time you sign in here.`, "Sign out", go);
     else go();
   }
+  /* ---- guest mode */
+  function startGuest() {
+    // lists still on this device from an account whose session ended belong to that account: park them for its next sign-in
+    const owner = localStorage.getItem(LS_OWNER);
+    if (owner) stashAccount(owner);
+    try { localStorage.setItem(LS_GUEST, "1"); localStorage.removeItem(LS_PENDING); } catch (e) { /* ignore */ }
+    AUTH.msg = null; document.body.classList.remove("auth-wall");
+    route(); renderAcct();
+    toast(`Guest mode – ${GUEST_MAX === 1 ? "1 list" : `up to ${GUEST_MAX} lists`}, saved on this device`, 3000);
+  }
+  /* leave guest mode for the sign-in / create-account screen; guest lists stay on this device and go into the account on sign-in */
+  function leaveGuest(mode, msg) {
+    try { localStorage.removeItem(LS_GUEST); } catch (e) { /* ignore */ }
+    closeModal(); AUTH.mode = mode || "signin"; AUTH.msg = msg ? { text: msg } : null;
+    route(); renderAcct();
+  }
+  const guestKeep = () => S.lists.length ? ` Your guest ${S.lists.length === 1 ? "list" : `lists (${S.lists.length})`} will be added to your account.` : "";
+  function guestModal() {
+    const n = S.lists.length;
+    return modal("Guest mode", `<div class="guest-box" data-testid="guest-info"><p>You're using Muster without an account. Your lists are saved <b>only on this device</b> and don't sync.</p>
+      <p class="guest-count"><b>${n} of ${GUEST_MAX}</b> guest ${GUEST_MAX === 1 ? "list" : "lists"} used.</p>
+      <p class="muted">Create a free account to save unlimited lists and sync them between your PC and phone. Your guest list comes with you.</p></div>
+      <div class="mfoot wrap guest-foot"><button class="btn" data-action="guest-signup" data-testid="guest-signup">Create free account</button><button class="btn secondary" data-action="guest-signin">Sign in</button>
+        <button class="btn secondary" data-action="guest-exit" data-testid="guest-exit">Exit guest mode</button><button class="btn secondary" data-action="close-modal">Close</button></div>`);
+  }
+  function guestLimitModal(extra) {
+    return modal("List limit reached", `<div class="guest-box" data-testid="guest-limit">${extra ? `<p><b>${esc(extra)}</b></p>` : ""}
+      <p>Guest mode is limited to ${GUEST_MAX === 1 ? "1 list" : `${GUEST_MAX} lists`}. Create a free account to save unlimited lists and sync them between your PC and phone.</p>
+      <p class="muted">Your guest list is kept and moved into your new account.</p></div>
+      <div class="mfoot wrap guest-foot"><button class="btn" data-action="guest-signup">Create account</button><button class="btn secondary" data-action="guest-signin">Sign in</button><button class="btn secondary" data-action="close-modal">Cancel</button></div>`);
+  }
+  /* how many more lists this device may hold (Infinity unless in guest mode) */
+  const guestRoom = () => isGuest() ? Math.max(0, GUEST_MAX - S.lists.length) : Infinity;
+  /* true (and shows the limit dialog) when adding n lists would go past the guest limit */
+  function guestBlocked(n) { if (guestRoom() >= (n || 1)) return false; guestLimitModal(); return true; }
   /* sign-in / create-account screen (shown instead of every page while signed out, when accounts are configured) */
   const AUTH = { mode: "signin", msg: null, busy: false, email: "" };
   function renderAuth() {
@@ -212,6 +261,9 @@
       ${M === "signup" ? `<label class="l" for="auth-pw2">Confirm password</label><input id="auth-pw2" type="password" name="password2" required minlength="6" autocomplete="new-password">` : ""}
       <button class="btn auth-go" type="submit" ${AUTH.busy ? "disabled" : ""} data-testid="auth-submit">${AUTH.busy ? "Please wait…" : M === "signup" ? "Create free account" : M === "forgot" ? "Send reset link" : "Sign in"}</button>
       <div class="auth-links">${M === "signin" ? `<a href="#" data-action="auth-mode" data-mode="forgot">Forgot password?</a>` : `<a href="#" data-action="auth-mode" data-mode="signin">Back to sign in</a>`}</div>
+      ${M !== "forgot" ? `<div class="auth-or"><span>or</span></div>
+      <button type="button" class="btn secondary auth-guest" data-action="guest-start" data-testid="guest-start">Try it without an account</button>
+      <p class="muted small auth-guest-note">${GUEST_MAX === 1 ? "Build 1 list" : `Up to ${GUEST_MAX} lists`}, saved only on this device. Create an account later and keep it.</p>` : ""}
       <p class="muted small">Your lists are private to your account. Muster is an unofficial fan tool.</p>
     </form></div>`;
     $("#banner").innerHTML = "";
@@ -257,7 +309,7 @@
       if (r && r.error) AUTH.msg = { err: true, text: `That link didn't work: ${r.error}. Try again or request a new one.` };
       else if (r && r.session) { afterSignIn(); if (r.type === "recovery") newPasswordModal(); else toast("Email confirmed – you're signed in", 3000); }
     }
-    if (SY.session()) { adoptAccount(SY.user()); renderAcct(); SY.syncNow({ pull: true }); }
+    if (SY.session()) { try { localStorage.removeItem(LS_GUEST); } catch (e) { /* ignore */ } adoptAccount(SY.user()); renderAcct(); SY.syncNow({ pull: true }); }
     const pullSoon = () => { if (SY.session() && document.visibilityState !== "hidden" && Date.now() - SY.lastPull() > 5000) SY.syncNow({ pull: true }); };
     window.addEventListener("focus", pullSoon);
     document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pullSoon(); });
@@ -406,7 +458,7 @@
     else if (parts[0] === "meta") renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null);
     else if (parts[0] === "share" && parts[1]) openShared(parts.slice(1).join("/"));
     else renderLists();
-    renderBanner(); renderFooter(); setActiveNav();
+    renderBanner(); renderFooter(); setActiveNav(); renderAcct();
   }
   window.addEventListener("hashchange", () => { S.ui.panel = null; route(); });
 
@@ -430,6 +482,8 @@
         <button class="tbtn" data-action="import-text">${icon("text")}Text Import</button>
         <button class="tbtn" data-action="export-all" ${S.lists.length ? "" : "disabled"}>${icon("export")}Export all</button>
       </div>
+      ${isGuest() ? `<div class="guest-note${S.lists.length >= GUEST_MAX ? " full" : ""}" data-testid="guest-note">${icon("user")}<span><b>Guest: ${S.lists.length}/${nLists(GUEST_MAX)}</b> · saved only on this device</span>
+        <button class="btn sm" data-action="guest-signup">Create free account</button></div>` : ""}
       <input class="search" type="search" placeholder="Search lists…" value="${esc(S.ui.listQ)}" data-input="list-search">
       ${!S.lists.length ? `<div class="empty">No lists yet. Use <b>Create List</b> to start, or import a Muster JSON file.</div>` : ""}
       ${names.map((n) => {
@@ -501,6 +555,7 @@
   }
   function createList() {
     const sub = S.idx.subs[NEW.sub]; if (!sub) return;
+    if (guestBlocked(1)) return;
     const l = C.newList({ name: NEW.name.trim() || `${sub.name} ${(S.idx.sizes[NEW.size] || {}).points || ""}`.trim(), faction: sub.data, sub: sub.id, size: NEW.size });
     S.lists.push(l); saveLists(); closeModal(); location.hash = `#/list/${l.id}`;
   }
@@ -995,7 +1050,7 @@
       $("#main").innerHTML = `<div class="empty">Shared list: <b>${esc(l.name)}</b></div>`;
       const m = modal("Import shared list", `<p>Add <b>${esc(l.name)}</b> (${esc((S.idx.subs[l.sub] || {}).name || l.faction)}, ${l.entries.length} units) to your lists?</p>
         <div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-ok>Add to My Lists</button></div>`);
-      $("[data-ok]", m).onclick = () => { S.lists.push(l); saveLists(); closeModal(); location.hash = `#/list/${l.id}`; };
+      $("[data-ok]", m).onclick = () => { if (guestBlocked(1)) return; S.lists.push(l); saveLists(); closeModal(); location.hash = `#/list/${l.id}`; };
     } catch (e) { $("#main").innerHTML = `<div class="empty">Could not read this share link (${esc(e.message)}). <a href="#/lists">My Lists</a></div>`; }
   }
   const EXP = { md: false };
@@ -1074,7 +1129,7 @@
     const l = CUR;
     openMenu(anchor, [
       { label: "Rename", icon: "pencil", fn: () => renameList(l.id) },
-      { label: "Duplicate", icon: "copy", fn: () => { const d = C.duplicateList(l); S.lists.push(d); saveLists(); location.hash = `#/list/${d.id}`; toast("List duplicated"); } },
+      { label: "Duplicate", icon: "copy", fn: () => { if (guestBlocked(1)) return; const d = C.duplicateList(l); S.lists.push(d); saveLists(); location.hash = `#/list/${d.id}`; toast("List duplicated"); } },
       { label: "Export…", icon: "export", fn: openExport },
       { label: "Export for Yellowscribe (TTS)", icon: "export", fn: exportYellowscribe },
       { label: "Download JSON", icon: "import", fn: () => download(`${fileSafe(l.name)}.muster.json`, C.exportLists([l]), "application/json") },
@@ -1090,7 +1145,7 @@
     const l = findList(id); if (!l) return;
     confirmModal(`Delete <b>${esc(l.name)}</b>? This cannot be undone.`, "Delete", () => {
       S.lists = S.lists.filter((x) => x.id !== id);
-      if (SY && SY.configured) S.tombs[id] = now();   // tombstone: other devices drop it on their next sync
+      if (SY && SY.configured && !isGuest()) S.tombs[id] = now();   // tombstone: other devices drop it on their next sync
       saveLists();
       if (CUR && CUR.id === id) { CUR = null; location.hash = "#/lists"; } else route();
       toast("List deleted");
@@ -1101,11 +1156,19 @@
     const m = text.match(/#\/share\/([A-Za-z0-9_\-]+)/);
     if (m) { location.hash = `#/share/${m[1]}`; closeModal(); return; }
     try {
-      const ls = C.importLists(text); S.lists.push(...ls); saveLists(); closeModal(); route();
+      const all = C.importLists(text); const room = guestRoom();
+      const ls = all.slice(0, room);
+      if (ls.length) { S.lists.push(...ls); saveLists(); }
+      closeModal(); route();
+      if (ls.length < all.length) {
+        guestLimitModal(ls.length ? `Imported ${ls.length} of ${all.length} lists – the other ${all.length - ls.length} weren't imported.` : `${all.length === 1 ? "The list wasn't" : `None of the ${all.length} lists were`} imported.`);
+        return;
+      }
       toast(`Imported ${ls.length} list${ls.length === 1 ? "" : "s"}`);
     } catch (e) { toast(`Import failed: ${e.message}`, 3500); }
   }
   function importFile() {
+    if (guestBlocked(1)) return;
     const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json,application/json,text/plain";
     inp.onchange = () => { const f = inp.files && inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => importText(r.result); r.readAsText(f); };
     inp.click();
@@ -1296,7 +1359,7 @@
       <tr><td>Rules text &amp; stratagems</td><td>GrimSlate (secondary), ${esc(m.gs_fetched_at ? localTime(m.gs_fetched_at) : "?")}</td></tr>
       <tr><td>Space Marines datasheets, detachments &amp; stratagems</td><td>Codex: Space Marines (11th edition) – overrides GrimSlate for Adeptus Astartes; points stay MFM</td></tr>
       <tr><td>Win rates</td><td>${W ? `listhammer.info, ${esc((W.date_range || {}).label || "")} ${esc((W.date_range || {}).dates || "")}, fetched ${esc(localTime(W.fetched_at))}` : "not loaded"}</td></tr>
-      <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} ${SY && SY.session() ? `(synced to your account)` : "(stored only on this device)"}</td></tr>
+      <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} ${SY && SY.session() ? `(synced to your account)` : isGuest() ? `of ${GUEST_MAX} (guest mode – stored only on this device)` : "(stored only on this device)"}</td></tr>
       ${SY && SY.session() ? `<tr><td>Account</td><td>${esc(SY.user().email || "")} · ${esc(SYNC_TXT[(S.sync || SY.info()).status] || "")} <a href="#" data-action="account">Manage / sign out</a></td></tr>` : ""}</table>
       <div class="mfoot wrap">${S.report ? `<button class="btn secondary" data-action="show-report">Show last points-update report</button>` : ""}<button class="btn secondary" data-action="check-update">Check for points updates</button><button class="btn" data-action="close-modal">Close</button></div>`);
   }
@@ -1316,7 +1379,7 @@
     if (isPhone()) toast(`Added ${u.n}`); else { S.ui.panel = { type: "unit", uid: e.uid }; renderEditor(CUR.id); }
   }
   const actions = {
-    "new-list": () => openCreate(),
+    "new-list": () => { if (!guestBlocked(1)) openCreate(); },
     "close-modal": () => closeModal(),
     "modal-bg": (t, ev) => { if (ev.target === t) closeModal(); },
     "pick-group": (t) => { NEW.group = S.data.groups[+t.dataset.i].name; renderCreate(); },
@@ -1326,10 +1389,11 @@
     "open-list": (t) => { location.hash = `#/list/${t.dataset.id}`; },
     "rename-list": (t) => renameList(t.dataset.id),
     "rename-cur": () => CUR && renameList(CUR.id),
-    "dup-list": (t) => { const l = findList(t.dataset.id); if (!l) return; S.lists.push(C.duplicateList(l)); saveLists(); route(); toast("List duplicated"); },
+    "dup-list": (t) => { const l = findList(t.dataset.id); if (!l || guestBlocked(1)) return; S.lists.push(C.duplicateList(l)); saveLists(); route(); toast("List duplicated"); },
     "del-list": (t) => deleteList(t.dataset.id),
     "import-file": () => importFile(),
     "import-text": () => {
+      if (guestBlocked(1)) return;
       const m = modal("Text Import", `<p class="muted">Paste a Muster JSON export or a Muster share link.</p><textarea autofocus data-import></textarea>
         <div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-ok>Import</button></div>`);
       $("[data-ok]", m).onclick = () => importText($("[data-import]", m).value);
@@ -1340,6 +1404,11 @@
     "account": () => accountModal(),
     "sync-now": async () => { closeModal(); const ok = await SY.syncNow({ pull: true }); toast(ok ? "Lists synced" : `Sync failed – ${SYNC_TXT[(S.sync || {}).status] || "will retry"}`); },
     "sign-out": () => signOut(),
+    "guest-start": () => startGuest(),
+    "guest-info": () => guestModal(),
+    "guest-signup": () => leaveGuest("signup", `Create your free account.${guestKeep()}`),
+    "guest-signin": () => leaveGuest("signin", `Sign in to your account.${guestKeep()}`),
+    "guest-exit": () => leaveGuest("signin", S.lists.length ? `You left guest mode. Your guest ${S.lists.length === 1 ? "list stays" : "lists stay"} on this device and ${S.lists.length === 1 ? "is" : "are"} added to your account when you sign in or create one here.` : "You left guest mode."),
     "auth-mode": (t) => { AUTH.mode = t.dataset.mode; AUTH.msg = null; const e = $("#auth-email"); if (e) AUTH.email = e.value; renderAuth(); },
     "reload-page": () => { const b = document.querySelector(".hbtn.reload"); if (b) b.classList.add("spin"); setTimeout(() => location.reload(), 150); },
     "check-update": async () => { const r = await checkForUpdates(true); if (r.updated || r.wrUpdated) route(); },
@@ -1486,7 +1555,7 @@
     if (t.tagName === "BUTTON" || t.tagName === "A") ev.preventDefault();
     a(t, ev);
   });
-  const AUTH_OK = new Set(["auth-mode", "toggle-theme", "about", "close-modal", "modal-bg", "check-update", "reload-page", "show-report", "dismiss-report"]);
+  const AUTH_OK = new Set(["guest-start", "auth-mode", "toggle-theme", "about", "close-modal", "modal-bg", "check-update", "reload-page", "show-report", "dismiss-report"]);
   document.addEventListener("submit", (ev) => { const f = ev.target.closest("[data-form=auth]"); if (!f) return; ev.preventDefault(); submitAuth(f); });
   let SW = null;
   document.addEventListener("touchstart", (ev) => { const row = ev.target.closest && ev.target.closest(".roster .urow"); if (!row || !ev.touches || !ev.touches[0]) { SW = null; return; } SW = { row, x: ev.touches[0].clientX, y: ev.touches[0].clientY }; }, { passive: true });
@@ -1508,6 +1577,6 @@
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
     if (ev.key === "Escape") { if ($("#modal").innerHTML) closeModal(); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
-  window.Muster = { S, SY, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
+  window.Muster = { S, SY, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

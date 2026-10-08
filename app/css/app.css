@@ -652,3 +652,24 @@ html[data-theme="dark"] .metatabs button.on { border-color: var(--green); }
   .catsearch { padding: 8px; }
   .catsearch input { font-size: 16px; min-height: 46px; }
 }
+
+/* Guest mode: "Try it without an account" (max 1 list, this device only) */
+.auth-or { display: flex; align-items: center; gap: 10px; margin: 12px 0 10px; color: var(--gray); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+.auth-guest { padding: 9px 12px; font-size: 14px; border: 2px solid var(--blue) !important; color: var(--blue) !important; background: var(--surface) !important; border-radius: 6px; }
+.auth-guest:hover { background: color-mix(in srgb, var(--blue) 8%, var(--surface)) !important; }
+.auth-guest-note { text-align: center; margin: 6px 0 10px; font-size: 12px; }
+.hbtn.acct.guest .sdot { display: none; }
+.guest-note { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; max-width: 572px; margin: 0 0 8px; padding: 7px 10px; border: 1px solid var(--border); border-left: 4px solid var(--blue); border-radius: 6px; background: var(--surface); font-size: 13px; }
+.guest-note > span { flex: 1; min-width: 160px; }
+.guest-note svg.i { color: var(--blue); }
+.guest-note.full { border-left-color: var(--warn); }
+.guest-note .btn { background: var(--blue); }
+.guest-box p { margin: 0 0 8px; line-height: 1.45; }
+.guest-foot .btn:first-child { background: var(--blue); }
+@media (max-width: 760px) {
+  .auth-guest { min-height: 46px; font-size: 16px; }
+  .guest-note { font-size: 14px; }
+  .guest-note .btn { min-height: 36px; font-size: 13px; }
+  .guest-foot .btn { min-height: 42px; flex: 1 1 calc(50% - 6px); justify-content: center; }
+}
