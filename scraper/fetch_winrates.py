@@ -2,14 +2,20 @@
 """Fetch 40K meta win rates from listhammer.info -> data/winrates.json.
 
 How listhammer serves data: Nuxt 3 SSR (Cloudflare). Every page embeds its data in
-<script id="__NUXT_DATA__"> (devalue format, decoded by scraper/nuxt.py). robots.txt
-disallows /api/, /players/, /events/, /list/ -- so we ONLY read the allowed, server-rendered
-HTML pages:
-  /stats                   faction table, "This Weekend" range (default)
-  /stats?range=4weeks      faction table, "Last 4 Weeks" (SSR honours ?range= on /stats)
-  /factions/<slug>         per-faction headline, detachment combos, matchups, dispositions,
-                           weekly trend. SSR is always "This Weekend" (the page's range
-                           switch calls /api/factions/..., which robots.txt disallows).
+<script id="__NUXT_DATA__"> (devalue format, decoded by scraper/nuxt.py). robots.txt (re-read on
+every run and enforced for every request) disallows /api/, /players/, /events/, /list/ -- so we ONLY
+read the allowed, server-rendered HTML pages. Their SSR honours two query parameters:
+  /stats[?range=4weeks|dataslate][&includeRtt=true]
+        faction table, events list, disposition win rates + disposition-vs-disposition matchups,
+        for each time window ("This Weekend", "Last 4 Weeks", "Since Dataslate (..)") with and
+        without RTTs (RTT mode widens the criteria to 3+ rounds / 8+ players).
+  /factions/<slug>[?includeRtt=true]
+        per-faction headline, weekly trend, matchups, detachment combinations, dispositions and the
+        first page of recent undefeated / X-1 lists (with list text) -- with and without RTTs.
+        SSR is always "This Weekend": the page's range switch (4 weeks / dataslate / codex) calls
+        /api/factions/..., which robots.txt disallows, so those breakdowns are NOT fetched.
+Rules-update dates (dataslates / codexes, used for trend markers) are read best-effort from the
+site's public static JS bundle (/_nuxt/*.js, allowed).
 """
 import argparse, datetime as dt, json, os, re, sys, time, urllib.request, urllib.robotparser, html as htmlmod
 
@@ -108,16 +114,19 @@ def match_det(name, fid, dets):
 
 def stats_table(data):
     for v in data.values():
+        if isinstance(v, dict) and isinstance(v.get("result"), list) and "recentEvents" in v:
+            return v["result"], v.get("recentEvents") or []
+    for v in data.values():
         if isinstance(v, dict) and isinstance(v.get("result"), list):
-            return v["result"]
-    return []
+            return v["result"], []
+    return [], []
 
 
 def stats_dispositions(data):
     for v in data.values():
         if isinstance(v, dict) and "overall" in v and "matchups" in v and isinstance(v["overall"], list):
-            return v["overall"]
-    return []
+            return v
+    return {}
 
 
 def faction_row(r):
@@ -127,134 +136,254 @@ def faction_row(r):
             "event_wins": r.get("eventWins"), "overrep": pct(r.get("overrep"))}
 
 
+def rnd1(v):
+    return None if v is None else round(v, 1)
+
+
+def gofirst(g):
+    g = g or {}
+    return {"win_rate": pct(g.get("winRate")), "games": g.get("total"), "wins": g.get("wins"),
+            "losses": g.get("losses"), "avg_diff": rnd1(g.get("avgDifferential"))}
+
+
+def page_text(html):
+    txt = htmlmod.unescape(re.sub(r"<(script|style).*?</\1>", " ", html, flags=re.S))
+    return re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", txt))
+
+
+def stats_dataset(html, key, rtt):
+    """One /stats view -> {label, dates, criteria, table, events, dispositions}."""
+    data = page_data(html)
+    txt = page_text(html)
+    m = re.search(r"(This Weekend|Last 4 Weeks|Since [A-Za-z]+ \([^)]{1,30}\)) Meta Breakdown", txt)
+    label = m.group(1).strip() if m else None
+    dm = DATE_RE.search(txt)
+    crit = re.search(r"(Stats are compiled from [^.]+\.)", txt)
+    rows, events = stats_table(data)
+    dp = stats_dispositions(data)
+    return {
+        "key": key, "range": key.replace("_rtt", ""), "include_rtt": rtt, "label": label,
+        "dates": dm.group(1) if dm else None, "criteria": crit.group(1) if crit else None,
+        "table": [faction_row(r) for r in rows],
+        "events": [{"name": e.get("name"), "country": e.get("country"), "state": e.get("state"),
+                    "players": e.get("players"), "in_progress": bool(e.get("started") and not e.get("ended"))}
+                   for e in events],
+        "event_count": len(events), "event_players": sum(e.get("players") or 0 for e in events),
+        "dispositions": [{"name": r["disposition"], "win_rate": pct(r.get("winRate")), "games": r.get("total"),
+                          "wins": r.get("wins"), "losses": r.get("losses"), "players": r.get("players")}
+                         for r in dp.get("overall") or []],
+        "disposition_matchups": [{"name": r["disposition"], "opponent": r["opponentDisposition"],
+                                  "win_rate": pct(r.get("winRate")), "games": r.get("total"), "wins": r.get("wins"),
+                                  "losses": r.get("losses"), "avg_diff": rnd1(r.get("avgDifferential")),
+                                  "go_first": gofirst(r.get("goingFirst"))}
+                                 for r in dp.get("matchups") or []],
+    }
+
+
+def faction_detail(html, fid, det_idx, fac_idx):
+    """One /factions/<slug> view -> detail dict (+ recent lists)."""
+    data = page_data(html)
+    fd = next(v for v in data.values() if isinstance(v, dict) and "matchups" in v and "headline" in v)
+    rl = next((v for k, v in data.items() if str(k).startswith("recentLists") and isinstance(v, dict)), {}) or {}
+    txt = page_text(html)
+    cm = re.search(r"(Compiled from \d+ [^.]+\.)", txt)
+    hl = fd.get("headline") or {}
+    ov = fd.get("overall") or {}
+    rec = {"win_rate": pct(hl.get("winRate")), "games": hl.get("total"), "wins": hl.get("wins"),
+           "losses": hl.get("losses"), "players": fd.get("players"), "x0": fd.get("undefeated"),
+           "x1": fd.get("xMinus1"), "event_wins": fd.get("eventWins"), "event_count": fd.get("eventCount"),
+           "overrep": pct(fd.get("overrep")), "criteria": cm.group(1) if cm else None,
+           "overall_6mo": {"win_rate": pct(ov.get("winRate")), "games": ov.get("total"),
+                           "wins": ov.get("wins"), "losses": ov.get("losses")},
+           "weekly": [{"week": w["week"], "win_rate": pct(w.get("winRate")), "games": w.get("total"),
+                       "wins": w.get("wins"), "losses": w.get("losses")} for w in fd.get("weekly") or []]}
+    combos, single = [], {}
+    for c in fd.get("detachmentCombinations") or []:
+        parts = [p.strip() for p in c["detachment"].split("|")]
+        m = [match_det(p, fid, det_idx) if p != "Unknown" else None for p in parts]
+        combos.append({"name": c["detachment"], "parts": parts, "win_rate": pct(c.get("winRate")),
+                       "games": c.get("total"), "wins": c.get("wins"), "losses": c.get("losses"),
+                       "players": c.get("players"), "field_pct": round(c.get("fieldPercent") or 0, 1), "mfm": m})
+        for p, mm in zip(parts, m):
+            s = single.setdefault(p, {"name": p, "wins": 0, "losses": 0, "games": 0, "mfm": mm})
+            s["wins"] += c.get("wins") or 0; s["losses"] += c.get("losses") or 0; s["games"] += c.get("total") or 0
+    usage = fd.get("detachments") or {}
+    for p, s in single.items():
+        s["win_rate"] = round(100 * s["wins"] / s["games"], 2) if s["games"] else None
+        s["players"] = usage.get(p)
+    for p, n in usage.items():
+        if p not in single:
+            single[p] = {"name": p, "wins": 0, "losses": 0, "games": 0, "win_rate": None,
+                         "players": n, "mfm": match_det(p, fid, det_idx)}
+    rec["detachments"] = combos
+    rec["detachments_single"] = sorted(single.values(), key=lambda s: -(s["games"] or 0))
+    known = sum(c.get("players") or 0 for c in combos if c["name"] != "Unknown")
+    rec["no_detachment_players"] = max(0, (rec["players"] or 0) - known)
+    rec["matchups"] = []
+    for mu in fd.get("matchups") or []:
+        rec["matchups"].append({
+            "opponent": mu["opponentFaction"],
+            "opponent_mfm_id": fac_idx.get(norm(mu["opponentFaction"])) or NAME_TO_MFM.get(mu["opponentFaction"].lower()),
+            "opponent_slug": slugify(mu["opponentFaction"]),
+            "win_rate": pct(mu.get("winRate")), "games": mu.get("total"),
+            "wins": mu.get("wins"), "losses": mu.get("losses"),
+            "avg_diff": rnd1(mu.get("avgDifferential")), "go_first": gofirst(mu.get("goingFirst"))})
+    rec["dispositions"] = fd.get("dispositions") or {}
+    rec["detachment_names"] = fd.get("detachmentNames") or []
+    lists = [{"player": x.get("playerName"), "event": x.get("eventName"), "event_players": x.get("numberOfPlayers"),
+              "rounds": x.get("numberOfRounds"), "w": x.get("wins"), "d": x.get("draws"), "l": x.get("losses"),
+              "detachment": x.get("detachment"), "disposition": x.get("disposition"), "date": x.get("startDate"),
+              "rtt": bool(x.get("isRtt")), "text": x.get("listText") or ""}
+             for x in rl.get("result") or []]
+    return rec, {"lists": lists, "total": rl.get("totalCount")}
+
+
+def rules_updates(get, html):
+    """Best-effort: dataslate / codex dates from the public JS bundle (allowed static asset)."""
+    for src in dict.fromkeys(re.findall(r'/_nuxt/[A-Za-z0-9_-]+\.js', html)):
+        try:
+            js = get(src, delay=0.3)
+        except Exception:  # noqa: BLE001
+            continue
+        if 'kind:"dataslate"' not in js:
+            continue
+        out = []
+        for m in re.finditer(r'\{date:"(\d{4}-\d\d-\d\d)",kind:"(\w+)",game:"40k"([^{}]*)\}', js):
+            lab = re.search(r'label:"([^"]+)"', m.group(3))
+            facs = re.search(r'factions:\[([^\]]*)\]', m.group(3))
+            out.append({"date": m.group(1), "kind": m.group(2), "label": lab.group(1) if lab else None,
+                        "factions": re.findall(r'"([^"]+)"', facs.group(1)) if facs else None})
+        return sorted(out, key=lambda x: x["date"])
+    return []
+
+
+STATS_VIEWS = [("weekend", False, "/stats"), ("weekend_rtt", True, "/stats?includeRtt=true"),
+               ("4weeks", False, "/stats?range=4weeks"), ("4weeks_rtt", True, "/stats?range=4weeks&includeRtt=true"),
+               ("dataslate", False, "/stats?range=dataslate"),
+               ("dataslate_rtt", True, "/stats?range=dataslate&includeRtt=true")]
+EXPECTED_LABEL = {"weekend": "This Weekend", "4weeks": "Last 4 Weeks", "dataslate": "Since"}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", default=os.path.join(ROOT, "data", "winrates.json"))
     ap.add_argument("--delay", type=float, default=1.5)
     ap.add_argument("--only", nargs="*")
+    ap.add_argument("--no-rtt", action="store_true", help="skip the Include-RTTs views (faster test runs)")
     a = ap.parse_args()
 
     rp = urllib.robotparser.RobotFileParser()
     rp.parse(http_get(BASE + "/robots.txt").splitlines())
 
-    def get(path):
+    def get(path, delay=None):
         if not rp.can_fetch(UA, BASE + path) or not rp.can_fetch("*", BASE + path):
             raise RuntimeError(f"robots.txt disallows {path}")
-        time.sleep(a.delay)
+        time.sleep(a.delay if delay is None else delay)
         return http_get(BASE + path)
 
     fac_idx, det_idx = load_mfm_index()
     errors = []
     t0 = time.time()
 
-    h_week = get("/stats")
-    d_week = page_data(h_week)
-    rng_week = page_range(h_week, "This Weekend")
-    h_4w = get("/stats?range=4weeks")
-    d_4w = page_data(h_4w)
-    rng_4w = page_range(h_4w, "Last 4 Weeks")
-    table_week = {r["faction"]: faction_row(r) for r in stats_table(d_week)}
-    table_4w = {r["faction"]: faction_row(r) for r in stats_table(d_4w)}
-    names = sorted(set(table_week) | set(table_4w))
-    if not names:
-        raise RuntimeError("stats table empty")
+    datasets, first_html = {}, None
+    for key, rtt, path in STATS_VIEWS:
+        if rtt and a.no_rtt:
+            continue
+        try:
+            h = get(path)
+            first_html = first_html or h
+            ds = stats_dataset(h, key, rtt)
+            exp = EXPECTED_LABEL[ds["range"]]
+            if not ds["table"]:
+                raise RuntimeError("empty faction table")
+            if not (ds["label"] or "").startswith(exp):  # e.g. no recent dataslate -> site falls back to This Weekend
+                print(f"  skip {key}: page shows '{ds['label']}'", file=sys.stderr)
+                continue
+            datasets[key] = ds
+            print(f"  stats {key}: {ds['label']} {ds['dates']}, {len(ds['table'])} factions, {ds['event_count']} events",
+                  file=sys.stderr)
+        except Exception as e:  # noqa: BLE001
+            errors.append(f"stats {key}: {e}")
+            print("!! stats", key, e, file=sys.stderr)
+    if "weekend" not in datasets:
+        raise RuntimeError("default /stats view failed")
 
-    factions = []
+    def table(key):
+        return {r["name"]: r for r in (datasets.get(key) or {}).get("table", [])}
+    table_week, table_4w = table("weekend"), table("4weeks")
+    names = sorted(set(table_week) | set(table_4w))
+
+    factions, lists_out = [], {}
     for name in names:
         slug = slugify(name)
         if a.only and slug not in a.only:
             continue
         fid = fac_idx.get(norm(name)) or NAME_TO_MFM.get(name.lower()) or (slug if slug in det_idx else None)
-        base = table_week.get(name) or {"name": name, "win_rate": None, "games": 0}
-        rec = dict(base)
+        rec = dict(table_week.get(name) or {"name": name, "win_rate": None, "games": 0})
         rec.update({"slug": slug, "url": f"{BASE}/factions/{slug}", "mfm_id": fid,
                     "last_4_weeks": {k: v for k, v in (table_4w.get(name) or {}).items() if k != "name"} or None})
+        lists_out[slug] = {"name": name}
         try:
-            fd = next(v for k, v in page_data(get(f"/factions/{slug}")).items()
-                      if isinstance(v, dict) and "matchups" in v and "headline" in v)
-            hl = fd.get("headline") or {}
-            rec.update({"win_rate": pct(hl.get("winRate")), "games": hl.get("total"),
-                        "wins": hl.get("wins"), "losses": hl.get("losses"),
-                        "players": fd.get("players", rec.get("players")),
-                        "x0": fd.get("undefeated", rec.get("x0")), "x1": fd.get("xMinus1", rec.get("x1")),
-                        "event_wins": fd.get("eventWins", rec.get("event_wins")),
-                        "event_count": fd.get("eventCount"), "overrep": pct(fd.get("overrep")) or rec.get("overrep")})
-            ov = fd.get("overall") or {}
-            rec["overall_6mo"] = {"win_rate": pct(ov.get("winRate")), "games": ov.get("total"),
-                                  "wins": ov.get("wins"), "losses": ov.get("losses")}
-            rec["weekly"] = [{"week": w["week"], "win_rate": pct(w.get("winRate")), "games": w.get("total")}
-                             for w in fd.get("weekly") or []]
-            combos, single = [], {}
-            for c in fd.get("detachmentCombinations") or []:
-                parts = [p.strip() for p in c["detachment"].split("|")]
-                m = [match_det(p, fid, det_idx) if p != "Unknown" else None for p in parts]
-                combos.append({"name": c["detachment"], "parts": parts, "win_rate": pct(c.get("winRate")),
-                               "games": c.get("total"), "wins": c.get("wins"), "losses": c.get("losses"),
-                               "players": c.get("players"), "field_pct": round(c.get("fieldPercent") or 0, 1),
-                               "mfm": m})
-                for p, mm in zip(parts, m):
-                    s = single.setdefault(p, {"name": p, "wins": 0, "losses": 0, "games": 0, "mfm": mm})
-                    s["wins"] += c.get("wins") or 0; s["losses"] += c.get("losses") or 0; s["games"] += c.get("total") or 0
-            usage = fd.get("detachments") or {}
-            for p, s in single.items():
-                s["win_rate"] = round(100 * s["wins"] / s["games"], 2) if s["games"] else None
-                s["players"] = usage.get(p)
-            for p, n in usage.items():
-                if p not in single:
-                    single[p] = {"name": p, "wins": 0, "losses": 0, "games": 0, "win_rate": None,
-                                 "players": n, "mfm": match_det(p, fid, det_idx)}
-            rec["detachments"] = combos
-            rec["detachments_single"] = sorted(single.values(), key=lambda s: -(s["games"] or 0))
-            rec["matchups"] = []
-            for mu in fd.get("matchups") or []:
-                gf = mu.get("goingFirst") or {}
-                rec["matchups"].append({
-                    "opponent": mu["opponentFaction"],
-                    "opponent_mfm_id": fac_idx.get(norm(mu["opponentFaction"])) or NAME_TO_MFM.get(mu["opponentFaction"].lower()),
-                    "opponent_slug": slugify(mu["opponentFaction"]),
-                    "win_rate": pct(mu.get("winRate")), "games": mu.get("total"),
-                    "wins": mu.get("wins"), "losses": mu.get("losses"),
-                    "avg_diff": None if mu.get("avgDifferential") is None else round(mu["avgDifferential"], 1),
-                    "go_first": {"win_rate": pct(gf.get("winRate")), "games": gf.get("total"),
-                                 "avg_diff": None if gf.get("avgDifferential") is None else round(gf["avgDifferential"], 1)}})
-            rec["dispositions"] = fd.get("dispositions") or {}
-            rec["detachment_names"] = fd.get("detachmentNames") or []
+            det, rl = faction_detail(get(f"/factions/{slug}"), fid, det_idx, fac_idx)
+            rec.update({k: (v if v is not None else rec.get(k)) for k, v in det.items()})
+            lists_out[slug]["std"] = rl
         except Exception as e:  # noqa: BLE001
             errors.append(f"{slug}: {e}")
             rec.setdefault("detachments", []); rec.setdefault("matchups", [])
             print("!!", slug, e, file=sys.stderr)
+        if not a.no_rtt:
+            try:
+                det, rl = faction_detail(get(f"/factions/{slug}?includeRtt=true"), fid, det_idx, fac_idx)
+                rec["rtt"] = det
+                lists_out[slug]["rtt"] = rl
+            except Exception as e:  # noqa: BLE001
+                errors.append(f"{slug} (RTT): {e}")
+                print("!!", slug, "RTT", e, file=sys.stderr)
         factions.append(rec)
         print(f"  {name}: {rec.get('win_rate')}% / {rec.get('games')} games, "
-              f"{len(rec.get('detachments', []))} det combos, {len(rec.get('matchups', []))} matchups", file=sys.stderr)
+              f"{len(rec.get('detachments', []))} det combos, {len(rec.get('matchups', []))} matchups"
+              + (f"; RTT {rec['rtt'].get('win_rate')}% / {rec['rtt'].get('games')} games" if rec.get("rtt") else ""),
+              file=sys.stderr)
 
-    disp = [{"name": r["disposition"], "win_rate": pct(r.get("winRate")), "games": r.get("total"),
-             "players": r.get("players")} for r in stats_dispositions(d_4w)]
+    updates = []
+    try:
+        updates = rules_updates(get, first_html or "")
+    except Exception as e:  # noqa: BLE001
+        print("warn: rules-update dates not found:", e, file=sys.stderr)
+
+    rng = {k: {"label": d["label"], "dates": d["dates"]} for k, d in datasets.items()}
     out = {
+        "schema": 2,
         "source": "Listhammer (listhammer.info) - unofficial community tournament stats",
         "source_url": BASE + "/stats",
-        "date_range": rng_week,
-        "ranges": {"weekend": rng_week, "4weeks": rng_4w},
-        "notes": ("Faction pages (detachments, matchups) are server-rendered for 'This Weekend' only; "
-                  "the 4-week view of those breakdowns is served from /api/, which robots.txt disallows. "
-                  "Faction-table totals are provided for both ranges. Events: 2000pt singles, 5+ rounds, "
-                  "16+ players; mirror matches excluded. detachments_single win rates are derived by summing "
-                  "every detachment combination that includes the detachment."),
+        "date_range": rng["weekend"],
+        "ranges": rng,
+        "datasets": datasets,
+        "rules_updates": updates,
+        "notes": ("Faction pages (detachments, matchups, dispositions, recent lists) are server-rendered for "
+                  "'This Weekend' only (with or without RTTs); listhammer's 4-week / since-dataslate / since-codex "
+                  "versions of those breakdowns come from /api/, which robots.txt disallows. The faction table, "
+                  "events and disposition stats are provided for every window, with and without RTTs. "
+                  "detachments_single win rates are derived by summing every detachment combination that "
+                  "includes the detachment."),
         "fetched_at": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "elapsed_s": round(time.time() - t0, 1),
-        "dispositions_4weeks": disp,
+        "dispositions_4weeks": (datasets.get("4weeks") or {}).get("dispositions", []),
         "factions": factions,
+        "recent_lists": lists_out,
         "errors": errors,
     }
     tmp = a.out + ".tmp"
-    os.makedirs(os.path.dirname(a.out), exist_ok=True)
+    os.makedirs(os.path.dirname(a.out) or ".", exist_ok=True)
     with open(tmp, "w") as f:
         json.dump(out, f, indent=1, ensure_ascii=False)
     os.replace(tmp, a.out)
     unmatched = sorted({p for f in factions for s in f.get("detachments_single", []) if not s.get("mfm") and s["name"] != "Unknown"
                         for p in [f"{f['name']}: {s['name']}"]})
-    print(f"wrote {a.out}: {len(factions)} factions, errors={len(errors)}, {out['elapsed_s']}s; "
-          f"range {rng_week}; unmatched detachments {len(unmatched)}: {unmatched}", file=sys.stderr)
-    return 0 if len(factions) - len(errors) >= 20 else 1
+    print(f"wrote {a.out}: {len(factions)} factions, datasets {list(datasets)}, errors={len(errors)}, "
+          f"{out['elapsed_s']}s; {len(updates)} rules updates; unmatched detachments {len(unmatched)}: {unmatched}",
+          file=sys.stderr)
+    return 0 if len(factions) - len([e for e in errors if not e.startswith("stats")]) >= 20 else 1
 
 
 if __name__ == "__main__":

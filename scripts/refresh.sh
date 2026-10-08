@@ -59,8 +59,10 @@ echo "== Meta win rates (listhammer.info, non-fatal; previous winrates.json kept
 if "$PY" scraper/fetch_winrates.py --out "$TMP/winrates.json" && "$PY" - "$TMP/winrates.json" <<'PYEOF'
 import json, sys
 d = json.load(open(sys.argv[1])); n = len([f for f in d["factions"] if f.get("matchups")])
-print(f"  winrates: {len(d['factions'])} factions, {n} with matchups, range {d['date_range']}")
-sys.exit(0 if len(d["factions"]) >= 20 and n >= 15 else 1)
+ds = d.get("datasets") or {}
+print(f"  winrates: {len(d['factions'])} factions, {n} with matchups, range {d['date_range']}, "
+      f"views {sorted(ds)}, {len([f for f in d['factions'] if f.get('rtt')])} with RTT detail")
+sys.exit(0 if len(d["factions"]) >= 20 and n >= 15 and "weekend" in ds else 1)
 PYEOF
 then
   cp "$TMP/winrates.json" data/winrates.json
@@ -115,6 +117,19 @@ if wr_changed:
 elif cv.get("winrates_hash"):
     for k in ("winrates_fetched_at", "winrates_range", "winrates_hash"):
         if k in cv: nv[k] = cv[k]
+# per-faction recent tournament lists (data/meta-lists/<slug>.json): replace the published set only when the new
+# build has a full set, and only with new win rates or when published files are missing
+nl, cl = os.path.join(new, "meta-lists"), os.path.join(cur, "meta-lists")
+files = sorted(f for f in os.listdir(nl) if f.endswith(".json")) if os.path.isdir(nl) else []
+have = set(os.listdir(cl)) if os.path.isdir(cl) else set()
+if len(files) >= 15 and (wr_changed or not set(files) <= have):
+    os.makedirs(cl, exist_ok=True)
+    for f in files:
+        shutil.copyfile(os.path.join(nl, f), os.path.join(cl, f + ".new"))
+        os.replace(os.path.join(cl, f + ".new"), os.path.join(cl, f))
+    for f in os.listdir(cl):
+        if f.endswith(".json") and f not in files:
+            os.remove(os.path.join(cl, f))
 if pts_changed or wr_changed or ds_changed:
     with open(os.path.join(cur, "version.json.new"), "w", encoding="utf-8") as f:
         json.dump(nv, f, ensure_ascii=False, indent=1)

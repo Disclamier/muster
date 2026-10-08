@@ -14,7 +14,7 @@ cp "$ROOT/app/assets/factions/index.json" "$W/repo/app/assets/factions/" 2>/dev/
 [ -f "$ROOT/data/mfm.json" ] && cp "$ROOT/data/mfm.json" "$W/mfm.good.json"
 [ -f "$ROOT/data/grimslate.json" ] && cp "$ROOT/data/grimslate.json" "$W/gs.good.json"
 R="$W/repo"
-sums() { (cd "$R" && sha256sum app/data/* | sha256sum); }
+sums() { (cd "$R" && find app/data -type f | sort | xargs sha256sum | sha256sum); }
 run() {  # run <mfm: fail|tiny|good> <gs: fail|good>
   cat > "$W/bin/python3" <<PY
 #!/usr/bin/env bash

@@ -1114,6 +1114,39 @@
     const k = norm(detName);
     return (mf.detachments_single || []).find((d) => norm(d.name) === k || (d.mfm && norm(d.mfm.name) === k)) || null;
   }
+  /* listhammer views: time window (weekend | 4weeks | dataslate) x Include RTTs. Older winrates.json (no datasets) is still read. */
+  const META_RANGES = ["weekend", "4weeks", "dataslate"];
+  const META_RANGE_LABEL = { weekend: "This Weekend", "4weeks": "Last 4 Weeks", dataslate: "Since Dataslate" };
+  function metaRanges(wr) {
+    const ds = (wr && wr.datasets) || null;
+    if (!ds) return [{ key: "weekend", label: "This Weekend" }].concat(wr && wr.factions && wr.factions.some((f) => f.last_4_weeks) ? [{ key: "4weeks", label: "Last 4 Weeks" }] : []);
+    return META_RANGES.filter((r) => ds[r] || ds[r + "_rtt"]).map((r) => ({ key: r, label: (ds[r] || ds[r + "_rtt"]).label || META_RANGE_LABEL[r] }));
+  }
+  function metaHasRtt(wr) { return !!(wr && wr.datasets && Object.keys(wr.datasets).some((k) => /_rtt$/.test(k))); }
+  /* the dataset actually shown for a requested range / RTT choice (falls back to what exists) */
+  function metaView(wr, range, rtt) {
+    const rs = metaRanges(wr).map((r) => r.key);
+    const r = rs.includes(range) ? range : "weekend";
+    const ds = (wr && wr.datasets) || null;
+    if (!ds) {
+      const rows = ((wr && wr.factions) || []).map((f) => { const src = r === "4weeks" ? (f.last_4_weeks || {}) : f;
+        return { slug: f.slug, name: f.name, mfm_id: f.mfm_id, win_rate: src.win_rate, players: src.players, games: src.games, x0: src.x0, x1: src.x1, event_wins: src.event_wins, overrep: src.overrep }; });
+      const R = (wr && wr.ranges && wr.ranges[r]) || (wr && wr.date_range) || {};
+      return { key: r, range: r, rtt: false, label: R.label || META_RANGE_LABEL[r], dates: R.dates, criteria: null, rows, events: [], dispositions: r === "4weeks" ? ((wr && wr.dispositions_4weeks) || []) : [], disposition_matchups: [] };
+    }
+    const key = rtt && ds[r + "_rtt"] ? r + "_rtt" : ds[r] ? r : r + "_rtt";
+    const d = ds[key] || {};
+    const byName = {}; for (const f of wr.factions || []) byName[f.name] = f;
+    const rows = (d.table || []).map((t) => { const f = byName[t.name] || {}; return { ...t, slug: f.slug || t.name.toLowerCase().replace(/\s*\(.*?\)/g, "").replace(/[’']/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""), mfm_id: f.mfm_id || null }; });
+    return { key, range: r, rtt: /_rtt$/.test(key), label: d.label || META_RANGE_LABEL[r], dates: d.dates, criteria: d.criteria, rows,
+      events: d.events || [], event_count: d.event_count, event_players: d.event_players, dispositions: d.dispositions || [], disposition_matchups: d.disposition_matchups || [] };
+  }
+  /* faction detail (detachments, matchups, ... are This Weekend only) with or without RTTs */
+  function metaDetail(f, rtt) {
+    if (!f) return null;
+    if (rtt && f.rtt) return { ...f, ...f.rtt, rtt_view: true };
+    return { ...f, rtt_view: false };
+  }
   const fmtPct = (v) => v === null || v === undefined || v === "" || isNaN(v) ? "—" : `${Number(v).toFixed(1)}%`;
 
   /* ---------------------------------------------------------------- cloud sync (Supabase) merge – pure, last write wins per list
@@ -1164,7 +1197,7 @@
     return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
   }
 
-  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
+  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

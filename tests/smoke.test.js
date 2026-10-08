@@ -34,6 +34,8 @@ function makeApp(opts) {
         if (server.offline) throw new TypeError("Failed to fetch");
         if (opts.supabase && String(url).startsWith(opts.supabase.base)) return opts.supabase.handle(String(url), init || {});
         const p = String(url).split("?")[0];
+        const ml = p.match(/data\/meta-lists\/([a-z0-9-]+)\.json$/);
+        if (ml) { const fp = path.join(APP, "data/meta-lists", ml[1] + ".json"); if (!fs.existsSync(fp)) return { ok: false, status: 404, json: async () => ({}) }; return { ok: true, status: 200, json: async () => JSON.parse(fs.readFileSync(fp, "utf8")) }; }
         const body = p.endsWith("version.json") ? server.version : p.endsWith("points.json") ? server.points : p.endsWith("winrates.json") ? server.winrates : p.endsWith("datasheets.json") ? server.datasheets : null;
         if (!body) return { ok: false, status: 404, json: async () => ({}) };
         return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(body)) };
@@ -206,12 +208,18 @@ test("Meta Win Rates: faction table, sortable, faction page with detachments + m
   click(w, d.querySelector('[data-action=meta-range][data-range="4weeks"]'));
   assert.match(d.querySelector(".meta-page").textContent, /Last 4 Weeks/);
   const f = WR.factions.find((x) => x.matchups.length > 5 && x.detachments.length > 2);
+  click(w, d.querySelector('[data-action=meta-range][data-range="weekend"]'));
   await go(w, `#/meta/${f.slug}`);
   assert.match(d.querySelector("[data-testid=meta-tiles]").textContent, /Win Rate/);
-  assert.equal(d.querySelectorAll("[data-testid=det-table] tr").length - 1, f.detachments.length);
+  const tab = (name) => click(w, [...d.querySelectorAll("[data-action=meta-tab]")].find((b) => b.dataset.tab === name));
+  tab("detachments");
+  const known = (a) => a.filter((x) => x.name !== "Unknown").length;
+  assert.equal(d.querySelectorAll("[data-testid=det-table] tr").length - 1, known(f.detachments));
+  tab("matchups");
   assert.equal(d.querySelectorAll("[data-testid=matchup-table] tr").length - 1, f.matchups.length);
+  tab("detachments");
   click(w, d.querySelector('[data-action=det-mode][data-mode="single"]'));
-  assert.equal(d.querySelectorAll("[data-testid=det-table] tr").length - 1, f.detachments_single.length);
+  assert.equal(d.querySelectorAll("[data-testid=det-table] tr").length - 1, known(f.detachments_single));
 });
 
 test("dark mode is remembered per device and applied before paint", async () => {
@@ -349,6 +357,7 @@ test("meta matchups: '—' rows sort last in both directions; percents always on
   await until(() => d.querySelector(".lists-page")); await until(() => w.Muster.S.wr);
   const f = WR.factions.find((x) => x.matchups.some((m) => m.games < 10) && x.matchups.some((m) => m.games >= 10));
   await go(w, `#/meta/${f.slug}`);
+  click(w, [...d.querySelectorAll("[data-action=meta-tab]")].find((b) => b.dataset.tab === "matchups"));
   const cells = () => [...d.querySelectorAll("[data-testid=matchup-table] tr.click")].map((r) => r.children[1].textContent.trim());
   const check = () => { const c = cells(); const firstDash = c.indexOf("—"); assert.ok(firstDash > 0); assert.ok(c.slice(firstDash).every((x) => x === "—"), c.join(",")); };
   check();                                            // default: win rate desc
@@ -361,6 +370,131 @@ test("meta matchups: '—' rows sort last in both directions; percents always on
   await go(w, "#/meta");
   const t = [...d.querySelectorAll("[data-testid=meta-table] .wr")].map((e) => e.textContent);
   assert.ok(t.every((x) => /^\d+\.\d%$/.test(x)));
+});
+
+const HAS_DS = !!(WR && WR.datasets && WR.datasets.weekend_rtt);
+test("Meta: Include RTTs toggle switches datasets instantly, is remembered, and other windows / tabs work", { skip: !HAS_DS }, async () => {
+  const a = makeApp();
+  const { w, d } = a;
+  await until(() => d.querySelector(".lists-page")); await until(() => w.Muster.S.wr);
+  await go(w, "#/meta");
+  const sumGames = () => [...d.querySelectorAll("[data-testid=meta-table] tr.click")].reduce((t, r) => t + +r.children[3].textContent.replace(/,/g, ""), 0);
+  const total = (k) => WR.datasets[k].table.reduce((t, r) => t + (r.games || 0), 0);
+  assert.equal(d.querySelector(".meta-page").dataset.view, "weekend");
+  assert.equal(sumGames(), total("weekend"));
+  const tog = d.querySelector("[data-testid=rtt-toggle]"); assert.ok(tog, "Include RTTs switch");
+  assert.equal(tog.checked, false);
+  change(w, tog, true);
+  assert.equal(d.querySelector(".meta-page").dataset.view, "weekend_rtt");
+  assert.equal(sumGames(), total("weekend_rtt"));
+  assert.match(d.querySelector(".meta-page").textContent, /incl\. RTTs/);
+  assert.match(d.querySelector(".meta-page").textContent, /3 or more rounds and with 8 or more players/);
+  assert.equal(w.localStorage.getItem("muster.metaRtt"), "1");
+  // every window offered by listhammer is a button; each switches the table
+  const ranges = [...d.querySelectorAll("[data-action=meta-range]")].map((b) => b.dataset.range);
+  assert.ok(ranges.includes("weekend") && ranges.includes("4weeks"), ranges.join());
+  click(w, d.querySelector('[data-action=meta-range][data-range="4weeks"]'));
+  assert.equal(d.querySelector(".meta-page").dataset.view, "4weeks_rtt");
+  assert.equal(sumGames(), total("4weeks_rtt"));
+  if (WR.datasets.dataslate) {
+    click(w, d.querySelector('[data-action=meta-range][data-range="dataslate"]'));
+    assert.match(d.querySelector(".meta-page h2").textContent, /Since/);
+  }
+  // search narrows the faction list
+  const inp = d.querySelector("[data-input=meta-q]"); inp.value = "world"; inp.dispatchEvent(new w.Event("input", { bubbles: true }));
+  assert.deepEqual([...d.querySelectorAll("[data-testid=meta-table] tr.click td.l span")].map((e) => e.textContent), ["World Eaters"]);
+  inp.value = ""; inp.dispatchEvent(new w.Event("input", { bubbles: true }));
+  // Dispositions tab: tap one -> its record against every other disposition
+  click(w, [...d.querySelectorAll("[data-action=meta-tab]")].find((b) => b.dataset.tab === "dispositions"));
+  const rows = d.querySelectorAll("[data-testid=disp-table] tr[data-action=meta-disp]");
+  assert.ok(rows.length >= 4);
+  click(w, rows[0]);
+  assert.ok(d.querySelectorAll("[data-testid=disp-vs] tr").length > 2, "disposition vs disposition rows");
+  // Events tab
+  click(w, [...d.querySelectorAll("[data-action=meta-tab]")].find((b) => b.dataset.tab === "events"));
+  const V = w.MusterCore.metaView(WR, w.Muster.S.ui.metaRange, true);
+  assert.equal(d.querySelectorAll("[data-testid=events-table] tr").length - 1, V.events.length);
+  // a new session remembers RTT + window + tab
+  const b = makeApp({ storage: { "muster.metaRtt": "1", "muster.metaRange": "weekend", "muster.metaHome": "factions" } });
+  await until(() => b.d.querySelector(".lists-page")); await until(() => b.w.Muster.S.wr);
+  await go(b.w, "#/meta");
+  assert.equal(b.d.querySelector("[data-testid=rtt-toggle]").checked, true);
+  assert.equal(b.d.querySelector(".meta-page").dataset.view, "weekend_rtt");
+});
+
+test("Meta faction page: tabs (Overview / Detachments / Matchups / Dispositions / Lists) follow the RTT toggle", { skip: !HAS_DS }, async () => {
+  const { w, d, server } = makeApp({ storage: { "muster.metaRange": "weekend" } });
+  await until(() => d.querySelector(".lists-page")); await until(() => w.Muster.S.wr);
+  const f = WR.factions.find((x) => x.rtt && x.rtt.detachments.length > 2 && x.matchups.length > 5 && (WR.lists_available || []).includes(x.slug));
+  await go(w, `#/meta/${f.slug}`);
+  const tabs = [...d.querySelectorAll("[data-action=meta-tab]")].map((b) => b.dataset.tab);
+  assert.deepEqual(tabs, ["overview", "detachments", "matchups", "dispositions", "lists"]);
+  assert.ok(d.querySelector(".backlink[href='#/meta']"), "back button");
+  const tile0 = () => d.querySelector("[data-testid=meta-tiles] .tile .tv").textContent;
+  assert.equal(tile0(), w.MusterCore.fmtPct(f.win_rate));
+  change(w, d.querySelector("[data-testid=rtt-toggle]"), true);
+  assert.equal(tile0(), w.MusterCore.fmtPct(f.rtt.win_rate));
+  const tab = (name) => click(w, [...d.querySelectorAll("[data-action=meta-tab]")].find((b) => b.dataset.tab === name));
+  tab("detachments");
+  assert.equal(d.querySelectorAll("[data-testid=det-table] tr").length - 1, f.rtt.detachments.filter((x) => x.name !== "Unknown").length);
+  assert.match(d.querySelector(".meta-page").textContent, /RTT detachment stats can be heavily skewed/);
+  assert.equal(w.localStorage.getItem("muster.metaTab"), "detachments");
+  tab("matchups");
+  assert.equal(d.querySelectorAll("[data-testid=matchup-table] tr").length - 1, f.rtt.matchups.length);
+  tab("dispositions");
+  assert.equal(d.querySelectorAll("[data-testid=fac-disp] .dbar").length, Object.keys(f.rtt.dispositions).length);
+  // other windows: tiles follow the faction table, breakdowns say they are This Weekend only
+  click(w, d.querySelector('[data-action=meta-range][data-range="4weeks"]'));
+  assert.ok(d.querySelector("[data-testid=weekend-only]"), "weekend-only note");
+  const r4 = WR.datasets["4weeks_rtt"].table.find((r) => r.name === f.name);
+  tab("overview");
+  assert.equal(tile0(), w.MusterCore.fmtPct(r4.win_rate));
+  click(w, d.querySelector('[data-action=meta-range][data-range="weekend"]'));
+  // Lists: lazy-loaded per faction, filter by detachment, copy list text
+  tab("lists");
+  await until(() => d.querySelector("[data-testid=meta-lists]"));
+  assert.ok(server.requests.some((u) => u.includes(`data/meta-lists/${f.slug}.json`)));
+  const L = JSON.parse(fs.readFileSync(path.join(APP, "data/meta-lists", f.slug + ".json"), "utf8"));
+  assert.equal(d.querySelectorAll("[data-testid=meta-lists] .mlist").length, L.rtt.lists.length);
+  const sel = d.querySelector("[data-change=meta-list-det]");
+  if (sel) {
+    const det = sel.options[1].value; change(w, sel, undefined, det);
+    assert.equal(d.querySelectorAll("[data-testid=meta-lists] .mlist").length, L.rtt.lists.filter((x) => x.detachment === det).length);
+  }
+  const btn = d.querySelector("[data-action=meta-copy-list]");
+  click(w, btn); await tick(5);
+  assert.equal(server.clipboard, L.rtt.lists[+btn.dataset.i].text);
+});
+
+test("core: metaView reads both the new datasets and the older single-window winrates.json", () => {
+  const C = require("../app/js/core.js");
+  const legacy = { date_range: { label: "This Weekend", dates: "1 Oct - 6 Oct 2026" }, ranges: { weekend: { label: "This Weekend" }, "4weeks": { label: "Last 4 Weeks", dates: "x" } },
+    dispositions_4weeks: [{ name: "Take and Hold", win_rate: 50 }],
+    factions: [{ name: "Orks", slug: "orks", mfm_id: "orks", win_rate: 58, games: 10, last_4_weeks: { win_rate: 56, games: 40 } }] };
+  assert.deepEqual(C.metaRanges(legacy).map((r) => r.key), ["weekend", "4weeks"]);
+  assert.equal(C.metaHasRtt(legacy), false);
+  assert.equal(C.metaView(legacy, "4weeks", true).rows[0].win_rate, 56);
+  assert.equal(C.metaView(legacy, "4weeks", true).rtt, false);
+  assert.equal(C.metaView(legacy, "dataslate", false).key, "weekend");
+  const wr = { factions: [{ name: "Orks", slug: "orks", mfm_id: "orks", win_rate: 58, rtt: { win_rate: 55, matchups: [] }, matchups: [{}] }],
+    datasets: { weekend: { label: "This Weekend", table: [{ name: "Orks", win_rate: 58 }] }, weekend_rtt: { label: "This Weekend", table: [{ name: "Orks", win_rate: 55 }, { name: "T'au Empire", win_rate: 50 }] },
+      dataslate: { label: "Since Dataslate (Sep 30)", table: [] } } };
+  assert.deepEqual(C.metaRanges(wr).map((r) => r.label), ["This Weekend", "Since Dataslate (Sep 30)"]);
+  assert.equal(C.metaHasRtt(wr), true);
+  const v = C.metaView(wr, "weekend", true);
+  assert.equal(v.key, "weekend_rtt"); assert.equal(v.rows.length, 2); assert.equal(v.rows[1].slug, "tau-empire");
+  assert.equal(C.metaView(wr, "dataslate", true).key, "dataslate");     // no RTT variant -> the plain one
+  assert.equal(C.metaView(wr, "4weeks", false).key, "weekend");         // window not offered -> This Weekend
+  assert.equal(C.metaDetail(wr.factions[0], true).win_rate, 55);
+  assert.equal(C.metaDetail(wr.factions[0], false).win_rate, 58);
+});
+
+test("listhammer scraper only requests robots-allowed pages", () => {
+  const src = fs.readFileSync(path.join(__dirname, "..", "scraper", "fetch_winrates.py"), "utf8");
+  assert.match(src, /rp\.can_fetch\(UA, BASE \+ path\) or not rp\.can_fetch\("\*", BASE \+ path\)/);
+  const paths = [...src.matchAll(/get\(f?"(\/[^"]*)"/g), ...src.matchAll(/"(\/stats[^"]*)"/g)].map((m) => m[1]);
+  assert.ok(paths.includes("/factions/{slug}") && paths.includes("/factions/{slug}?includeRtt=true") && paths.includes("/stats?includeRtt=true"), paths.join());
+  for (const p of paths) assert.ok(!/^\/(api|players|events|list)\//.test(p), p);
 });
 
 test("dark mode stylesheet: footer and surfaces are dark", () => {
@@ -823,7 +957,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v9/);
+  assert.match(read("sw.js"), /muster-shell-v10/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */

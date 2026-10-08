@@ -448,12 +448,37 @@ def main():
     # Meta win rates (listhammer) ship as a separate file so a stats refresh never changes the points hash.
     # source: fresh scrape in data/ (not committed), else the copy already published in app/data (fail-safe fallback)
     wr_src = os.path.join(ROOT, "data", "winrates.json")
+    wr_pub = os.path.join(ROOT, "app", "data", "winrates.json")
     if not os.path.exists(wr_src):
-        wr_src = os.path.join(ROOT, "app", "data", "winrates.json")
+        wr_src = wr_pub
+    elif os.path.exists(wr_pub):  # never let an older cached scrape replace newer published stats
+        try:
+            fa = json.load(open(wr_src, encoding="utf-8")).get("fetched_at") or ""
+            fb = json.load(open(wr_pub, encoding="utf-8")).get("fetched_at") or ""
+            if fb > fa:
+                print(f"note: published winrates ({fb}) newer than data/winrates.json ({fa}) - keeping published", file=sys.stderr)
+                wr_src = wr_pub
+        except Exception:  # noqa: BLE001
+            pass
     if os.path.exists(wr_src):
         try:
             wr = json.load(open(wr_src, encoding="utf-8"))
             wr.pop("elapsed_s", None)
+            # recent tournament lists (full list text) are big: one lazily-loaded file per faction in meta-lists/
+            rl = wr.pop("recent_lists", None)
+            if rl:
+                ld = os.path.join(a.outdir, "meta-lists")
+                os.makedirs(ld, exist_ok=True)
+                for slug, v in rl.items():
+                    if not re.fullmatch(r"[a-z0-9-]+", slug or ""):
+                        continue
+                    lc = json.dumps({"fetched_at": wr.get("fetched_at"), **v}, ensure_ascii=False, separators=(",", ":"))
+                    with open(os.path.join(ld, slug + ".json.tmp"), "w", encoding="utf-8") as f:
+                        f.write(lc)
+                    os.replace(os.path.join(ld, slug + ".json.tmp"), os.path.join(ld, slug + ".json"))
+                wr["lists_hash"] = hashlib.sha256(json.dumps(rl, ensure_ascii=False, sort_keys=True).encode()).hexdigest()[:16]
+                wr["lists_available"] = sorted(k for k, v in rl.items() if (v.get("std") or {}).get("lists") or (v.get("rtt") or {}).get("lists"))
+                print(f"meta-lists/: {len(rl)} faction files", file=sys.stderr)
             wc = json.dumps(wr, ensure_ascii=False, separators=(",", ":"))
             wj = os.path.join(a.outdir, "winrates.json")
             with open(wj + ".tmp", "w", encoding="utf-8") as f:

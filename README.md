@@ -25,7 +25,7 @@ tests/                  node:test unit tests + jsdom smoke tests + refresh fail-
 |---|---|---|
 | MFM (mfm.warhammer-community.com) | **all legal points**: units (cost tiers per copy), wargear add-ons, enhancements, detachment points, Muster battle sizes | primary; Next.js RSC payload |
 | GrimSlate | stratagems, detachment rules, enhancement text, unit keywords/roles, **unit compositions + wargear options/default loadouts**, **datasheets: unit stats (M T Sv W Ld OC + invuln), ranged/melee weapon profiles, abilities, weapon-keyword glossary** (never points); DP for detachments MFM lacks | secondary; MFM always wins; GrimSlate-only detachments are flagged "GrimSlate" and warn |
-| listhammer.info | Meta Win Rates tab | server-rendered `__NUXT_DATA__` from `/stats`, `/stats?range=4weeks`, `/factions/<slug>`; `/api/` is never touched (robots.txt) |
+| listhammer.info | Meta Win Rates tab | server-rendered `__NUXT_DATA__` from `/stats[?range=4weeks\|dataslate][&includeRtt=true]` (6 views) and `/factions/<slug>[?includeRtt=true]` (This Weekend detail + recent lists, split into `app/data/meta-lists/<slug>.json`); robots.txt is re-read every run and `/api/`, `/players/`, `/events/`, `/list/` are never touched |
 
 `build_data.py` merges `data/mfm.json` + `data/grimslate.json` into `app/data/points.json` (compact keys), writes
 `app/data/version.json` (MFM version, fetched_at, content hash, win-rate hash) and copies `data/winrates.json`.
@@ -39,7 +39,7 @@ units have datasheets. Units missing in GrimSlate (Titans, Kaius Konorius, gener
 1. MFM → temp file; must have ≥ MIN_FACTIONS (25) factions and ≥ MIN_UNITS (1400) units, else **abort, old data kept, exit 1**
 2. GrimSlate → temp; failure keeps the previous grimslate.json
 3. faction artwork (existing images kept on failure)
-4. listhammer win rates → temp; needs ≥ 20 factions / 15 with matchups, else previous winrates.json kept
+4. listhammer win rates → temp; needs ≥ 20 factions / 15 with matchups and the default view, else previous winrates.json (and meta-lists/) kept
 5. build into a temp dir, re-check, then atomically move into `app/data`
 
 Individual steps: `python3 scraper/fetch_mfm.py` (~45–70 s), `fetch_grimslate.py` (~3 min), `fetch_winrates.py` (~50 s), `fetch_images.py`, `build_data.py`.

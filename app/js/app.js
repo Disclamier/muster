@@ -4,17 +4,19 @@
   const C = window.MusterCore;
   const LS_LISTS = "muster.lists", LS_THEME = "muster.theme", LS_FMT = "muster.exportFormat", LS_REPORT = "muster.updateReport",
     LS_COLL = "muster.collapsed", LS_WRRANGE = "muster.metaRange", LS_TOMBS = "muster.tombs", LS_OWNER = "muster.sync.owner",
-    LS_PENDING = "muster.pendingHash";
+    LS_PENDING = "muster.pendingHash", LS_WRRTT = "muster.metaRtt", LS_WRTAB = "muster.metaTab", LS_WRHOME = "muster.metaHome";
   const ROLE_ICON = "unit";
 
   /* ------------------------------------------------------------------ state */
   const S = {
     data: null, idx: null, meta: null, wr: null, lists: [], tombs: {}, report: null, sync: null,
     ui: { panel: null, q: "", tab: "roster", focusDet: null, collapsed: {}, listQ: "", metaSort: { key: "win_rate", dir: "desc" },
-      detSort: { key: "games", dir: "desc" }, muSort: { key: "win_rate", dir: "desc" }, detMode: "combos", metaRange: "weekend", showSmall: false },
+      detSort: { key: "games", dir: "desc" }, muSort: { key: "win_rate", dir: "desc" }, detMode: "combos", metaRange: "weekend", showSmall: false,
+      metaRtt: false, metaTab: "overview", metaHome: "factions", metaQ: "", metaDispOpen: null, metaListDet: "" },
   };
   try { S.ui.collapsed = JSON.parse(localStorage.getItem(LS_COLL) || "{}"); } catch (e) { S.ui.collapsed = {}; }
-  try { S.ui.metaRange = localStorage.getItem(LS_WRRANGE) || "weekend"; } catch (e) { /* ignore */ }
+  try { S.ui.metaRange = localStorage.getItem(LS_WRRANGE) || "weekend"; S.ui.metaRtt = localStorage.getItem(LS_WRRTT) === "1";
+    S.ui.metaTab = localStorage.getItem(LS_WRTAB) || "overview"; S.ui.metaHome = localStorage.getItem(LS_WRHOME) || "factions"; } catch (e) { /* ignore */ }
 
   /* ------------------------------------------------------------------ helpers */
   const $ = (s, r) => (r || document).querySelector(s);
@@ -1109,6 +1111,8 @@
   const wrCell = (v, games, min) => (min && (games || 0) < min && !S.ui.showSmall) ? `<span class="muted" title="${esc(C.fmtPct(v))} over ${games} games (fewer than ${min})">—</span>` : `<span class="wr ${wrClass(v)}">${esc(C.fmtPct(v))}</span>`;
   const signed = (v) => v === null || v === undefined ? "—" : `${v > 0 ? "+" : ""}${Math.round(v)}`;
   const facThumb = (id) => { const F = S.idx && S.idx.factions[id]; return F && F.f.img ? `<img class="lthumb" src="${esc(F.f.img)}" alt="">` : ""; };
+  const fmtN = (n) => n === null || n === undefined ? "—" : Number(n).toLocaleString("en-US");
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* ignore */ } };
   function sortHead(cols, sortState, kind) {
     return `<tr>${cols.map(([k, label, cls]) => `<th class="${cls || ""}${sortState.key === k ? " sorted " + sortState.dir : ""}" data-action="sort" data-kind="${kind}" data-key="${esc(k)}">${esc(label)}${sortState.key === k ? (sortState.dir === "asc" ? " ▲" : " ▼") : ""}</th>`).join("")}</tr>`;
   }
@@ -1116,82 +1120,165 @@
     const W = S.wr;
     return `<div class="meta-h"><div><h2>${t}</h2>${sub || ""}</div><div class="meta-src">Source: <a href="${esc((W && W.source_url) || "https://listhammer.info/stats")}" target="_blank" rel="noopener">listhammer.info</a>${W ? ` · fetched ${esc(localTime(W.fetched_at))}` : ""}</div></div>`;
   }
+  /* time-window segmented control + Include RTTs switch (same on the faction table and every faction page) */
+  function metaControls(V) {
+    const W = S.wr; const rs = C.metaRanges(W);
+    return `<div class="meta-ctl" data-testid="meta-controls">
+      ${rs.length > 1 ? `<div class="seg scroll">${rs.map((r) => `<button class="${V.range === r.key ? "on" : ""}" data-action="meta-range" data-range="${esc(r.key)}">${esc(r.label)}</button>`).join("")}</div>` : ""}
+      ${C.metaHasRtt(W) ? `<label class="switch" title="Widen the criteria to RTTs: 3+ rounds and 8+ players"><input type="checkbox" data-change="meta-rtt" data-testid="rtt-toggle" ${S.ui.metaRtt ? "checked" : ""}><span class="sl"></span><span>Include RTTs</span></label>` : ""}
+    </div>`;
+  }
+  const mtabs = (tabs, cur, scope) => `<div class="metatabs" role="tablist">${tabs.map(([k, l, n]) => `<button role="tab" class="${cur === k ? "on" : ""}" data-action="meta-tab" data-scope="${scope}" data-tab="${k}">${esc(l)}${n !== undefined && n !== null ? ` <span class="cnt">${esc(n)}</span>` : ""}</button>`).join("")}</div>`;
   function renderMeta(slug) {
     const W = S.wr;
     if (!W || !W.factions) { $("#main").innerHTML = `<div class="meta-page">${metaHeader("Meta Win Rates")}<div class="empty">No win-rate data available yet. It is downloaded with the points data when online.</div></div>`; return; }
     if (slug) return renderMetaFaction(slug);
-    const range = S.ui.metaRange === "4weeks" && W.ranges && W.ranges["4weeks"] ? "4weeks" : "weekend";
-    const R = (W.ranges && W.ranges[range]) || W.date_range || {};
-    const rows = W.factions.map((f) => {
-      const src = range === "4weeks" ? (f.last_4_weeks || {}) : f;
-      return { slug: f.slug, name: f.name, mfm_id: f.mfm_id, win_rate: src.win_rate, players: src.players, games: src.games, x0: src.x0, x1: src.x1, event_wins: src.event_wins, overrep: src.overrep };
-    });
-    const sorted = C.sortRows(rows, S.ui.metaSort.key, S.ui.metaSort.dir);
-    const disp = W.dispositions_4weeks || [];
-    $("#main").innerHTML = `<div class="meta-page">
-      ${metaHeader(`${esc(range === "4weeks" ? "Last 4 Weeks" : "This Weekend")} Meta Breakdown`, `<div class="muted">${esc(R.dates || "")}</div>`)}
-      <div class="seg"><button class="${range === "weekend" ? "on" : ""}" data-action="meta-range" data-range="weekend">This Weekend</button><button class="${range === "4weeks" ? "on" : ""}" data-action="meta-range" data-range="4weeks">Last 4 Weeks</button></div>
-      <div class="tablewrap"><table class="mtable" data-testid="meta-table">${sortHead([["name", "Faction", "l"], ["win_rate", "Win Rate"], ["players", "Players"], ["games", "Games"], ["x0", "X-0"], ["x1", "X-1"], ["event_wins", "Event Wins"], ["overrep", "Overrep"]], S.ui.metaSort, "meta")}
-        ${sorted.map((r) => `<tr class="click" data-action="meta-faction" data-slug="${esc(r.slug)}"><td class="l">${facThumb(r.mfm_id)}<span>${esc(r.name)}</span></td>
-          <td><div class="wrbar"><span style="width:${Math.max(0, Math.min(100, r.win_rate || 0))}%"></span></div>${wrCell(r.win_rate)}</td><td>${esc(r.players ?? "—")}</td><td>${esc(r.games ?? "—")}</td>
-          <td>${esc(r.x0 ?? "—")}</td><td>${esc(r.x1 ?? "—")}</td><td>${esc(r.event_wins ?? "—")}</td><td>${r.overrep != null ? esc(r.overrep.toFixed(2)) + "x" : "—"}</td></tr>`).join("")}</table></div>
-      <p class="muted small">Stats are compiled by listhammer.info from 2000-point singles events with 5+ rounds and 16+ players. Mirror matches are excluded. Click a faction for detachments and matchups${range === "4weeks" ? " (faction pages show This Weekend – the 4-week breakdown is only served from listhammer's API, which its robots.txt disallows)" : ""}.</p>
-      ${disp.length ? `<h3>Disposition Win Rates <span class="muted small">(last 4 weeks)</span></h3><div class="tablewrap"><table class="mtable"><tr><th class="l">Disposition</th><th>Win Rate</th><th>Games</th><th>Players</th></tr>
-        ${disp.map((d) => `<tr><td class="l">${esc(d.name)}</td><td>${wrCell(d.win_rate)}</td><td>${esc(d.games)}</td><td>${esc(d.players ?? "—")}</td></tr>`).join("")}</table></div>` : ""}
+    const V = C.metaView(W, S.ui.metaRange, S.ui.metaRtt);
+    const tab = ["factions", "dispositions", "events"].includes(S.ui.metaHome) ? S.ui.metaHome : "factions";
+    const q = (S.ui.metaQ || "").trim().toLowerCase();
+    let body = "";
+    if (tab === "factions") {
+      const rows = C.sortRows(V.rows.filter((r) => !q || r.name.toLowerCase().includes(q)), S.ui.metaSort.key, S.ui.metaSort.dir);
+      body = `<input class="search" type="search" placeholder="Search factions…" value="${esc(S.ui.metaQ || "")}" data-input="meta-q" aria-label="Search factions">
+      <div class="tablewrap"><table class="mtable sticky1" data-testid="meta-table">${sortHead([["name", "Faction", "l"], ["win_rate", "Win Rate"], ["players", "Players"], ["games", "Games"], ["x0", "X-0"], ["x1", "X-1"], ["event_wins", "Event Wins"], ["overrep", "Overrep"]], S.ui.metaSort, "meta")}
+        ${rows.map((r) => `<tr class="click" data-action="meta-faction" data-slug="${esc(r.slug)}"><td class="l"><div class="fcell">${facThumb(r.mfm_id)}<span>${esc(r.name)}</span></div></td>
+          <td><div class="wrbar"><span style="width:${Math.max(0, Math.min(100, r.win_rate || 0))}%"></span></div>${wrCell(r.win_rate)}</td><td>${esc(fmtN(r.players))}</td><td>${esc(fmtN(r.games))}</td>
+          <td>${esc(r.x0 ?? "—")}</td><td>${esc(r.x1 ?? "—")}</td><td>${esc(r.event_wins ?? "—")}</td><td>${r.overrep != null ? esc(Number(r.overrep).toFixed(2)) + "x" : "—"}</td></tr>`).join("") || `<tr><td colspan="8" class="muted l">No faction matches “${esc(S.ui.metaQ)}”.</td></tr>`}</table></div>
+      <p class="muted small">${esc(V.criteria || "Stats are compiled from singles events that are 2000 points, 5 or more rounds and with 16 or more players.")} Mirror matches are excluded. Tap a faction for its detachments, matchups and lists.</p>`;
+    } else if (tab === "dispositions") {
+      const tot = V.dispositions.reduce((a, d) => a + (d.players || 0), 0);
+      const open = S.ui.metaDispOpen;
+      const vs = (name) => V.disposition_matchups.filter((m) => m.name === name && m.games > 0).sort((a, b) => (b.win_rate || 0) - (a.win_rate || 0));
+      body = V.dispositions.length ? `<p class="muted small">Tap a disposition to see its win rate against each other disposition.</p>
+      <div class="tablewrap"><table class="mtable" data-testid="disp-table"><tr><th class="l">Disposition</th><th>Win Rate</th><th>Games</th><th>Field</th></tr>
+        ${V.dispositions.slice().sort((a, b) => (b.win_rate || 0) - (a.win_rate || 0)).map((d) => `<tr class="click${open === d.name ? " open" : ""}" data-action="meta-disp" data-name="${esc(d.name)}"><td class="l"><span class="caret">${open === d.name ? "▾" : "▸"}</span>${esc(d.name)}</td><td>${wrCell(d.win_rate)}</td><td>${esc(fmtN(d.games))}</td><td>${tot ? esc((Math.round((d.players || 0) / tot * 1000) / 10).toFixed(1)) + "%" : "—"}</td></tr>
+          ${open === d.name ? `<tr class="sub"><td colspan="4"><table class="mtable inner" data-testid="disp-vs"><tr><th class="l">Vs</th><th>Win Rate</th><th>Avg Diff</th><th>Go 1st WR</th><th>Go 1st Diff</th><th>Games</th></tr>
+            ${vs(d.name).map((m) => `<tr><td class="l">${esc(m.opponent)}</td><td>${wrCell(m.win_rate)}</td><td>${esc(signed(m.avg_diff))}</td><td>${wrCell(m.go_first && m.go_first.win_rate, m.go_first && m.go_first.games, 10)}</td><td>${(m.go_first && m.go_first.games || 0) < 10 && !S.ui.showSmall ? "—" : esc(signed(m.go_first && m.go_first.avg_diff))}</td><td>${esc(fmtN(m.games))}</td></tr>`).join("") || `<tr><td colspan="6" class="muted l">No games.</td></tr>`}</table></td></tr>` : ""}`).join("")}</table></div>
+      <p class="muted small">Win rates are compiled over qualifying events ${esc(V.range === "weekend" ? "this weekend" : V.range === "4weeks" ? "in the trailing 4 weeks" : (V.label || "").charAt(0).toLowerCase() + (V.label || "").slice(1))}${V.rtt ? ", incl. RTTs" : ""}. Mirror matches are excluded. Avg Diff is the mean victory-point margin from the row's side. The Go 1st columns repeat both over just the games the row's disposition had the first turn in (10+ games needed).</p>`
+        : `<div class="empty">No disposition data for this view.</div>`;
+    } else {
+      const ev = V.events.slice().sort((a, b) => (b.players || 0) - (a.players || 0));
+      body = ev.length ? `<p class="small"><b>${esc(fmtN(V.event_count ?? ev.length))} events · ${esc(fmtN(V.event_players ?? ev.reduce((a, e) => a + (e.players || 0), 0)))} players</b> <span class="muted">counted in this view</span></p>
+      <div class="tablewrap"><table class="mtable" data-testid="events-table"><tr><th class="l">Event</th><th class="l">Where</th><th>Players</th></tr>
+        ${ev.map((e) => `<tr><td class="l wrap">${esc(e.name)}${e.in_progress ? ` <span class="tag live">in progress</span>` : ""}</td><td class="l">${esc([e.state, e.country].filter(Boolean).join(", "))}</td><td>${esc(fmtN(e.players))}</td></tr>`).join("")}</table></div>`
+        : `<div class="empty">No event list for this view.</div>`;
+    }
+    $("#main").innerHTML = `<div class="meta-page" data-view="${esc(V.key)}">
+      ${metaHeader(`${esc(V.label)} Meta Breakdown`, `<div class="muted">${esc(V.dates || "")}${V.rtt ? ` · <span class="tag rtt">incl. RTTs</span>` : ""}</div>`)}
+      ${metaControls(V)}
+      ${mtabs([["factions", "Factions", V.rows.length], ["dispositions", "Dispositions"], ["events", "Events", V.event_count || null]], tab, "home")}
+      ${body}
     </div>`;
   }
-  function sparkline(weekly) {
+  function sparkline(weekly, marks) {
     if (!weekly || weekly.length < 2) return "";
     const W = 600, H = 120, pad = 18, n = weekly.length;
     const x = (i) => pad + (i * (W - 2 * pad)) / (n - 1), y = (v) => H - pad - ((Math.max(30, Math.min(70, v)) - 30) / 40) * (H - 2 * pad);
+    const t0 = Date.parse(weekly[0].week), t1 = Date.parse(weekly[n - 1].week);
+    const mx = (d) => pad + ((Date.parse(d) - t0) / Math.max(1, t1 - t0)) * (W - 2 * pad);
+    const ms = (marks || []).filter((m) => { const t = Date.parse(m.date); return t > t0 && t <= t1 + 6 * 864e5; });
     const pts = weekly.map((w, i) => `${x(i).toFixed(1)},${y(w.win_rate || 50).toFixed(1)}`).join(" ");
     return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Win rate trend">
       ${[70, 50, 30].map((g) => `<line x1="${pad}" x2="${W - pad}" y1="${y(g)}" y2="${y(g)}" class="g${g === 50 ? " mid" : ""}"/><text x="2" y="${y(g) + 4}">${g}%</text>`).join("")}
-      <polyline points="${pts}"/>${weekly.map((w, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(w.win_rate || 50).toFixed(1)}" r="3"><title>Week of ${esc(w.week)}: ${esc(C.fmtPct(w.win_rate))} (${esc(w.games)} games)</title></circle>`).join("")}</svg>
-      <div class="sparkx muted small"><span>${esc(weekly[0].week)}</span><span>${esc(weekly[n - 1].week)}</span></div>`;
+      ${ms.map((m) => `<line class="mark ${esc(m.kind)}" x1="${Math.min(W - pad, mx(m.date)).toFixed(1)}" x2="${Math.min(W - pad, mx(m.date)).toFixed(1)}" y1="${pad - 6}" y2="${H - pad}"><title>${esc(m.label || (m.kind === "codex" ? "Codex" : "Dataslate"))} ${esc(m.date)}</title></line>`).join("")}
+      <polyline points="${pts}"/>${weekly.map((w, i) => `<circle cx="${x(i).toFixed(1)}" cy="${y(w.win_rate || 50).toFixed(1)}" r="3"><title>Week of ${esc(w.week)}: ${esc(C.fmtPct(w.win_rate))} (${w.wins != null ? esc(w.wins) + "-" + esc(w.losses) + ", " : ""}${esc(w.games)} games)</title></circle>`).join("")}</svg>
+      <div class="sparkx muted small"><span>${esc(weekly[0].week)}</span>${ms.length ? `<span><span class="mk dataslate"></span> dataslate${ms.some((m) => m.kind === "codex") ? ` <span class="mk codex"></span> codex` : ""}</span>` : ""}<span>${esc(weekly[n - 1].week)}</span></div>`;
+  }
+  async function loadMetaLists(slug) {
+    S.metaLists = S.metaLists || {};
+    if (S.metaLists[slug]) return S.metaLists[slug];
+    const W = S.wr;
+    try {
+      const d = await fetchJSON(`data/meta-lists/${encodeURIComponent(slug)}.json?v=${encodeURIComponent((W && (W.lists_hash || W.fetched_at)) || "")}`);
+      S.metaLists[slug] = d;
+    } catch (e) { S.metaLists[slug] = { error: true }; }
+    return S.metaLists[slug];
   }
   function renderMetaFaction(slug) {
-    const W = S.wr; const f = W.factions.find((x) => x.slug === slug);
-    if (!f) { $("#main").innerHTML = `<div class="meta-page"><a href="#/meta">← All factions</a><div class="empty">Faction not found.</div></div>`; return; }
+    const W = S.wr; const f0 = W.factions.find((x) => x.slug === slug);
+    if (!f0) { $("#main").innerHTML = `<div class="meta-page"><a class="backlink" href="#/meta">${icon("back")} All factions</a><div class="empty">Faction not found.</div></div>`; return; }
+    const V = C.metaView(W, S.ui.metaRange, S.ui.metaRtt);
+    const f = C.metaDetail(f0, V.rtt);
     const F = f.mfm_id && S.idx.factions[f.mfm_id];
-    const R = W.date_range || {};
+    const row = V.rows.find((r) => r.name === f.name) || {};
+    const wk = V.range === "weekend";
+    const hd = wk ? f : row;           // headline tiles follow the chosen window (faction table numbers)
     const tile = (v, l) => `<div class="tile"><div class="tv">${v}</div><div class="tl">${esc(l)}</div></div>`;
-    const dets = S.ui.detMode === "single" ? (f.detachments_single || []).map((d) => ({ ...d, field_pct: null })) : (f.detachments || []);
-    const dsorted = C.sortRows(dets, S.ui.detSort.key, S.ui.detSort.dir);
-    // rows shown as "—" (fewer than 10 games) always sort to the bottom: their key is null unless "show anyway" is on
-    const small = (g) => !S.ui.showSmall && (g || 0) < 10;
-    const muKey = { win_rate: (m) => small(m.games) ? null : m.win_rate, avg_diff: (m) => small(m.games) ? null : m.avg_diff,
-      gf3: (m) => small(m.go_first && m.go_first.games) ? null : m.go_first && m.go_first.win_rate,
-      gf4: (m) => small(m.go_first && m.go_first.games) ? null : m.go_first && m.go_first.avg_diff }[S.ui.muSort.key] || S.ui.muSort.key;
-    const mus = C.sortRows(f.matchups || [], muKey, S.ui.muSort.dir);
-    const detLabel = (d) => d.name === "Unknown" ? `<span class="muted">Unknown</span>` : (d.parts || [d.name]).map((p, i) => {
-      const m = (d.mfm ? [].concat(d.mfm) : [])[i] || (d.mfm && !Array.isArray(d.mfm) ? d.mfm : null);
-      return `${esc(p)}${m && m.src === "gs" ? `<span class="tag gs" title="Not in current MFM">GS</span>` : ""}`;
-    }).join(" <span class='muted'>|</span> ");
-    const l4 = f.last_4_weeks;
-    $("#main").innerHTML = `<div class="meta-page">
-      <a class="backlink" href="#/meta">${icon("back")} All factions</a>
-      <div class="fbanner big"${F && F.f.banner ? ` style="background-image:linear-gradient(90deg,rgba(0,0,0,.8),rgba(0,0,0,.2)),url('${esc(F.f.banner)}')"` : ""}><div><div class="fbt">${esc(f.name)}</div><div class="fbs">${esc(R.label || "This Weekend")} · ${esc(R.dates || "")}</div></div>
-        <a class="wrchip light" href="${esc(f.url)}" target="_blank" rel="noopener">listhammer ↗</a></div>
-      <div class="tiles" data-testid="meta-tiles">${tile(`<span class="${wrClass(f.win_rate)}">${esc(C.fmtPct(f.win_rate))}</span>`, "Win Rate")}${tile(esc(f.games ?? "—"), "Games")}${tile(esc(f.players ?? "—"), "Players")}
-        ${tile(esc(f.x0 ?? "—"), "X-0s")}${tile(esc(f.x1 ?? "—"), "X-1s")}${tile(esc(f.event_wins ?? "—"), "Event Wins")}${tile(f.overrep != null ? esc(f.overrep.toFixed(2)) + "x" : "—", "Overrep")}</div>
-      <p class="muted small">Compiled from ${esc(f.event_count ?? "?")} qualifying events (5+ rounds, 16+ players) this weekend.
-        ${l4 ? `Last 4 weeks: <b>${esc(C.fmtPct(l4.win_rate))}</b> over ${esc(l4.games)} games, ${esc(l4.players)} players.` : ""}
-        ${f.overall_6mo ? `Trailing ~6 months: <b>${esc(C.fmtPct(f.overall_6mo.win_rate))}</b> over ${esc(f.overall_6mo.games)} games.` : ""} Mirror matches excluded.</p>
-      ${f.weekly && f.weekly.length > 1 ? `<h3>Win Rate Trend</h3><div class="card pad">${sparkline(f.weekly)}</div>` : ""}
-      <h3>Detachments</h3>
+    const TABS = [["overview", "Overview"], ["detachments", "Detachments", (f.detachments || []).filter((d) => d.name !== "Unknown").length], ["matchups", "Matchups", (f.matchups || []).length], ["dispositions", "Dispositions"], ["lists", "Lists"]];
+    const tab = TABS.some((t) => t[0] === S.ui.metaTab) ? S.ui.metaTab : "overview";
+    const weekendNote = !wk && tab !== "overview" ? `<div class="mnote" data-testid="weekend-only">Showing <b>This Weekend</b>${V.rtt ? " (incl. RTTs)" : ""}: listhammer only serves ${esc(V.label)} detachments, matchups and lists through its API, which its robots.txt asks tools not to use.</div>` : "";
+    const when = V.rtt ? "this weekend, incl. RTTs" : "this weekend";
+    let body = "";
+    if (tab === "overview") {
+      const l4 = W.datasets ? (C.metaView(W, "4weeks", V.rtt).rows.find((r) => r.name === f.name)) : f.last_4_weeks;
+      const ds = W.datasets && W.datasets.dataslate ? C.metaView(W, "dataslate", V.rtt) : null; const dsr = ds && ds.range === "dataslate" ? ds.rows.find((r) => r.name === f.name) : null;
+      const marks = (W.rules_updates || []).filter((m) => m.kind === "dataslate" || (m.kind === "codex" && (m.factions || []).includes(f.slug)));
+      body = `<div class="tiles" data-testid="meta-tiles">${tile(`<span class="${wrClass(hd.win_rate)}">${esc(C.fmtPct(hd.win_rate))}</span>`, "Win Rate")}${tile(esc(fmtN(hd.games)), "Games")}${tile(esc(fmtN(hd.players)), "Players")}
+        ${tile(esc(hd.x0 ?? "—"), "X-0s")}${tile(esc(hd.x1 ?? "—"), "X-1s")}${tile(esc(hd.event_wins ?? "—"), "Event Wins")}${tile(hd.overrep != null ? esc(Number(hd.overrep).toFixed(2)) + "x" : "—", "Overrep")}</div>
+        <p class="muted small">${wk ? esc(f.criteria || `Compiled from ${f.event_count ?? "?"} qualifying events.`) + " The tallies cover qualifying events " + esc(when) + "; only the trend spans the trailing ~6 months." : `${esc(V.label)} (${esc(V.dates || "")}) from listhammer's faction table. ${esc(V.criteria || "")}`} Mirror matches excluded.</p>
+        <div class="mcards">
+          ${l4 ? `<div class="mcard"><div class="k">Last 4 weeks</div><div class="v ${wrClass(l4.win_rate)}">${esc(C.fmtPct(l4.win_rate))}</div><div class="muted small">${esc(fmtN(l4.games))} games · ${esc(fmtN(l4.players))} players</div></div>` : ""}
+          ${dsr ? `<div class="mcard"><div class="k">${esc(ds.label)}</div><div class="v ${wrClass(dsr.win_rate)}">${esc(C.fmtPct(dsr.win_rate))}</div><div class="muted small">${esc(fmtN(dsr.games))} games · ${esc(fmtN(dsr.players))} players</div></div>` : ""}
+          ${f.overall_6mo ? `<div class="mcard"><div class="k">Trailing ~6 months</div><div class="v ${wrClass(f.overall_6mo.win_rate)}">${esc(C.fmtPct(f.overall_6mo.win_rate))}</div><div class="muted small">${esc(fmtN(f.overall_6mo.games))} games</div></div>` : ""}
+        </div>
+        ${f.weekly && f.weekly.length > 1 ? `<h3>Win Rate Trend</h3><div class="card pad">${sparkline(f.weekly, marks)}</div><p class="muted small">Week-by-week win rate over qualifying events${V.rtt ? " incl. RTTs" : ""}. Hover or long-press a point for its record.</p>` : ""}`;
+    } else if (tab === "detachments") {
+      // like listhammer, players without an identified detachment count towards Field % but aren't listed
+      const dets = (S.ui.detMode === "single" ? (f.detachments_single || []).map((d) => ({ ...d, field_pct: null })) : (f.detachments || [])).filter((d) => d.name !== "Unknown");
+      const dsorted = C.sortRows(dets, S.ui.detSort.key, S.ui.detSort.dir);
+      const detLabel = (d) => d.name === "Unknown" ? `<span class="muted">Unknown</span>` : (d.parts || [d.name]).map((p, i) => {
+        const m = (d.mfm ? [].concat(d.mfm) : [])[i] || (d.mfm && !Array.isArray(d.mfm) ? d.mfm : null);
+        return `<div class="dpart">${esc(p)}${m && m.src === "gs" ? `<span class="tag gs" title="Not in current MFM">GS</span>` : ""}</div>`;
+      }).join("");
+      const nd = f.no_detachment_players;
+      body = `${V.rtt ? `<div class="mnote warn"><b>RTT detachment stats can be heavily skewed.</b> listhammer doesn't fetch detachment data for every RTT list, so Field % and win rates lean towards the lists it collects.</div>` : ""}
       <div class="seg"><button class="${S.ui.detMode !== "single" ? "on" : ""}" data-action="det-mode" data-mode="combos">Combinations</button><button class="${S.ui.detMode === "single" ? "on" : ""}" data-action="det-mode" data-mode="single">Per detachment</button></div>
+      <p class="muted small">Unique detachment combinations ${esc(when)}. Field % is the share of ${esc(f.name)} players. WR excludes mirrors and draws.${nd ? ` ${esc(nd)} of ${esc(f.players)} players (${esc((Math.round(nd / Math.max(1, f.players) * 1000) / 10).toFixed(1))}%) have no identified detachment; they count towards Field % but aren't listed.` : ""}</p>
       <div class="tablewrap"><table class="mtable" data-testid="det-table">${sortHead([["name", "Detachment", "l"], ["players", "Players"], ...(S.ui.detMode === "single" ? [] : [["field_pct", "Field %"]]), ["wins", "W-L"], ["games", "Games"], ["win_rate", "Win Rate"]], S.ui.detSort, "det")}
-        ${dsorted.map((d) => `<tr><td class="l">${detLabel(d)}</td><td>${esc(d.players ?? "—")}</td>${S.ui.detMode === "single" ? "" : `<td>${d.field_pct != null ? esc(d.field_pct) + "%" : "—"}</td>`}<td>${esc(d.wins ?? 0)}-${esc(d.losses ?? 0)}</td><td>${esc(d.games ?? 0)}</td><td>${wrCell(d.win_rate)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No detachment data.</td></tr>`}</table></div>
-      ${S.ui.detMode === "single" ? `<p class="muted small">Per-detachment figures sum every combination that includes the detachment (derived by Muster).</p>` : ""}
-      <h3>Matchups</h3>
-      <p class="muted small">${esc(f.name)}'s win rate into each other faction, this weekend. Avg Diff is the mean victory-point margin. Matchups with fewer than 10 games show a dash, like listhammer.
+        ${dsorted.map((d) => `<tr><td class="l wrap">${detLabel(d)}</td><td>${esc(d.players ?? "—")}</td>${S.ui.detMode === "single" ? "" : `<td>${d.field_pct != null ? esc(d.field_pct) + "%" : "—"}</td>`}<td>${esc(d.wins ?? 0)}-${esc(d.losses ?? 0)}</td><td>${esc(d.games ?? 0)}</td><td>${wrCell(d.win_rate, d.games, S.ui.detMode === "single" ? 0 : 10)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted l">No detachment data.</td></tr>`}</table></div>
+      ${S.ui.detMode === "single" ? `<p class="muted small">Per-detachment figures sum every combination that includes the detachment (derived by Muster).</p>` : `<p class="muted small">Win rates with fewer than 10 games show a dash, like listhammer.</p>`}`;
+    } else if (tab === "matchups") {
+      const small = (g) => !S.ui.showSmall && (g || 0) < 10;
+      const muKey = { win_rate: (m) => small(m.games) ? null : m.win_rate, avg_diff: (m) => small(m.games) ? null : m.avg_diff,
+        gf3: (m) => small(m.go_first && m.go_first.games) ? null : m.go_first && m.go_first.win_rate,
+        gf4: (m) => small(m.go_first && m.go_first.games) ? null : m.go_first && m.go_first.avg_diff }[S.ui.muSort.key] || S.ui.muSort.key;
+      const mus = C.sortRows(f.matchups || [], muKey, S.ui.muSort.dir);
+      body = `<p class="muted small">${esc(f.name)}'s win rate into each other faction, ${esc(when)}. Avg Diff is the mean victory-point margin. Fewer than 10 games show a dash, like listhammer.
         <label class="inline"><input type="checkbox" ${S.ui.showSmall ? "checked" : ""} data-change="show-small"> show anyway</label></p>
-      <div class="tablewrap"><table class="mtable" data-testid="matchup-table">${sortHead([["opponent", "Faction", "l"], ["win_rate", "Win Rate"], ["avg_diff", "Avg Diff"], [(m) => m.go_first && m.go_first.win_rate, "Go 1st WR"], [(m) => m.go_first && m.go_first.avg_diff, "Go 1st Diff"], ["games", "Games"]].map((c, i) => [typeof c[0] === "function" ? `gf${i}` : c[0], c[1], c[2]]), S.ui.muSort, "mu")}
-        ${mus.map((m) => `<tr class="click" data-action="meta-faction" data-slug="${esc(m.opponent_slug)}"><td class="l">${facThumb(m.opponent_mfm_id)}<span>${esc(m.opponent)}</span></td><td>${wrCell(m.win_rate, m.games, 10)}</td>
-          <td>${(m.games || 0) < 10 && !S.ui.showSmall ? "—" : esc(signed(m.avg_diff))}</td><td>${wrCell(m.go_first && m.go_first.win_rate, m.go_first && m.go_first.games, 10)}</td>
-          <td>${(m.go_first && m.go_first.games || 0) < 10 && !S.ui.showSmall ? "—" : esc(signed(m.go_first && m.go_first.avg_diff))}</td><td>${esc(m.games)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted">No matchup data.</td></tr>`}</table></div>
-      ${f.dispositions && Object.keys(f.dispositions).length ? `<h3>Force Dispositions</h3><div class="tablewrap"><table class="mtable"><tr><th class="l">Disposition</th><th>Players</th></tr>${Object.entries(f.dispositions).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td class="l">${esc(k)}</td><td>${esc(v)}</td></tr>`).join("")}</table></div>` : ""}
+      <div class="tablewrap"><table class="mtable sticky1" data-testid="matchup-table">${sortHead([["opponent", "Faction", "l"], ["win_rate", "Win Rate"], ["avg_diff", "Avg Diff"], ["gf3", "Go 1st WR"], ["gf4", "Go 1st Diff"], ["games", "Games"]], S.ui.muSort, "mu")}
+        ${mus.map((m) => `<tr class="click" data-action="meta-faction" data-slug="${esc(m.opponent_slug)}"><td class="l"><div class="fcell">${facThumb(m.opponent_mfm_id)}<span>${esc(m.opponent)}</span></div></td><td>${wrCell(m.win_rate, m.games, 10)}</td>
+          <td>${small(m.games) ? "—" : esc(signed(m.avg_diff))}</td><td>${wrCell(m.go_first && m.go_first.win_rate, m.go_first && m.go_first.games, 10)}</td>
+          <td>${small(m.go_first && m.go_first.games) ? "—" : esc(signed(m.go_first && m.go_first.avg_diff))}</td><td>${esc(m.games)}</td></tr>`).join("") || `<tr><td colspan="6" class="muted l">No matchup data.</td></tr>`}</table></div>`;
+    } else if (tab === "dispositions") {
+      const ent = Object.entries(f.dispositions || {}).sort((a, b) => b[1] - a[1]); const tot = ent.reduce((a, e) => a + e[1], 0);
+      body = ent.length ? `<p class="muted small">How ${esc(f.name)} players build across dispositions, ${esc(when)}.</p>
+      <div class="dbars" data-testid="fac-disp">${ent.map(([k, v]) => `<div class="dbar"><div class="dl"><span>${esc(k)}</span><span><b>${esc(v)}</b> · ${esc((Math.round(v / Math.max(1, tot) * 1000) / 10).toFixed(1))}%</span></div><div class="db"><span style="width:${(v / Math.max(1, tot) * 100).toFixed(1)}%"></span></div></div>`).join("")}</div>` : `<div class="empty">No disposition data.</div>`;
+    } else {
+      const L = S.metaLists && S.metaLists[slug];
+      if (!L) { body = `<div class="empty">Loading lists…</div>`; loadMetaLists(slug).then(() => { if (location.hash.startsWith(`#/meta/${slug}`) && S.ui.metaTab === "lists") route(); }); }
+      else if (L.error || !(L.std || L.rtt)) body = `<div class="empty">Recent lists aren't available offline or for this faction yet.</div>`;
+      else {
+        const src = (V.rtt ? L.rtt : L.std) || L.std || { lists: [] };
+        const dets = [...new Set(src.lists.map((x) => x.detachment).filter(Boolean))].sort();
+        const fd = dets.includes(S.ui.metaListDet) ? S.ui.metaListDet : "";
+        const shown = src.lists.filter((x) => !fd || x.detachment === fd);
+        body = `<p class="muted small">Recent undefeated / X-1 lists from ${V.rtt ? "8+ player events incl. RTTs" : "16+ player non-team events"} — newest ${esc(src.lists.length)} of ${esc(fmtN(src.total ?? src.lists.length))}. <a href="${esc(f.url)}" target="_blank" rel="noopener">More on listhammer ↗</a></p>
+        ${dets.length > 1 ? `<label class="msel">Detachment <select data-change="meta-list-det"><option value="">All detachments</option>${dets.map((d) => `<option ${d === fd ? "selected" : ""}>${esc(d)}</option>`).join("")}</select></label>` : ""}
+        <div class="mlists" data-testid="meta-lists">${shown.map((x) => { const i = src.lists.indexOf(x); return `<details class="mlist"><summary>
+          <div class="mlh"><b>${esc(x.player || "Unknown player")}</b><span class="res">${esc(x.w ?? 0)}-${esc(x.l ?? 0)}${x.d ? "-" + esc(x.d) : ""}</span></div>
+          <div class="mls">${esc([x.detachment, x.disposition].filter(Boolean).join(" · "))}</div>
+          <div class="mls muted">${esc(x.event || "")}${x.event_players ? ` (${esc(x.event_players)} players)` : ""}${x.date ? " · " + esc(new Date(x.date + "T12:00:00Z").toLocaleDateString("en-US", { month: "short", day: "numeric" })) : ""}${x.rtt ? ` <span class="tag rtt">RTT</span>` : ""}</div></summary>
+          ${x.text ? `<div class="mlbtns"><button class="btn secondary sm" data-action="meta-copy-list" data-slug="${esc(slug)}" data-i="${i}">${icon("copy")} Copy list</button></div><pre class="mltext">${esc(x.text)}</pre>` : `<p class="muted small">No list text.</p>`}</details>`; }).join("") || `<div class="empty">No lists.</div>`}</div>`;
+      }
+    }
+    $("#main").innerHTML = `<div class="meta-page" data-view="${esc(V.key)}">
+      <a class="backlink" href="#/meta">${icon("back")} All factions</a>
+      <div class="fbanner big"${F && F.f.banner ? ` style="background-image:linear-gradient(90deg,rgba(0,0,0,.8),rgba(0,0,0,.2)),url('${esc(F.f.banner)}')"` : ""}><div><div class="fbt">${esc(f.name)}</div><div class="fbs">${esc(V.label)} · ${esc(V.dates || "")}${V.rtt ? " · incl. RTTs" : ""}</div></div>
+        <a class="wrchip light" href="${esc(f.url)}" target="_blank" rel="noopener">listhammer ↗</a></div>
+      ${metaControls(V)}
+      ${mtabs(TABS, tab, "faction")}
+      ${weekendNote}
+      ${body}
     </div>`;
   }
   const MU_KEYS = { gf3: (m) => m.go_first && m.go_first.win_rate, gf4: (m) => m.go_first && m.go_first.avg_diff };
@@ -1294,8 +1381,12 @@
     "exp-print": () => printList(),
     "exp-ys": () => exportYellowscribe(),
     // meta
-    "meta-faction": (t) => { location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
-    "meta-range": (t) => { S.ui.metaRange = t.dataset.range; try { localStorage.setItem(LS_WRRANGE, S.ui.metaRange); } catch (e) { /* ignore */ } renderMeta(null); },
+    "meta-faction": (t) => { S.ui.metaListDet = ""; location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
+    "meta-range": (t) => { S.ui.metaRange = t.dataset.range; lsSet(LS_WRRANGE, S.ui.metaRange); route(); },
+    "meta-tab": (t) => { if (t.dataset.scope === "home") { S.ui.metaHome = t.dataset.tab; lsSet(LS_WRHOME, t.dataset.tab); } else { S.ui.metaTab = t.dataset.tab; lsSet(LS_WRTAB, t.dataset.tab); } route(); },
+    "meta-disp": (t) => { S.ui.metaDispOpen = S.ui.metaDispOpen === t.dataset.name ? null : t.dataset.name; route(); },
+    "meta-copy-list": (t) => { const L = S.metaLists && S.metaLists[t.dataset.slug]; const V = C.metaView(S.wr, S.ui.metaRange, S.ui.metaRtt);
+      const src = L && ((V.rtt ? L.rtt : L.std) || L.std); const x = src && src.lists[+t.dataset.i]; if (x && x.text) copyText(x.text); },
     "det-mode": (t) => { S.ui.detMode = t.dataset.mode; route(); },
     "sort": (t) => {
       const st = { meta: S.ui.metaSort, det: S.ui.detSort, mu: S.ui.muSort }[t.dataset.kind]; const k = t.dataset.key;
@@ -1370,11 +1461,14 @@
     "fmt": (t) => { try { localStorage.setItem(LS_FMT, t.value); } catch (e) { /* ignore */ } refreshExportPreview(); },
     "md": (t) => { EXP.md = t.checked; refreshExportPreview(); },
     "show-small": (t) => { S.ui.showSmall = t.checked; route(); },
+    "meta-rtt": (t) => { S.ui.metaRtt = t.checked; lsSet(LS_WRRTT, t.checked ? "1" : "0"); route(); },
+    "meta-list-det": (t) => { S.ui.metaListDet = t.value; route(); },
   };
   const inputs = {
     "cat-search": (t) => { S.ui.q = t.value; const F = C.getFaction(S.idx, CUR); const body = $("#catbody"); if (body && F) body.innerHTML = renderCatalogBody(CUR, F, C.calcList(CUR, S.idx)); },
     "list-search": (t) => { S.ui.listQ = t.value; const pos = t.selectionStart; renderLists(); const n = $("[data-input=list-search]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
     "new-name": (t) => { NEW.name = t.value; },
+    "meta-q": (t) => { S.ui.metaQ = t.value; const pos = t.selectionStart; renderMeta(null); const n = $("[data-input=meta-q]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
   };
   document.addEventListener("click", (ev) => {
     if (!ev.target.closest(".menu")) closeMenus();
