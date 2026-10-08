@@ -828,6 +828,226 @@
     return blocks.map((b) => "```\n" + b.replace(/^\n+|\n+$/g, "") + "\n```");
   }
 
+  /* ---------------------------------------------------------------- Yellowscribe / Tabletop Simulator export
+     Yellowscribe (yellowscribe.link) turns a BattleScribe/New Recruit roster (.rosz = zipped .ros XML) into a
+     Tabletop Simulator army. Its parser (github.com/ThePants999/Yellowscribe, bin/roszParser.js) reads only what is
+     inside the roster: unit/model selections, their profiles (Unit / Abilities / Ranged Weapons / Melee Weapons),
+     rules and categories, plus the game-system id for the edition. No catalogue ids are looked up, so Muster writes
+     a self-contained roster from its own data (GrimSlate profiles + the list's loadouts). */
+  const YS_SYSTEM = { id: "sys-352e-adc2-7639-d610", name: "Warhammer 40,000 11th Edition" };
+  const YS_PTS = "51b2-306e-1021-d207";
+  const NUM_WORDS = { a: 1, an: 1, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  const xmlEsc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "");
+  const ysText = (t) => stripMd(t).replace(/\r/g, "").trim();
+  const plurEq = (a, b) => a === b || a + "s" === b || a + "es" === b || b + "s" === a || b + "es" === a;
+  /* gear option name -> {weapons:[[wp, mult]], abilities:[wa]} or null.
+     Handles exact names and compound options ("2 Heavy Bolters", "Bolt Pistol and Boltgun", "Two rocket pods and hellstrike rack"). */
+  function ysResolveGear(ds, name) {
+    if (!ds) return null;
+    const wpBy = (n) => ds.wp.find((w) => norm(w[0]) === n) || ds.wp.find((w) => plurEq(norm(w[0]), n));
+    const waBy = (n) => (ds.wa || []).filter((a) => norm(a[0]) === n || norm(a[1]) === n || plurEq(norm(a[0]), n));
+    const one = (part) => {
+      let mult = 1; let p = String(part).trim();
+      const m = p.match(/^(\d+|a|an|one|two|three|four|five|six|seven|eight|nine|ten)\s*(?:x\s+|×\s*)?(.+)$/i);
+      const tryName = (s, k) => { const n = norm(s); const w = wpBy(n); const a = waBy(n); return w || a.length ? { weapons: w ? [[w, k]] : [], abilities: a } : null; };
+      const direct = tryName(p, 1); if (direct) return direct;
+      if (m) { mult = /^\d+$/.test(m[1]) ? +m[1] : NUM_WORDS[m[1].toLowerCase()]; p = m[2]; }
+      return tryName(p, mult);
+    };
+    const whole = one(name); if (whole) return whole;
+    const parts = String(name).split(/\s*(?:,|&|\+|\bw\/|\band\b|\bwith\b)\s*/i).filter(Boolean);
+    if (parts.length < 2) return null;
+    const out = { weapons: [], abilities: [], unmatched: [] };
+    for (const p of parts) { const r = one(p); if (!r) { out.unmatched.push(p); continue; } out.weapons.push(...r.weapons); out.abilities.push(...r.abilities); }
+    return out.weapons.length || out.abilities.length ? out : null;   // partial match: e.g. "Thunder Hammer & Storm Shield"
+  }
+  /* the models of one list row: [{type, n, gear:[{name, q}]}] (q = per model), grouped by identical loadout */
+  function ysModels(r, ds) {
+    const total = modelCount(r);
+    let stacks = (r.loLines || []).filter((l) => l.name && l.count > 0).map((l) => ({ type: l.name, count: l.count, gear: l.gear }));
+    const unitGear = (r.loLines || []).filter((l) => !l.name).flatMap((l) => l.gear);
+    const linked = r.unit ? linkedWargear(r.unit) : new Set();   // MFM-priced wargear picked outside the loadout editor
+    for (const [wn, cnt] of Object.entries((r.entry && r.entry.wargear) || {})) {
+      const wi = r.unit && r.unit.w ? r.unit.w.findIndex((x) => x[0] === wn) : -1;
+      if (cnt > 0 && !linked.has(wi)) unitGear.push({ name: wn, count: cnt });
+    }
+    if (!stacks.length) {
+      const ml = (ds && ds.ml) || [];
+      stacks = [{ type: ml.length === 1 ? ml[0][0] : r.name, count: total, gear: (ml[0] ? ml[0][1] : []).map((g) => ({ name: g, count: total })) }];
+    }
+    const models = [];
+    for (const s of stacks) {
+      const ms = Array.from({ length: s.count }, () => ({ type: s.type, gear: new Map() }));
+      let cur = 0;
+      const give = (list, g) => {
+        const k = list.length; if (!k) return;
+        const per = Math.floor(g.count / k), rem = g.count % k;
+        for (const m of list) if (per) m.gear.set(g.name, (m.gear.get(g.name) || 0) + per);
+        for (let i = 0; i < rem; i++) { const m = list[(cur + i) % k]; m.gear.set(g.name, (m.gear.get(g.name) || 0) + 1); }
+        cur = (cur + rem) % k;
+      };
+      for (const g of s.gear) give(ms, g);
+      s.models = ms; s.give = give;
+      models.push(...ms);
+    }
+    if (unitGear.length) { const big = stacks.slice().sort((a, b) => b.count - a.count)[0]; for (const g of unitGear) big.give(big.models, g); }
+    // GrimSlate's composition sometimes falls short of the MFM unit size (e.g. 9 of 10 Grenadiers): pad with the commonest model
+    const M = r.unit && loModel(r.unit);
+    if (M && r.lo) {
+      const addOns = new Set(M.types.filter((t) => t.addOn).map((t) => t.name));
+      const base = stacks.filter((s) => !addOns.has(s.type)).sort((a, b) => b.count - a.count)[0];
+      const want = loN(M, total), have = stacks.filter((s) => !addOns.has(s.type)).reduce((n, s) => n + s.count, 0);
+      if (base && have < want) { for (let i = have; i < want; i++) models.push({ type: base.type, gear: new Map(base.models[0].gear) }); models.padded = { n: want - have, type: base.type }; }
+    }
+    const groups = new Map();
+    for (const m of models) {
+      const sig = m.type + "|" + [...m.gear].sort((a, b) => a[0].localeCompare(b[0])).map((x) => x.join("=")).join(",");
+      if (!groups.has(sig)) groups.set(sig, { type: m.type, n: 0, gear: [...m.gear].map(([name, q]) => ({ name, q })) });
+      groups.get(sig).n++;
+    }
+    const out = [...groups.values()];
+    for (const type of new Set(out.map((g) => g.type))) {   // name split-off groups "<type> w/ <extra gear>"
+      const gs = out.filter((g) => g.type === type); if (gs.length < 2) continue;
+      const base = gs.slice().sort((a, b) => b.n - a.n)[0];
+      const bq = new Map(base.gear.map((g) => [g.name, g.q]));
+      for (const g of gs) if (g !== base) {
+        const extra = g.gear.filter((x) => bq.get(x.name) !== x.q).map((x) => x.name);
+        g.label = `${type} w/ ${extra.join(", ") || "alternate loadout"}`;
+      }
+    }
+    out.padded = models.padded || null;
+    return out;
+  }
+  /* Muster list -> BattleScribe roster XML (.ros) for Yellowscribe. ds = datasheets.json. Returns {xml, issues[]} */
+  function exportYellowscribe(list, idx, ds, meta) {
+    const X = exportContext(list, idx);
+    const fds = (ds && ds.factions && X.F && ds.factions[X.F.f.id]) || null;
+    const issues = [];
+    let idN = 0;
+    const id = () => { const h = (++idN).toString(16).padStart(12, "0"); return `${h.slice(0, 4)}-${h.slice(4, 8)}-${h.slice(8, 12)}-${"m57r"}`; };
+    const coreText = (n) => { const g = (ds && ds.weapon_keywords) || {}; return ysText(g[n] || g[String(n).replace(/\s+[\dD+\-"*]+$/, "")] || ""); };
+    const facText = (n) => { const x = ((fds && fds.rules) || []).find((y) => norm(y[0]) === norm(n)); return x ? ysText(x[1]) : ""; };
+    const ch = (name, v) => `<characteristic name="${xmlEsc(name)}" typeId="${xmlEsc(norm(name))}">${xmlEsc(v)}</characteristic>`;
+    const abilityProfile = (name, text) => `<profile id="${id()}" name="${xmlEsc(name)}" hidden="false" typeId="abilities" typeName="Abilities"><characteristics>${ch("Description", ysText(text))}</characteristics></profile>`;
+    const unitProfile = (name, s, inv) => `<profile id="${id()}" name="${xmlEsc(name)}" hidden="false" typeId="unit" typeName="Unit"><characteristics>` +
+      [["M", s.M], ["T", s.T], ["SV", s.SV || s.Sv], ["W", s.W], ["LD", s.LD || s.Ld], ["OC", s.OC], ["InSv", inv]].map(([k, v]) => ch(k, v || "-")).join("") + `</characteristics></profile>`;
+    const weaponProfiles = (w) => w[2].map((p) => {
+      const melee = w[1] === "m" || String(p[1]).toLowerCase() === "melee";
+      const nm = w[2].length > 1 || p[0] ? `➤ ${w[0]}${p[0] ? " - " + p[0] : ""}` : w[0];
+      return `<profile id="${id()}" name="${xmlEsc(nm)}" hidden="false" typeId="${melee ? "melee" : "ranged"}" typeName="${melee ? "Melee Weapons" : "Ranged Weapons"}"><characteristics>` +
+        [["Range", melee ? "Melee" : p[1]], ["A", p[2]], [melee ? "WS" : "BS", p[3]], ["S", p[4]], ["AP", p[5]], ["D", p[6]], ["Keywords", (p[7] || []).join(", ") || "-"]].map(([k, v]) => ch(k, v == null || v === "" ? "-" : v)).join("") +
+        `</characteristics></profile>`;
+    }).join("");
+    const sel = (o) => `<selection id="${id()}" name="${xmlEsc(o.name)}" entryId="${xmlEsc(o.entryId || "muster::" + norm(o.name))}" number="${o.number || 1}" type="${o.type}"${o.from ? ` from="${o.from}"` : ""}>` +
+      (o.rules ? `<rules>${o.rules}</rules>` : "") + (o.profiles ? `<profiles>${o.profiles}</profiles>` : "") +
+      (o.children && o.children.length ? `<selections>${o.children.join("")}</selections>` : "") +
+      (o.pts != null ? `<costs><cost name="pts" typeId="${YS_PTS}" value="${o.pts}"/></costs>` : "") +
+      (o.cats && o.cats.length ? `<categories>${o.cats.map((c, i) => `<category id="${id()}" name="${xmlEsc(c)}" entryId="muster::cat::${xmlEsc(norm(c))}" primary="${i === 0}"/>`).join("")}</categories>` : "") + `</selection>`;
+    const rule = (name, text) => `<rule id="${id()}" name="${xmlEsc(name)}" hidden="false"><description>${xmlEsc(text)}</description></rule>`;
+
+    // bodyguards first, each followed by the characters attached to it (so they sit together in Yellowscribe)
+    const rows = X.rows.filter((r) => !r.attachedTo);
+    const ordered = []; for (const r of rows) { ordered.push(r); for (const a of X.rows.filter((x) => x.attachedTo === r)) ordered.push(a); }
+    for (const r of X.rows) if (!ordered.includes(r)) ordered.push(r);
+    for (const r of X.c.entries.filter((x) => x.missing)) ordered.push(r);
+
+    const unitSels = [];
+    for (const r of ordered) {
+      const u = r.unit; const dsu = fds && u ? fds.units[u.n] : null;
+      const role = u ? u.r : "Other";
+      const cats = [role, ...((u && u.kw) || []).filter((k) => k !== role)];
+      cats.push(`Faction: ${(u && u.fk) || X.factionName}`);
+      if (r.entry.warlord) cats.push("Warlord");
+      if (!u || !dsu) issues.push(`${r.name}: no datasheet in Muster's data – exported by name only (no stats/weapons)`);
+      const extras = [];   // abilities that belong to the unit's first model (enhancement, warlord, attachment)
+      if (r.enhName) { const d = X.dets.find((x) => x.n === r.entry.enh.det); const en = d && d.enh.find((x) => x[0] === r.enhName);
+        extras.push(sel({ name: r.enhName, type: "upgrade", pts: r.enh, profiles: abilityProfile(`Enhancement: ${r.enhName}`, en ? en[2] : ""), cats: ["Enhancements"] })); }
+      if (r.entry.warlord) extras.push(sel({ name: "Warlord", type: "upgrade", profiles: abilityProfile("Warlord", "This model is your WARLORD."), cats: ["Warlord"] }));
+      if (r.attachedTo) extras.push(sel({ name: "Attached", type: "upgrade", profiles: abilityProfile(r.attachKind === "support" ? "Attached (Support)" : "Attached (Leader)",
+        `${attachText(r, X.c).replace(/^Attached to: /, "Attached to ")}. Move and fight as one unit with it.`) }));
+      const joined = (r.attached || []).map((a) => `${a.name}${a.attachKind === "support" ? " (Support)" : " (Leader)"}`);
+      if (joined.length) extras.push(sel({ name: "Joined by", type: "upgrade", profiles: abilityProfile("Joined by", `${joined.join(", ")} – attached to this unit.`) }));
+
+      const groups = ysModels(r, dsu);
+      if (groups.padded) issues.push(`${r.name}: Muster's loadout data lists fewer models than the unit size – added ${groups.padded.n} × ${groups.padded.type}`);
+      const modelSels = groups.map((g, gi) => {
+        const children = [];
+        for (const it of g.gear) {
+          const res = ysResolveGear(dsu, it.name);
+          if (!res) { if (dsu) issues.push(`${r.name}: "${it.name}" has no profile (exported by name only)`); children.push(sel({ name: it.name, type: "upgrade", number: g.n * it.q })); continue; }
+          for (const p of res.unmatched || []) { issues.push(`${r.name}: "${p}" has no profile (exported by name only)`); children.push(sel({ name: p, type: "upgrade", number: g.n * it.q })); }
+          for (const [w, mult] of res.weapons) {
+            const wa = res.abilities.filter((a) => norm(a[0]) === norm(w[0]));
+            children.push(sel({ name: w[0], type: "upgrade", number: g.n * it.q * mult, profiles: weaponProfiles(w) + wa.map((a) => abilityProfile(a[1], a[2])).join("") }));
+          }
+          for (const a of res.abilities.filter((a) => !res.weapons.some(([w]) => norm(w[0]) === norm(a[0]))))
+            children.push(sel({ name: it.name, type: "upgrade", number: g.n * it.q, profiles: abilityProfile(a[1], a[2]) }));
+        }
+        if (gi === 0) children.push(...extras);
+        return { name: g.label || g.type, n: g.n, children };
+      });
+      if (!modelSels.length) modelSels.push({ name: r.name, n: modelCount(r), children: extras });
+      const unitProfiles = dsu ? unitProfile(u.n, dsu.s || {}, dsu.inv) + (dsu.ab || []).map((a) => abilityProfile(a[0], a[1])).join("") : "";
+      const rules = dsu ? [...(dsu.cr || []).map((n) => rule(n, coreText(n))), ...(dsu.fa || []).map((n) => rule(n, facText(n)))].join("") : "";
+      const pts = r.base + r.wargear + r.addons + r.enh;
+      const single = modelSels.length === 1 && modelSels[0].n === 1;
+      if (single) unitSels.push(sel({ name: r.name, type: "model", pts, rules, profiles: unitProfiles, children: modelSels[0].children, cats }));
+      else unitSels.push(sel({ name: r.name, type: "unit", pts, rules, profiles: unitProfiles, cats,
+        children: modelSels.map((m) => sel({ name: m.name, type: "model", number: m.n, children: m.children })) }));
+      for (const a of r.entry.addons || []) issues.push(`${r.name}: add-on "${a.replace(/^\+\s*/, "")}" is listed by name only`);
+    }
+
+    const config = [
+      sel({ name: "Battle Size", type: "upgrade", children: X.size ? [sel({ name: `${X.size.name} (${X.size.points} Point limit)`, type: "upgrade" })] : [], cats: ["Configuration"] }),
+      sel({ name: "Detachment", type: "upgrade", cats: ["Configuration"], children: X.dets.map((d) => sel({ name: d.n, type: "upgrade",
+        rules: d.rule && d.rule[0] ? rule(d.rule[0], ysText(d.rule[1])) : "" })) }),
+    ];
+    const total = X.c.total;
+    const xml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n` +
+      `<roster id="${id()}" name="${xmlEsc(list.name)}" battleScribeVersion="2.03" generatedBy="Muster" gameSystemId="${YS_SYSTEM.id}" gameSystemName="${YS_SYSTEM.name}" gameSystemRevision="1" xmlns="http://www.battlescribe.net/schema/rosterSchema">\n` +
+      `<costs><cost name="pts" typeId="${YS_PTS}" value="${total}"/></costs>` +
+      (X.size ? `<costLimits><costLimit name="pts" typeId="${YS_PTS}" value="${X.size.points}"/></costLimits>` : "") + "\n" +
+      `<forces><force id="${id()}" name="Army Roster" entryId="muster::army-roster" catalogueId="muster::${xmlEsc(X.F ? X.F.f.id : list.faction)}" catalogueRevision="1" catalogueName="${xmlEsc(X.subName)}">\n` +
+      `<selections>\n${config.join("\n")}\n${unitSels.join("\n")}\n</selections>\n` +
+      `<categories><category id="${id()}" name="Configuration" entryId="muster::cat::configuration" primary="false"/></categories>\n` +
+      `</force></forces>\n` +
+      `<customNotes>${xmlEsc(footer(meta))}</customNotes>\n</roster>\n`;
+    return { xml, issues: [...new Set(issues)] };
+  }
+
+  /* minimal ZIP writer (stored, no compression) – a .rosz is a zip holding one .ros */
+  let _crcT = null;
+  function crc32(bytes) {
+    if (!_crcT) { _crcT = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; _crcT[n] = c >>> 0; } }
+    let c = 0xffffffff; for (let i = 0; i < bytes.length; i++) c = _crcT[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+    return (c ^ 0xffffffff) >>> 0;
+  }
+  const utf8 = (s) => (typeof TextEncoder === "function" ? new TextEncoder().encode(s) : Uint8Array.from(Buffer.from(s, "utf8")));
+  function zipStore(files) {
+    const parts = [], central = []; let off = 0;
+    const u16 = (v) => [v & 0xff, (v >>> 8) & 0xff], u32 = (v) => [v & 0xff, (v >>> 8) & 0xff, (v >>> 16) & 0xff, (v >>> 24) & 0xff];
+    for (const f of files) {
+      const name = utf8(f.name), data = typeof f.data === "string" ? utf8(f.data) : f.data, crc = crc32(data);
+      const common = [...u16(20), ...u16(0x0800), ...u16(0), ...u16(0), ...u16(0x21), ...u32(crc), ...u32(data.length), ...u32(data.length), ...u16(name.length), ...u16(0)];
+      const local = Uint8Array.from([...u32(0x04034b50), ...common]);
+      parts.push(local, name, data);
+      central.push(Uint8Array.from([...u32(0x02014b50), ...u16(20), ...common, ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), name);
+      off += local.length + name.length + data.length;
+    }
+    const cdSize = central.reduce((n, b) => n + b.length, 0);
+    const end = Uint8Array.from([...u32(0x06054b50), ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(off), ...u16(0)]);
+    const all = [...parts, ...central, end]; const out = new Uint8Array(all.reduce((n, b) => n + b.length, 0));
+    let p = 0; for (const b of all) { out.set(b, p); p += b.length; }
+    return out;
+  }
+  /* .rosz bytes for Yellowscribe: {bytes, xml, issues, filename} */
+  function exportYellowscribeRosz(list, idx, ds, meta) {
+    const r = exportYellowscribe(list, idx, ds, meta);
+    const base = String(list.name || "list").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_") || "list";
+    return { ...r, filename: `${base}.rosz`, bytes: zipStore([{ name: `${base}.ros`, data: r.xml }]) };
+  }
+
   /* share links: list JSON -> base64url (optionally deflated by the caller) */
   function b64urlEncode(bytes) {
     let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
@@ -947,5 +1167,5 @@
   return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
-    EXPORT_FORMATS, exportText, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
+    EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
 });

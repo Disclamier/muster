@@ -246,6 +246,15 @@ svg.i.green { color: var(--green2); }
 /* export dialog */
 .exp { display: grid; grid-template-columns: 220px 1fr; gap: 8px; }
 .exp textarea { min-height: 360px; }
+/* Yellowscribe / Tabletop Simulator export */
+.ys-box { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px 10px; border: 1px solid var(--border); border-left: 4px solid #e0b100; border-radius: var(--radius); background: var(--sect); }
+.ys-box .ys-txt { display: flex; flex-direction: column; gap: 2px; flex: 1; font-size: 12.5px; }
+.ys-box .btn { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.ys-box .btn svg.i { width: 15px; height: 15px; }
+.ys-help ol { padding-left: 20px; margin: 6px 0; } .ys-help li { margin: 4px 0; }
+.ys-issues summary { cursor: pointer; color: var(--warn); } .ys-issues ul { margin: 4px 0; padding-left: 18px; font-size: 12px; max-height: 160px; overflow: auto; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; }
+@media (max-width: 640px) { .ys-box { flex-direction: column; align-items: stretch; } }
 .dblock { border: 1px solid var(--border); border-radius: 4px; margin-bottom: 8px; }
 .dblock .dh { display: flex; align-items: center; gap: 8px; padding: 4px 6px; background: var(--sect); }
 .dblock .dh .btn { margin-left: auto; padding: 2px 8px; }
