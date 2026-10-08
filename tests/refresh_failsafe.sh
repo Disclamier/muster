@@ -44,6 +44,9 @@ if [[ -f "$W/mfm.good.json" && -f "$W/gs.good.json" ]]; then
   run good fail; expect "GrimSlate fails with no previous copy" nonzero $?
   grep -q "no GrimSlate data available" "$W/log" || { echo "not ok - expected GrimSlate abort message"; cat "$W/log"; exit 1; }
   cp "$W/gs.good.json" "$R/data/grimslate.json"
+  # prime: build once from these raw files (they may come from an older scrape than the committed app/data)
+  run good fail || { echo "not ok - priming build failed"; cat "$W/log"; exit 1; }
+  before=$(sums)
   run good fail; expect "GrimSlate + win rates fail, previous GrimSlate kept, same MFM -> nothing republished" 0 $?
   grep -q "points: unchanged" "$W/log" || { echo "not ok - expected 'points: unchanged'"; cat "$W/log"; exit 1; }
   # 5. a real points change is published
