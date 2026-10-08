@@ -1341,6 +1341,7 @@
     "sync-now": async () => { closeModal(); const ok = await SY.syncNow({ pull: true }); toast(ok ? "Lists synced" : `Sync failed – ${SYNC_TXT[(S.sync || {}).status] || "will retry"}`); },
     "sign-out": () => signOut(),
     "auth-mode": (t) => { AUTH.mode = t.dataset.mode; AUTH.msg = null; const e = $("#auth-email"); if (e) AUTH.email = e.value; renderAuth(); },
+    "reload-page": () => { const b = document.querySelector(".hbtn.reload"); if (b) b.classList.add("spin"); setTimeout(() => location.reload(), 150); },
     "check-update": async () => { const r = await checkForUpdates(true); if (r.updated || r.wrUpdated) route(); },
     "dismiss-report": () => { if (S.report) { S.report.dismissed = true; try { localStorage.setItem(LS_REPORT, JSON.stringify(S.report)); } catch (e) { /* ignore */ } } renderBanner(); },
     "show-report": () => { if (S.report) { S.report.dismissed = false; closeModal(); renderBanner(); window.scrollTo(0, 0); } },
@@ -1485,7 +1486,7 @@
     if (t.tagName === "BUTTON" || t.tagName === "A") ev.preventDefault();
     a(t, ev);
   });
-  const AUTH_OK = new Set(["auth-mode", "toggle-theme", "about", "close-modal", "modal-bg", "check-update", "show-report", "dismiss-report"]);
+  const AUTH_OK = new Set(["auth-mode", "toggle-theme", "about", "close-modal", "modal-bg", "check-update", "reload-page", "show-report", "dismiss-report"]);
   document.addEventListener("submit", (ev) => { const f = ev.target.closest("[data-form=auth]"); if (!f) return; ev.preventDefault(); submitAuth(f); });
   let SW = null;
   document.addEventListener("touchstart", (ev) => { const row = ev.target.closest && ev.target.closest(".roster .urow"); if (!row || !ev.touches || !ev.touches[0]) { SW = null; return; } SW = { row, x: ev.touches[0].clientX, y: ev.touches[0].clientY }; }, { passive: true });

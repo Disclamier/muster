@@ -31,6 +31,10 @@ svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor;
 .hbtn svg.i { width: 18px; height: 18px; }
 .hbtn.green svg.i { color: var(--green2); }
 #hdr .spacer { flex: 1; }
+.hbtn.reload { background: var(--blue, #1e88e5); color: #fff; margin-left: 4px; }
+.hbtn.reload:hover { background: #1565c0; }
+.hbtn.reload.spin svg.i { animation: muster-spin .6s linear infinite; }
+@keyframes muster-spin { to { transform: rotate(360deg); } }
 
 /* banner */
 #banner { flex: none; }
@@ -601,3 +605,21 @@ html[data-theme="dark"] .metatabs button.on { border-color: var(--green); }
 .dpart + .dpart { margin-top: 2px; }
 @media (max-width: 760px) { .mtable.sticky1 td.l { min-width: 150px; max-width: 170px; } }
 .dpart + .dpart::before { content: "+ "; color: var(--gray); }
+
+/* Phone: bigger, easier-to-tap header and list toolbar (James, Oct 8) */
+@media (max-width: 760px) {
+  #hdr { height: 56px; gap: 2px; padding: 0 6px; }
+  #hdr .brand img { width: 30px; height: 30px; }
+  #hdr .brand { font-size: 17px; margin-right: 4px; }
+  .hbtn { min-width: 44px; min-height: 48px; justify-content: center; padding: 4px 6px; font-size: 11px; gap: 2px; }
+  .hbtn span { font-size: 11px; }
+  .hbtn svg.i { width: 24px; height: 24px; }
+  .toolbar { gap: 8px; margin-bottom: 12px; }
+  .tbtn { min-height: 48px; font-size: 16px; padding: 8px 10px; border-radius: 6px; }
+  .tbtn svg.i { width: 22px; height: 22px; left: 10px; }
+  .search { padding: 10px 12px; font-size: 16px; }
+}
+.hbtn .lbl-short { display: none; }
+@media (max-width: 480px) { .hbtn .lbl-long { display: none; } .hbtn .lbl-short { display: inline; } }
+@media (max-width: 420px) { #hdr .brand > span { display: none; } }
+@media (max-width: 360px) { .hbtn { min-width: 40px; padding: 4px 3px; } #hdr { padding: 0 3px; } }
