@@ -1,0 +1,74 @@
+# Daily data refresh + GitHub Pages publish for Muster.
+# See README "Deploy".
+name: Refresh points & publish
+
+on:
+  schedule:
+    - cron: "37 9 * * *"    # daily 09:37 UTC (04:37 CDT / 03:37 CST), off-peak
+  workflow_dispatch: {}
+  push:
+    branches: [main]      # every push to main: tests + deploy (no scrape). The bot's data commits use GITHUB_TOKEN and don't re-trigger.
+
+permissions:
+  contents: write    # commit refreshed data back to the repo
+  pages: write
+  id-token: write
+
+concurrency:
+  group: refresh-and-pages
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # Raw scraper output (data/*.json) is not committed. The last good copy is carried between runs in the
+      # Actions cache so a GrimSlate / listhammer outage falls back to yesterday's data instead of failing.
+      - name: Restore last good scraper data
+        uses: actions/cache@v4
+        with:
+          path: |
+            data/mfm.json
+            data/grimslate.json
+            data/winrates.json
+          key: scraped-${{ github.run_id }}
+          restore-keys: scraped-
+      - name: Install image tooling (faction artwork)
+        run: pip install pillow
+      # Fails safe: on any scrape/build problem refresh.sh exits non-zero WITHOUT touching app/data, this step is
+      # allowed to fail, and the tests + Pages publish below run on the previously published data.
+      - name: Refresh data (keeps previous data if a scrape fails)
+        if: github.event_name != 'push'
+        id: refresh
+        continue-on-error: true
+        run: bash scripts/refresh.sh
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Tests (a failure stops here - nothing committed, site not redeployed)
+        run: cd tests && npm ci && npm test
+      - name: Commit refreshed data
+        if: github.event_name != 'push'
+        run: |
+          git config user.name "muster-bot"
+          git config user.email "muster-bot@users.noreply.github.com"
+          git add app/data app/assets/factions data/build_stats.json || true
+          if git diff --cached --quiet; then echo "No data changes"; else git commit -m "data: refresh $(date -u +%Y-%m-%dT%H:%MZ)" && git push; fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: app
+  deploy:
+    needs: refresh
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

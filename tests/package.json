@@ -1,0 +1,7 @@
+{
+  "name": "muster-tests",
+  "private": true,
+  "description": "Unit tests (node:test) for Muster core logic + jsdom smoke tests of the app shell",
+  "scripts": { "test": "node --test && bash refresh_failsafe.sh" },
+  "devDependencies": { "jsdom": "^24.1.0" }
+}

@@ -1,0 +1,13 @@
+{
+ "v": 1,
+ "fetched_at": "2026-10-08T02:48:37+00:00",
+ "mfm_version": "v1.5",
+ "gs_fetched_at": "2026-10-08T03:15:50+00:00",
+ "hash": "4b7ffd370c98fb46",
+ "built_at": "2026-10-08T03:30:07+00:00",
+ "factions": 30,
+ "units": 1763,
+ "winrates_fetched_at": "2026-10-08T03:06:57Z",
+ "winrates_range": "1 Oct - 6 Oct 2026",
+ "winrates_hash": "9bb748438c623424"
+}

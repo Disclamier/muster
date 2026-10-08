@@ -1,0 +1,746 @@
+/* Muster core: pure list/points logic. No DOM. Works in the browser (window.MusterCore) and Node (require). */
+(function (root, factory) {
+  if (typeof module === "object" && module.exports) module.exports = factory();
+  else root.MusterCore = factory();
+})(typeof self !== "undefined" ? self : this, function () {
+  "use strict";
+
+  const ROLE_ORDER = ["Epic Hero", "Character", "Battleline", "Dedicated Transport", "Infantry", "Mounted",
+    "Beast", "Swarm", "Monster", "Vehicle", "Fortification", "Other"];
+
+  /* local date/time, same format as the site footer, e.g. "Oct 7, 2026, 9:48 PM" */
+  function fmtLocal(iso) {
+    if (!iso) return "";
+    const d = new Date(iso); if (isNaN(d)) return String(iso);
+    try { return d.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }); } catch (e) { return d.toString(); }
+  }
+  const norm = (s) => String(s || "").toLowerCase().replace(/[’‘]/g, "'").replace(/[^a-z0-9]/g, "");
+  const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+
+  /* ---------------------------------------------------------------- data indexing */
+  function indexData(data) {
+    const factions = {};
+    for (const f of data.factions || []) {
+      const units = {}, dets = {};
+      for (const u of f.units) units[u.n] = u;
+      for (const d of f.dets) dets[d.n] = d;
+      factions[f.id] = { f, units, dets };
+    }
+    const subs = {};
+    for (const g of data.groups || []) for (const s of g.factions) subs[s.id] = { ...s, group: g.name };
+    const sizes = {};
+    for (const s of data.battle_sizes || []) sizes[s.id] = s;
+    return { data, factions, subs, sizes };
+  }
+
+  /* tolerant lookup for saved lists: exact name, then normalised name (case/punctuation changes between data versions) */
+  function findUnit(F, name) {
+    if (!F) return null;
+    if (F.units[name]) return F.units[name];
+    if (!F._byNorm) { F._byNorm = {}; for (const u of F.f.units) if (!F._byNorm[norm(u.n)]) F._byNorm[norm(u.n)] = u; }
+    return F._byNorm[norm(name)] || null;
+  }
+  function getFaction(idx, list) { return idx.factions[list.faction] || null; }
+  function getSize(idx, list) {
+    return idx.sizes[list.size] || (idx.data.battle_sizes || []).find((s) => s.points === 2000) || idx.data.battle_sizes[0];
+  }
+
+  const isKw = (u, k) => (u.kw || []).some((x) => x.toLowerCase() === k.toLowerCase());
+  const isCharacter = (u) => u.r === "Character" || u.r === "Epic Hero" || isKw(u, "Character");
+  const isEpicHero = (u) => u.r === "Epic Hero" || isKw(u, "Epic Hero");
+  const isBattleline = (u) => u.r === "Battleline" || isKw(u, "Battleline");
+  const isTransport = (u) => u.r === "Dedicated Transport" || isKw(u, "Dedicated Transport");
+
+  /* ---------------------------------------------------------------- unit costs */
+  function tierFor(unit, copy) {
+    const tiers = unit.t || [];
+    return tiers.find((t) => copy >= t[0] && (t[1] === null || t[1] === undefined || copy <= t[1])) || tiers[tiers.length - 1];
+  }
+  /* model options (rows with a model count) and add-ons (rows like "+ 1 Tidewall Defence Platform") */
+  function modelOptions(unit, copy) {
+    const t = tierFor(unit, copy || 1);
+    if (!t) return [];
+    return t[2].filter((r) => !(r[0] === null && String(r[2] || "").trim().startsWith("+")))
+      .map((r) => ({ models: r[0], points: r[1], label: r[2] || (r[0] === 1 ? "1 model" : `${r[0]} models`) }));
+  }
+  function addonOptions(unit, copy) {
+    const t = tierFor(unit, copy || 1);
+    if (!t) return [];
+    return t[2].filter((r) => r[0] === null && String(r[2] || "").trim().startsWith("+"))
+      .map((r) => ({ label: r[2], points: r[1] }));
+  }
+  function defaultModels(unit) {
+    const o = modelOptions(unit, 1);
+    return o.length ? o[0].models : 1;
+  }
+  function minCost(unit, copy) {
+    const o = modelOptions(unit, copy || 1);
+    return o.length ? Math.min(...o.map((x) => x.points)) : 0;
+  }
+  function unitLimit(unit, size) {
+    if (isEpicHero(unit)) return 1;
+    if (!size || size.unit_limit == null) return null;
+    return (isBattleline(unit) || isTransport(unit)) ? size.unit_limit * 2 : size.unit_limit;
+  }
+
+  /* ---------------------------------------------------------------- list model */
+  function newList({ name, faction, sub, size }) {
+    const now = new Date().toISOString();
+    return { id: uid(), name: name || "Unnamed list", faction, sub: sub || faction, size: size || "strikeforce",
+      dets: [], entries: [], showLegends: false, created: now, updated: now, app: "muster", schema: 1 };
+  }
+  function newEntry(unit) {
+    return { uid: uid(), unit: unit.n, models: defaultModels(unit), wargear: {}, addons: [], enh: null, warlord: false };
+  }
+
+
+  /* ---------------------------------------------------------------- loadouts (GrimSlate composition; points stay MFM-only)
+     unit.lo = { m: [[name, min, max, fixed[], slots[], upgradesFrom, maxAtSize[[size,max]], addOn]], u: slots[], mn, mx }
+     slot    = [name, opts[[name, max, text, wargearIdx, maxAtSize]], defaults[], minTotal, maxTotal, optional]
+     entry.lo = { c: {modelName: count}, p: {"model|slot": {option: count}} }   ("*|slot" = unit-level) */
+  const _lom = new WeakMap();
+  function loModel(u) {
+    if (!u || !u.lo || !u.lo.m || !u.lo.m.length) return null;
+    if (_lom.has(u)) return _lom.get(u);
+    const slot = (s) => ({ name: s[0], opts: s[1].map((o) => ({ name: o[0], max: o[1], text: o[2], w: o[3], mas: o[4] })),
+      defaults: s[2] || [], minT: s[3], maxT: s[4], optional: !!s[5] });
+    const M = { types: u.lo.m.map((m) => ({ name: m[0], min: m[1] || 0, max: m[2], fixed: m[3] || [], slots: (m[4] || []).map(slot),
+      up: m[5] || null, mas: m[6] || null, addOn: !!m[7] })), unit: (u.lo.u || []).map(slot), mn: u.lo.mn, mx: u.lo.mx };
+    _lom.set(u, M); return M;
+  }
+  const hasLoadout = (u) => !!loModel(u);
+  function atSize(base, mas, N) {
+    let v = base;
+    for (const [size, mx] of [...(mas || [])].sort((a, b) => a[0] - b[0])) if (N >= size) v = mx;
+    return v;
+  }
+  /* a base model's minimum is shared with the models upgraded from it (e.g. 4 Intercessors incl. grenade launchers) */
+  const effMin = (M, t, c) => Math.max(0, t.min - M.types.filter((x) => x.up === t.name).reduce((n, x) => n + (c[x.name] || 0), 0));
+  const typeMax = (t, N) => Math.min(atSize(t.max, t.mas, N), t.addOn ? Infinity : N);
+  /* option max is per unit; when the option is the slot's default for every model, GrimSlate's max is per model */
+  const optMax = (o, N, s, k) => o.max === null || o.max === undefined ? Infinity :
+    atSize(o.max, o.mas, N) * (s && k > 1 && s.defaults.includes(o.name) ? k : 1);
+  /* MFM and GrimSlate sometimes count models differently (e.g. Marneus Calgar = 1 model in MFM, 3 in GrimSlate) */
+  const loN = (M, N) => (M.mn != null && N < M.mn ? M.mn : M.mx != null && N > M.mx ? M.mx : N);
+  function slotRange(s, k) {
+    const perMin = s.minT !== null && s.minT !== undefined ? s.minT : (s.optional ? 0 : 1);
+    const perMax = s.maxT !== null && s.maxT !== undefined ? s.maxT : Math.max(1, perMin);
+    return [k * perMin, k * perMax];
+  }
+  /* "3 Headtakers, 3 Hunting Wolves" -> counts by model type */
+  function countsFromLabel(M, label) {
+    if (!label) return null;
+    const parts = String(label).split(/,|\band\b|\+/).map((x) => x.trim()).filter(Boolean);
+    const out = {}; let hits = 0;
+    for (const p of parts) {
+      const m = p.match(/^(\d+)\s+(.+)$/); if (!m) continue;
+      const pn = norm(m[2]).replace(/s$/, "");
+      const t = M.types.find((t) => { const tn = norm(t.name).replace(/s$/, ""); return tn === pn || tn.startsWith(pn) || pn.startsWith(tn); });
+      if (t) { out[t.name] = (out[t.name] || 0) + +m[1]; hits++; }
+    }
+    return hits ? out : null;
+  }
+  function fillerType(M, N) {
+    const base = M.types.filter((t) => !t.up && !t.addOn);
+    return base.sort((a, b) => (typeMax(b, N) - b.min) - (typeMax(a, N) - a.min))[0] || null;
+  }
+  function defaultCounts(M, N, label) {
+    const c = {};
+    for (const t of M.types) c[t.name] = t.min;
+    const fromLabel = countsFromLabel(M, label);
+    if (fromLabel) { for (const t of M.types) if (fromLabel[t.name] !== undefined) c[t.name] = fromLabel[t.name]; }
+    let rem = N - M.types.filter((t) => !t.addOn).reduce((n, t) => n + c[t.name], 0);
+    const base = M.types.filter((t) => !t.up && !t.addOn).sort((a, b) => (typeMax(b, N) - b.min) - (typeMax(a, N) - a.min));
+    for (const t of base) { if (rem <= 0) break; const add = Math.min(rem, typeMax(t, N) - c[t.name]); if (add > 0) { c[t.name] += add; rem -= add; } }
+    return c;
+  }
+  function defaultPicks(s, k) {
+    const p = {};
+    if (k <= 0) return p;
+    const [lo] = slotRange(s, k);
+    if (s.defaults.length) for (const d of s.defaults) { if (s.opts.some((o) => o.name === d)) p[d] = (p[d] || 0) + k; }
+    let sum = Object.values(p).reduce((a, b) => a + b, 0);
+    for (const o of [...s.opts].sort((a, b) => (s.defaults.includes(b.name) ? 1 : 0) - (s.defaults.includes(a.name) ? 1 : 0))) {  // top up (e.g. 2 heavy weapons per model)
+      if (sum >= lo) break; const room = optMax(o, Infinity, s, k) - (p[o.name] || 0); const add = Math.min(room, lo - sum);
+      if (add > 0) { p[o.name] = (p[o.name] || 0) + add; sum += add; }
+    }
+    return p;
+  }
+  function normPicks(s, k, cur, N) {
+    const p = {};
+    for (const o of s.opts) { const v = cur && cur[o.name]; if (v > 0) p[o.name] = Math.min(v, optMax(o, N, s, k)); }
+    const [lo, hi] = slotRange(s, k);
+    let sum = Object.values(p).reduce((a, b) => a + b, 0);
+    if (!cur) return defaultPicks(s, k);
+    const order = [...s.opts].sort((a, b) => (s.defaults.includes(a.name) ? 1 : 0) - (s.defaults.includes(b.name) ? 1 : 0)).reverse();
+    for (const o of order) { if (sum <= hi) break; const take = Math.min(p[o.name] || 0, sum - hi); if (take) { p[o.name] -= take; sum -= take; if (!p[o.name]) delete p[o.name]; } }
+    for (const o of order) { if (sum >= lo) break; const room = optMax(o, N, s, k) - (p[o.name] || 0); const add = Math.min(room, lo - sum); if (add > 0) { p[o.name] = (p[o.name] || 0) + add; sum += add; } }
+    return p;
+  }
+  /* full, normalised loadout for an entry at unit size N (does not mutate the entry) */
+  function getLoadout(u, e, N, label) {
+    const M = loModel(u); if (!M) return null;
+    N = loN(M, N);
+    const src = e && e.lo;
+    let c = src && src.c ? { ...src.c } : null;
+    const total = (cc) => M.types.filter((t) => !t.addOn).reduce((n, t) => n + (cc[t.name] || 0), 0);
+    if (c) {
+      for (const t of M.types.filter((x) => x.up || x.addOn)) c[t.name] = Math.max(t.min, Math.min(c[t.name] || 0, typeMax(t, N)));
+      for (const t of M.types.filter((x) => !x.up && !x.addOn)) c[t.name] = Math.max(effMin(M, t, c), Math.min(c[t.name] || 0, typeMax(t, N)));
+      if (total(c) !== N) {
+        const f = fillerType(M, N);
+        if (f) c[f.name] = Math.max(effMin(M, f, c), Math.min(typeMax(f, N), c[f.name] + (N - total(c))));
+        if (total(c) !== N) { // shrink upgrades back into their base, then fall back to defaults
+          for (const t of M.types.filter((x) => x.up)) while (total(c) > N && c[t.name] > t.min) c[t.name]--;
+          if (total(c) !== N) c = defaultCounts(M, N, label);
+        }
+      }
+    } else c = defaultCounts(M, N, label);
+    const p = {};
+    for (const t of M.types) for (const s of t.slots) { const k = `${t.name}|${s.name}`; p[k] = normPicks(s, c[t.name] || 0, src && src.p ? src.p[k] : null, N); }
+    for (const s of M.unit) { const k = `*|${s.name}`; p[k] = normPicks(s, 1, src && src.p ? src.p[k] : null, N); }
+    return { c, p };
+  }
+  /* change the count of one model type (upgrades trade with the model they upgrade from) */
+  function setModelCount(u, lo, typeName, value, N) {
+    const M = loModel(u); const t = M.types.find((x) => x.name === typeName); if (!t) return lo;
+    N = loN(M, N);
+    const c = { ...lo.c };
+    const v = Math.max(t.min, Math.min(typeMax(t, N), value));
+    const d = v - (c[t.name] || 0); if (!d) return lo;
+    if (t.addOn) { c[t.name] = v; return { c, p: lo.p }; }
+    const src = M.types.find((x) => x.name === t.up) || fillerType(M, N);
+    if (!src || src === t) return lo;
+    const sv = (c[src.name] || 0) - d;
+    c[t.name] = v;
+    if (sv < effMin(M, src, c) || sv > typeMax(src, N)) return lo;
+    c[src.name] = sv;
+    return { c, p: lo.p };
+  }
+  function loadoutIssues(u, lo, N) {
+    const M = loModel(u); if (!M || !lo) return [];
+    N = loN(M, N);
+    const out = [];
+    const sumOf = (c) => M.types.filter((t) => !t.addOn).reduce((n, t) => n + (c[t.name] || 0), 0);
+    const tot = sumOf(lo.c);
+    // a mismatch that the default composition also has is a model-counting difference between MFM and GrimSlate, not a user error
+    if (tot !== N && tot !== sumOf(defaultCounts(M, N, null))) out.push(`models add up to ${tot}, unit size is ${N}`);
+    for (const t of M.types) { const k = lo.c[t.name] || 0; const mn = t.up || t.addOn ? t.min : effMin(M, t, lo.c); if (k < mn || k > typeMax(t, N)) out.push(`${t.name}: ${k} (allowed ${mn}–${typeMax(t, N)})`);
+      for (const s of t.slots) { const sum = Object.values(lo.p[`${t.name}|${s.name}`] || {}).reduce((a, b) => a + b, 0); const [a, b] = slotRange(s, k);
+        if (sum < a || sum > b) out.push(`${t.name} – ${s.name}: ${sum} selected (needs ${a === b ? a : `${a}–${b}`})`);
+        for (const o of s.opts) { const v = (lo.p[`${t.name}|${s.name}`] || {})[o.name] || 0; if (v > optMax(o, N, s, k)) out.push(`${o.name}: max ${optMax(o, N, s, k)}`); } } }
+    return out;
+  }
+  /* priced-wargear counts implied by the loadout (MFM wargear index -> count) */
+  function loadoutWargear(u, lo) {
+    const M = loModel(u); const out = {}; if (!M || !lo) return out;
+    const add = (s, key) => { for (const o of s.opts) if (o.w !== null && o.w !== undefined) { const v = (lo.p[key] || {})[o.name] || 0; if (v) out[o.w] = (out[o.w] || 0) + v; } };
+    for (const t of M.types) for (const s of t.slots) add(s, `${t.name}|${s.name}`);
+    for (const s of M.unit) add(s, `*|${s.name}`);
+    return out;
+  }
+  function linkedWargear(u) {
+    const M = loModel(u); const set = new Set(); if (!M) return set;
+    for (const s of [...M.types.flatMap((t) => t.slots), ...M.unit]) for (const o of s.opts) if (o.w !== null && o.w !== undefined) set.add(o.w);
+    return set;
+  }
+  /* loadout lines: [{count, name, gear:[{name, count}]}]; gear counts are per model-type totals */
+  function loadoutLines(u, lo) {
+    const M = loModel(u); if (!M || !lo) return [];
+    const lines = [];
+    for (const t of M.types) {
+      const k = lo.c[t.name] || 0; if (!k) continue;
+      const gear = t.fixed.map((w) => ({ name: w, count: k }));
+      for (const s of t.slots) for (const [n, v] of Object.entries(lo.p[`${t.name}|${s.name}`] || {})) if (v > 0) gear.push({ name: n, count: v });
+      lines.push({ count: k, name: t.name, gear });
+    }
+    const ug = []; for (const s of M.unit) for (const [n, v] of Object.entries(lo.p[`*|${s.name}`] || {})) if (v > 0) ug.push({ name: n, count: v });
+    if (ug.length) { if (lines.length === 1) lines[0].gear.push(...ug); else lines.push({ count: 0, name: null, gear: ug }); }
+    for (const l of lines) { const m = new Map(); for (const g of l.gear) m.set(g.name, (m.get(g.name) || 0) + g.count); l.gear = [...m].map(([name, count]) => ({ name, count })); }
+    return lines;
+  }
+  /* "1x Intercessor Sergeant: Bolt pistol, Bolt Rifle" (counts shown only when not every model has it) */
+  function loadoutText(line) {
+    const g = line.gear.map((x) => (line.count > 1 && x.count !== line.count) || (!line.count && x.count > 1) ? `${x.count}x ${x.name}` : x.name).join(", ");
+    return line.name ? `${line.count}x ${line.name}${g ? ": " + g : ""}` : g;
+  }
+
+  /* ---------------------------------------------------------------- calculation + validation */
+  function calcList(list, idx) {
+    const F = getFaction(idx, list);
+    const size = getSize(idx, list);
+    const res = { total: 0, units: 0, enhancements: 0, dp: 0, dpLimit: size ? size.dp : null, size,
+      enhCount: 0, enhLimit: size ? size.enh : null, entries: [], byRole: {}, errors: [], warnings: [] };
+    const err = (msg, uidRef) => res.errors.push({ msg, uid: uidRef || null });
+    const warn = (msg, uidRef) => res.warnings.push({ msg, uid: uidRef || null });
+    if (!F) { err(`Faction "${list.faction}" is not in the current data`); return res; }
+
+    // detachments
+    const dets = [];
+    for (const dn of list.dets || []) {
+      const d = F.dets[dn];
+      if (!d) { err(`Detachment "${dn}" is no longer listed`); continue; }
+      dets.push(d);
+      res.dp += d.dp || 0;
+      if (d.src === "gs") warn(`${d.n} is not in the current Munitorum Field Manual (data from GrimSlate)`);
+    }
+    if (!dets.length) err("Select a detachment");
+    const fds = [...new Set(dets.flatMap((d) => d.fd || []))];
+    res.dispositions = fds;
+    if (list.disposition && dets.length && !fds.includes(list.disposition)) err(`Force Disposition ${list.disposition} is not offered by your detachments`);
+    else if (!list.disposition && fds.length) warn("Select a Force Disposition");
+    if (res.dpLimit != null) {
+      const single3 = size.single3dp && dets.length === 1 && res.dp === 3;
+      if (res.dp > res.dpLimit && !single3) err(`Detachment Points: ${res.dp} / ${res.dpLimit}`);
+    }
+    // detachment-level restrictions (e.g. UNIQUE: DYNASTY) - only one detachment with the same unique tag
+    const tags = {};
+    for (const d of dets) for (const r of d.rs || []) if (/^UNIQUE/i.test(r)) (tags[r] = tags[r] || []).push(d.n);
+    for (const [t, ns] of Object.entries(tags)) if (ns.length > 1) err(`${t}: only one of ${ns.join(", ")}`);
+
+    // entries
+    const copies = {}, enhUse = {};
+    let warlords = 0;
+    for (const e of list.entries) {
+      const u = F.units[e.unit] || findUnit(F, e.unit);
+      const row = { uid: e.uid, entry: e, unit: u, name: e.unit, role: u ? u.r : "Other", copy: 0, base: 0,
+        wargear: 0, addons: 0, enh: 0, enhName: null, total: 0, missing: !u, modelsLabel: "" };
+      if (!u) {
+        err(`${e.unit} is no longer in the Munitorum Field Manual`, e.uid);
+        res.entries.push(row); continue;
+      }
+      copies[u.n] = (copies[u.n] || 0) + 1;
+      row.copy = copies[u.n];
+      const opts = modelOptions(u, row.copy);
+      let opt = opts.find((o) => o.models === e.models) || null;
+      if (!opt && opts.length) {
+        opt = opts[0];
+        if (e.models != null) warn(`${u.n}: ${e.models} models is no longer a valid size; using ${opt.label}`, e.uid);
+      }
+      row.base = opt ? opt.points : 0;
+      row.modelsLabel = opt ? opt.label : "";
+      const linked = linkedWargear(u);
+      for (const [wn, cnt] of Object.entries(e.wargear || {})) {
+        const wi = (u.w || []).findIndex((x) => x[0] === wn);
+        if (wi >= 0 && !linked.has(wi) && cnt > 0) row.wargear += u.w[wi][1] * cnt;
+      }
+      if (hasLoadout(u)) {
+        row.lo = getLoadout(u, e, opt ? opt.models : (e.models || 1), opt ? opt.label : null);
+        const lw = loadoutWargear(u, row.lo);
+        for (const [wi, cnt] of Object.entries(lw)) if (u.w && u.w[wi]) row.wargear += u.w[wi][1] * cnt;
+        row.loLines = loadoutLines(u, row.lo);
+        for (const msg of loadoutIssues(u, row.lo, opt ? opt.models : (e.models || 1))) warn(`${u.n} loadout: ${msg}`, e.uid);
+      }
+      for (const a of addonOptions(u, row.copy)) if ((e.addons || []).includes(a.label)) row.addons += a.points;
+      if (e.enh) {
+        const d = dets.find((x) => x.n === e.enh.det);
+        const en = d && d.enh.find((x) => x[0] === e.enh.name);
+        if (!d) err(`${e.enh.name} needs detachment ${e.enh.det}`, e.uid);
+        else if (!en) err(`${e.enh.name} is no longer in ${d.n}`, e.uid);
+        else {
+          row.enh = en[1] || 0; row.enhName = en[0];
+          const upgrade = !!en[3];
+          if (isEpicHero(u)) err(`${u.n}: Epic Heroes cannot take enhancements`, e.uid);
+          else if (!upgrade && !isCharacter(u)) err(`${u.n}: only Characters can take ${en[0]}`, e.uid);
+          const k = en[0];
+          enhUse[k] = enhUse[k] || { n: 0, upgrade };
+          enhUse[k].n += 1;
+        }
+      }
+      if (e.warlord) {
+        if (!isCharacter(u)) err(`${u.n} cannot be the Warlord (not a Character)`, e.uid);
+        warlords += 1;
+      }
+      if (u.lg) warn(`${u.n} is a Legends unit`, e.uid);
+      row.total = row.base + row.wargear + row.addons + row.enh;
+      res.units += row.base + row.wargear + row.addons;
+      res.enhancements += row.enh;
+      res.entries.push(row);
+      const r = (res.byRole[row.role] = res.byRole[row.role] || { points: 0, entries: [] });
+      r.points += row.total; r.entries.push(row);
+    }
+    for (const [n, c] of Object.entries(copies)) {
+      const u = F.units[n]; const lim = unitLimit(u, size);
+      if (lim != null && c > lim) err(`${n}: ${c} / ${lim} units`);
+    }
+    for (const [k, v] of Object.entries(enhUse)) {
+      if (!v.upgrade && v.n > 1) err(`${k} taken ${v.n} times (max 1)`);
+      if (v.upgrade && v.n > 3) err(`${k} taken ${v.n} times (max 3)`);
+      res.enhCount += v.upgrade ? 1 : v.n;
+    }
+    if (res.enhLimit != null && res.enhCount > res.enhLimit) err(`Enhancements: ${res.enhCount} / ${res.enhLimit}`);
+    if (warlords > 1) err(`${warlords} Warlords selected (max 1)`);
+    if (!warlords && list.entries.length) err("Select a Warlord");
+    res.total = res.units + res.enhancements;
+    if (size && res.total > size.points) err(`Points: ${res.total} / ${size.points}`);
+    return res;
+  }
+
+  /* ---------------------------------------------------------------- search */
+  function searchUnits(units, q) {
+    q = String(q || "").trim().toLowerCase();
+    if (!q) return units;
+    const terms = q.split(/\s+/);
+    return units.filter((u) => {
+      const hay = [u.n, u.r, ...(u.kw || []), u.lg ? "legends" : "", ...(u.t || []).flatMap((t) => t[2].map((r) => `${r[1]}`))]
+        .join(" | ").toLowerCase();
+      return terms.every((t) => {
+        const m = t.match(/^([<>]=?)(\d+)$/);
+        if (m) {
+          const c = minCost(u, 1), n = +m[2];
+          return m[1] === "<" ? c < n : m[1] === "<=" ? c <= n : m[1] === ">" ? c > n : c >= n;
+        }
+        return hay.includes(t);
+      });
+    });
+  }
+
+  /* ---------------------------------------------------------------- diffs between data versions */
+  const tierSig = (u) => JSON.stringify((u.t || []).map((t) => [t[0], t[1], t[2].map((r) => [r[0], r[1]])]));
+  function costSummary(u) {
+    return (u.t || []).map((t) => {
+      const lbl = t.length && (t[0] !== 1 || t[1] !== null) ? `${ord(t[0])}${t[1] === null ? "+" : t[1] === t[0] ? "" : "–" + ord(t[1])}: ` : "";
+      return lbl + t[2].map((r) => `${r[0] == null ? (r[2] || "") : r[0]}=${r[1]}`).join(", ");
+    }).join(" | ");
+  }
+  function ord(n) { return n + (n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th"); }
+
+  /* Points-only diff between two data versions. Rule text, keywords, loadouts and display-name tweaks are ignored;
+     a unit only counts as changed when no old datasheet of the same name has the same costs. */
+  function diffData(oldData, newData) {
+    const out = { units: [], enhancements: [], detachments: [] };
+    const oldF = {}; for (const f of oldData.factions || []) oldF[f.id] = f;
+    const base = (n) => norm(String(n).replace(/\s*\[Legends\]\s*$/i, "").replace(/\s*\(\d+\)$/, ""));
+    const sig = (u) => tierSig(u) + "|" + JSON.stringify((u.w || []).map((w) => [norm(w[0]), w[1]]));
+    for (const nf of newData.factions || []) {
+      const of = oldF[nf.id]; if (!of) continue;
+      const byName = {}, byBase = {};
+      for (const u of of.units) { (byName[norm(u.n)] = byName[norm(u.n)] || []).push(u); (byBase[base(u.n)] = byBase[base(u.n)] || []).push(u); }
+      const newBase = new Set(nf.units.map((u) => base(u.n)));
+      for (const u of nf.units) {
+        const cands = byName[norm(u.n)] || byBase[base(u.n)];
+        if (!cands) { out.units.push({ faction: nf.id, name: u.n, old: null, new: costSummary(u), added: true }); continue; }
+        if (cands.some((o) => sig(o) === sig(u)) || (byBase[base(u.n)] || []).some((o) => sig(o) === sig(u))) continue;
+        const o = cands[0];
+        out.units.push({ faction: nf.id, name: u.n, old: costSummary(o), new: costSummary(u), oldMin: minCost(o, 1), newMin: minCost(u, 1) });
+      }
+      for (const u of of.units) if (!newBase.has(base(u.n))) out.units.push({ faction: nf.id, name: u.n, old: costSummary(u), new: null, removed: true });
+      const od = {}; for (const d of of.dets) od[d.n] = d;
+      for (const d of nf.dets) {
+        const o = od[d.n]; if (!o) { out.detachments.push({ faction: nf.id, name: d.n, old: null, new: d.dp, added: true }); continue; }
+        if (o.dp !== d.dp) out.detachments.push({ faction: nf.id, name: d.n, old: o.dp, new: d.dp });
+        const oe = {}; for (const e of o.enh) oe[e[0]] = e;
+        for (const e of d.enh) {
+          if (oe[e[0]] && oe[e[0]][1] !== e[1]) out.enhancements.push({ faction: nf.id, detachment: d.n, name: e[0], old: oe[e[0]][1], new: e[1] });
+          else if (!oe[e[0]]) out.enhancements.push({ faction: nf.id, detachment: d.n, name: e[0], old: null, new: e[1], added: true });
+        }
+      }
+    }
+    return out;
+  }
+
+  /* how each saved list changes when moving from oldIdx to newIdx */
+  function diffLists(lists, oldIdx, newIdx) {
+    const out = [];
+    for (const l of lists) {
+      const a = calcList(l, oldIdx), b = calcList(l, newIdx);
+      const items = [];
+      const am = {}; for (const r of a.entries) am[r.uid] = r;
+      for (const r of b.entries) {
+        const o = am[r.uid]; if (!o) continue;
+        const oUnit = o.base + o.wargear + o.addons, nUnit = r.base + r.wargear + r.addons;
+        if (r.missing && !o.missing) items.push({ kind: "unit", name: r.name, old: oUnit, new: null, note: "removed from MFM" });
+        else if (oUnit !== nUnit) {
+          const multi = r.unit && modelOptions(r.unit, r.copy).length > 1;
+          items.push({ kind: "unit", name: `${r.name}${multi && r.modelsLabel ? ` (${r.modelsLabel})` : ""}`, old: oUnit, new: nUnit });
+        }
+        if (o.enh !== r.enh && r.entry.enh) items.push({ kind: "enhancement", name: r.entry.enh.name, old: o.enh, new: r.enh });
+      }
+      const oF = getFaction(oldIdx, l), nF = getFaction(newIdx, l);
+      for (const dn of l.dets || []) {
+        const od = oF && oF.dets[dn], nd = nF && nF.dets[dn];
+        if (od && nd && od.dp !== nd.dp) items.push({ kind: "detachment", name: dn, old: od.dp, new: nd.dp, unit: "DP" });
+        if (od && !nd) items.push({ kind: "detachment", name: dn, old: od.dp, new: null, note: "no longer listed" });
+      }
+      if (a.total !== b.total || items.length) out.push({ id: l.id, name: l.name, oldTotal: a.total, newTotal: b.total, items });
+    }
+    return out;
+  }
+
+  /* ---------------------------------------------------------------- plain-text export */
+  function listToText(list, idx, meta) {
+    const c = calcList(list, idx);
+    const F = getFaction(idx, list);
+    const sub = idx.subs[list.sub];
+    const size = c.size;
+    const L = [];
+    L.push(`${list.name} (${c.total} / ${size ? size.points : "?"} pts)`);
+    L.push(`Faction: ${sub ? sub.name : F ? F.f.name : list.faction}${sub && F && sub.name !== F.f.name ? ` (${F.f.name})` : ""}`);
+    if (size) L.push(`Battle Size: ${size.name} (${size.points} pts)`);
+    const dets = (list.dets || []).map((d) => F && F.dets[d]).filter(Boolean);
+    L.push(`Detachments: ${dets.map((d) => `${d.n} (${d.dp} DP)`).join(", ") || "none"}` +
+      (c.dpLimit != null ? `  [${c.dp}/${c.dpLimit} DP]` : `  [${c.dp} DP]`));
+    if (list.disposition) L.push(`Force Disposition: ${list.disposition}`);
+    L.push(`Enhancements: ${c.enhCount}${c.enhLimit != null ? "/" + c.enhLimit : ""}`);
+    L.push("");
+    for (const role of ROLE_ORDER) {
+      const r = c.byRole[role]; if (!r) continue;
+      L.push(`${role.toUpperCase()} [${r.points} pts]`);
+      for (const row of r.entries) {
+        const e = row.entry;
+        const multi = row.unit && modelOptions(row.unit, row.copy).length > 1;
+        L.push(`${multi ? row.modelsLabel.replace(/ models?$/, "x") + " " : ""}${row.name} (${row.total} pts)${e.warlord ? " [Warlord]" : ""}`);
+        for (const l of row.loLines || []) L.push(`  • ${loadoutText(l)}`);
+        if (row.enhName) L.push(`  • Enhancement: ${row.enhName} (+${row.enh} pts)`);
+        for (const g of gearList(row)) L.push(`  • ${g}`);
+        if (e.note) L.push(`  • ${e.note}`);
+      }
+      L.push("");
+    }
+    const missing = c.entries.filter((r) => r.missing);
+    if (missing.length) { L.push("NOT IN CURRENT DATA"); for (const r of missing) L.push(`${r.name}`); L.push(""); }
+    L.push(`TOTAL: ${c.total} pts${size ? ` / ${size.points}` : ""}`);
+    if (c.errors.length) L.push(`Validation: ${c.errors.map((x) => x.msg).join("; ")}`);
+    L.push("");
+    L.push(footer(meta));
+    return L.join("\n");
+  }
+
+
+  /* ---------------------------------------------------------------- export formats (mirroring New Recruit) */
+  const fmtPts = (n) => Number(n || 0).toLocaleString("en-US");
+  function exportContext(list, idx) {
+    const c = calcList(list, idx);
+    const F = getFaction(idx, list);
+    const sub = idx.subs[list.sub];
+    const dets = (list.dets || []).map((d) => F && F.dets[d]).filter(Boolean);
+    const rows = [];
+    for (const role of ROLE_ORDER) for (const r of (c.byRole[role] || { entries: [] }).entries) rows.push(r);
+    let charN = 0;
+    for (const r of rows) r.charSlot = r.unit && isCharacter(r.unit) ? ++charN : null;
+    return { c, F, sub, dets, rows, size: c.size,
+      factionName: F ? F.f.name : list.faction, subName: sub ? sub.name : (F ? F.f.name : list.faction) };
+  }
+  const modelCount = (r) => (r.entry && r.entry.models) || 1;
+  /* loadout lines for exports; a single model named like the unit lists its gear directly */
+  function loLinesFor(r) {
+    const ls = r.loLines || [];
+    const single = ls.length === 1 && ls[0].count === 1 && r.unit && norm(ls[0].name) === norm(r.unit.n);
+    return { ls, single };
+  }
+  function loadoutSummary(r) {
+    const { ls, single } = loLinesFor(r);
+    if (single) return ls[0].gear.map((g) => (g.count > 1 ? `${g.count}x ${g.name}` : g.name)).join(", ");
+    return ls.map(loadoutText).join("; ");
+  }
+  function gearList(r) {
+    const out = [];
+    const linked = r.unit ? linkedWargear(r.unit) : new Set();
+    for (const [wn, cnt] of Object.entries(r.entry.wargear || {})) {
+      const wi = r.unit && r.unit.w ? r.unit.w.findIndex((x) => x[0] === wn) : -1;
+      if (cnt > 0 && !linked.has(wi)) out.push(cnt > 1 ? `${cnt}x ${wn}` : wn);
+    }
+    for (const a of r.entry.addons || []) out.push(a.replace(/^\+\s*/, ""));
+    return out;
+  }
+  function footer(meta) {
+    return `Exported with Muster (unofficial) – points: Munitorum Field Manual ${meta && meta.mfm_version || ""}` +
+      (meta && meta.fetched_at ? ` (fetched ${fmtLocal(meta.fetched_at)})` : "");
+  }
+
+  /* "GW" – layout of the official Warhammer 40,000 app export (New Recruit's default format) */
+  function exportGW(list, idx, meta) {
+    const X = exportContext(list, idx); const L = [];
+    L.push(`${list.name} (${fmtPts(X.c.total)} Points)`, "");
+    L.push(X.factionName);
+    if (X.subName !== X.factionName) L.push(X.subName);
+    if (X.size) L.push(`${X.size.name} (${fmtPts(X.size.points)} Points)`);
+    for (const d of X.dets) L.push(`${d.n} (${d.dp} DP)`);
+    if (list.disposition) L.push(`Force Disposition: ${list.disposition}`);
+    L.push("");
+    const sections = [["CHARACTERS", (r) => r.unit && isCharacter(r.unit)], ["BATTLELINE", (r) => r.unit && !isCharacter(r.unit) && isBattleline(r.unit)],
+      ["DEDICATED TRANSPORTS", (r) => r.unit && !isCharacter(r.unit) && !isBattleline(r.unit) && isTransport(r.unit)],
+      ["OTHER DATASHEETS", (r) => !r.unit || (!isCharacter(r.unit) && !isBattleline(r.unit) && !isTransport(r.unit))]];
+    for (const [title, pred] of sections) {
+      const rs = X.rows.filter(pred).concat(title === "OTHER DATASHEETS" ? X.c.entries.filter((r) => r.missing) : []);
+      if (!rs.length) continue;
+      L.push(title, "");
+      for (const r of rs) {
+        L.push(`${r.name} (${fmtPts(r.total)} Points)`);
+        if (r.entry.warlord) L.push("  • Warlord");
+        const { ls, single } = loLinesFor(r);
+        if (!ls.length && r.unit && modelOptions(r.unit, r.copy).length > 1) L.push(`  • ${r.modelsLabel}`);
+        if (single) for (const g of ls[0].gear) L.push(`  • ${g.count}x ${g.name}`);
+        else for (const l of ls) {
+          if (l.name) { L.push(`  • ${l.count}x ${l.name}`); for (const g of l.gear) L.push(`    ◦ ${g.count}x ${g.name}`); }
+          else for (const g of l.gear) L.push(`  • ${g.count}x ${g.name}`);
+        }
+        for (const g of gearList(r)) L.push(`  • ${/^\d+x /.test(g) ? g : "1x " + g}`);
+        if (r.enhName) L.push(`  • Enhancement: ${r.enhName}`);
+        if (r.entry.note) L.push(`  • ${r.entry.note}`);
+        L.push("");
+      }
+    }
+    L.push(footer(meta));
+    return L.join("\n");
+  }
+
+  /* "Tournament" – WTC-style header block + one line per unit (New Recruit 'Tournament'/'WTC-Compact') */
+  function wtcHeader(list, X) {
+    const FENCE = "+++++++++++++++++++++++++++++++++++++++++++++++";
+    const wl = X.rows.find((r) => r.entry.warlord);
+    const enh = X.rows.filter((r) => r.enhName);
+    const L = [FENCE, `+ LIST NAME: ${list.name}`, `+ FACTION KEYWORD: ${X.factionName}${X.subName !== X.factionName ? ` – ${X.subName}` : ""}`];
+    if (X.dets.length) for (const d of X.dets) L.push(`+ DETACHMENT: ${d.n} (${d.dp} DP)`); else L.push("+ DETACHMENT: —");
+    if (list.disposition) L.push(`+ FORCE DISPOSITION: ${list.disposition}`);
+    L.push(`+ TOTAL ARMY POINTS: ${X.c.total}pts`, `+ POINTS LIMIT: ${X.size ? X.size.points : X.c.total}pts`, "+",
+      `+ WARLORD: ${wl ? `Char${wl.charSlot || ""}: ${wl.name}` : "—"}`,
+      `+ ENHANCEMENT: ${enh.length ? enh.map((r) => `${r.enhName} (on Char${r.charSlot || ""}: ${r.name})`).join("; ") : "—"}`,
+      `+ NUMBER OF UNITS: ${X.c.entries.length}`, FENCE);
+    return L;
+  }
+  function exportWTC(list, idx, meta) {
+    const X = exportContext(list, idx); const L = wtcHeader(list, X); L.push("");
+    for (const r of X.rows) {
+      const gear = []; if (r.entry.warlord) gear.push("Warlord");
+      const lsum = loadoutSummary(r); if (lsum) gear.push(lsum);
+      gear.push(...gearList(r));
+      L.push(`${r.charSlot ? `Char${r.charSlot}: ` : ""}${modelCount(r)}x ${r.name} (${r.base + r.wargear + r.addons} pts): ${gear.join(", ")}`.replace(/: $/, ""));
+      if (r.enhName) L.push(`Enhancement: ${r.enhName} (+${r.enh} pts)`);
+    }
+    for (const r of X.c.entries.filter((x) => x.missing)) L.push(`${r.name} (not in current MFM)`);
+    return L.join("\n") + "\n";
+  }
+  /* "Tournament (full)" – WTC full: header + BATTLELINE section with two-line unit blocks */
+  function exportWTCFull(list, idx, meta) {
+    const X = exportContext(list, idx); const L = wtcHeader(list, X); L.push("", "BATTLELINE", "");
+    for (const r of X.rows) {
+      L.push(`${r.charSlot ? `Char${r.charSlot}: ` : ""}${modelCount(r)}x ${r.name} (${r.base + r.wargear + r.addons} pts)`);
+      if (r.entry.warlord) L.push("• Warlord");
+      for (const l of r.loLines || []) { const g = l.gear.map((x) => (l.count > 1 && x.count !== l.count ? `${x.count}x ${x.name}` : x.name)).join(", ");
+        L.push(l.name ? `${l.count} with ${g}${(r.loLines.length > 1) ? ` (${l.name})` : ""}` : `• ${g}`); }
+      const gear = gearList(r); if (gear.length) L.push(`• ${gear.join(", ")}`);
+      if (r.entry.note) L.push(`• ${r.entry.note}`);
+      if (r.enhName) L.push(`Enhancement: ${r.enhName} (+${r.enh} pts)`);
+      L.push("");
+    }
+    return L.join("\n");
+  }
+  /* "Simple" – compact plain list grouped by battlefield role */
+  function exportSimple(list, idx, meta) { return listToText(list, idx, meta); }
+  /* "Stratagems" – every stratagem from the selected detachments (New Recruit's stratagems export) */
+  function exportStratagems(list, idx, meta) {
+    const X = exportContext(list, idx); const L = [`${list.name} – Stratagems`, ""];
+    for (const d of X.dets) {
+      L.push(`== ${d.n.toUpperCase()} (${d.dp} DP) ==`);
+      if (d.rule && d.rule[0]) L.push(`Detachment rule – ${d.rule[0]}: ${String(d.rule[1] || "").replace(/\*\*|\^\^/g, "")}`, "");
+      if (!d.st.length) L.push("(no stratagem data available)", "");
+      for (const s of d.st) {
+        L.push(`${s[0]} – ${s[1]}CP${s[3] ? ` – ${s[3]}` : ""}${s[2] ? ` – ${s[2]}` : ""}${s[4] ? ` (${s[4]})` : ""}`);
+        L.push(String(s[5] || "").replace(/\*\*|\^\^/g, ""), "");
+      }
+    }
+    L.push(footer(meta));
+    return L.join("\n");
+  }
+  const EXPORT_FORMATS = [
+    { id: "gw", name: "GW", desc: "Official Warhammer 40,000 app layout", fn: exportGW },
+    { id: "wtc", name: "Tournament", desc: "WTC compact: header block + one line per unit", fn: exportWTC },
+    { id: "wtc-full", name: "Tournament (full)", desc: "WTC full: header block + unit blocks", fn: exportWTCFull },
+    { id: "simple", name: "Simple", desc: "Plain list grouped by battlefield role", fn: exportSimple },
+    { id: "stratagems", name: "Stratagems", desc: "Stratagems + detachment rules of the selected detachments", fn: exportStratagems },
+  ];
+  function exportText(list, idx, meta, format, opts) {
+    const f = EXPORT_FORMATS.find((x) => x.id === format) || EXPORT_FORMATS[0];
+    let t = f.fn(list, idx, meta);
+    if (opts && opts.markdown) t = toMarkdown(t);
+    return t;
+  }
+  function toMarkdown(t) {
+    return t.split("\n").map((l) => /^[A-Z][A-Z0-9 '’\-+()]+$/.test(l.trim()) && l.trim().length > 3 ? `**${l.trim()}**` :
+      /^== (.*) ==$/.test(l) ? `### ${l.slice(3, -3)}` : l.replace(/^  • /, "- ").replace(/^• /, "- ")).join("\n");
+  }
+  /* Discord: code blocks no longer than Discord's 2000-char message limit (one copy button per block) */
+  function discordBlocks(text, limit) {
+    limit = (limit || 2000) - 8;
+    const blocks = []; let cur = "";
+    for (const para of text.split(/\n(?=\n)/)) {
+      if ((cur + para).length > limit && cur) { blocks.push(cur); cur = ""; }
+      if (para.length > limit) { for (const line of para.split("\n")) { if ((cur + "\n" + line).length > limit) { blocks.push(cur); cur = ""; } cur += (cur ? "\n" : "") + line; } }
+      else cur += para;
+    }
+    if (cur.trim()) blocks.push(cur);
+    return blocks.map((b) => "```\n" + b.replace(/^\n+|\n+$/g, "") + "\n```");
+  }
+
+  /* share links: list JSON -> base64url (optionally deflated by the caller) */
+  function b64urlEncode(bytes) {
+    let bin = ""; for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return (typeof btoa === "function" ? btoa(bin) : Buffer.from(bin, "binary").toString("base64")).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  }
+  function b64urlDecode(s) {
+    s = s.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+    const bin = typeof atob === "function" ? atob(s) : Buffer.from(s, "base64").toString("binary");
+    const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out;
+  }
+  function shareableList(l) {
+    return { n: l.name, f: l.faction, s: l.sub, z: l.size, d: l.dets, p: l.disposition || undefined,
+      e: l.entries.map((e) => [e.unit, e.models, e.wargear && Object.keys(e.wargear).length ? e.wargear : 0, e.addons && e.addons.length ? e.addons : 0,
+        e.enh ? [e.enh.det, e.enh.name] : 0, e.warlord ? 1 : 0, e.note || 0, e.lo || 0]) };
+  }
+  function listFromShareable(o) {
+    const l = newList({ name: o.n, faction: o.f, sub: o.s, size: o.z });
+    l.dets = o.d || []; if (o.p) l.disposition = o.p;
+    l.entries = (o.e || []).map((a) => ({ uid: uid(), unit: a[0], models: a[1], wargear: a[2] || {}, addons: a[3] || [],
+      enh: a[4] ? { det: a[4][0], name: a[4][1] } : null, warlord: !!a[5], ...(a[6] ? { note: a[6] } : {}), ...(a[7] ? { lo: a[7] } : {}) }));
+    return l;
+  }
+
+  /* ---------------------------------------------------------------- import/export */
+  function exportLists(lists) { return JSON.stringify({ app: "muster", schema: 1, exported: new Date().toISOString(), lists }, null, 1); }
+  function importLists(text) {
+    const j = JSON.parse(text);
+    const arr = Array.isArray(j) ? j : Array.isArray(j.lists) ? j.lists : j.entries ? [j] : null;
+    if (!arr) throw new Error("No lists found in file");
+    return arr.filter((l) => l && l.faction && Array.isArray(l.entries)).map((l) => ({
+      ...l, id: uid(), entries: l.entries.map((e) => ({ wargear: {}, addons: [], enh: null, warlord: false, ...e, uid: e.uid || uid() })),
+      dets: Array.isArray(l.dets) ? l.dets : [], updated: new Date().toISOString() }));
+  }
+  function duplicateList(l) {
+    const c = JSON.parse(JSON.stringify(l));
+    c.id = uid(); c.name = `${l.name} (copy)`; c.created = c.updated = new Date().toISOString();
+    c.entries.forEach((e) => (e.uid = uid()));
+    return c;
+  }
+
+
+  /* ---------------------------------------------------------------- meta win rates (listhammer) */
+  /* stable sort of table rows by key; nulls always last; strings case-insensitive */
+  function sortRows(rows, key, dir) {
+    const m = dir === "asc" ? 1 : -1;
+    return rows.map((r, i) => [r, i]).sort((A, B) => {
+      const a = typeof key === "function" ? key(A[0]) : A[0][key], b = typeof key === "function" ? key(B[0]) : B[0][key];
+      const an = a === null || a === undefined || a === "", bn = b === null || b === undefined || b === "";
+      if (an || bn) return an && bn ? A[1] - B[1] : an ? 1 : -1;
+      const c = typeof a === "string" || typeof b === "string" ? String(a).localeCompare(String(b), undefined, { sensitivity: "base" }) : a - b;
+      return c ? c * m : A[1] - B[1];
+    }).map((x) => x[0]);
+  }
+  /* listhammer faction record for a list's faction / sub-faction id */
+  function metaFaction(wr, factionId, subId) {
+    if (!wr || !wr.factions) return null;
+    return wr.factions.find((f) => f.mfm_id && (f.mfm_id === subId)) || wr.factions.find((f) => f.mfm_id === factionId) || null;
+  }
+  /* win rate of a single detachment (summed over every combination that includes it) */
+  function metaDetachment(mf, detName) {
+    if (!mf) return null;
+    const k = norm(detName);
+    return (mf.detachments_single || []).find((d) => norm(d.name) === k || (d.mfm && norm(d.mfm.name) === k)) || null;
+  }
+  const fmtPct = (v) => v === null || v === undefined || v === "" || isNaN(v) ? "—" : `${Number(v).toFixed(1)}%`;
+
+  return { findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
+    minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
+    diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
+    EXPORT_FORMATS, exportText, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
+});
