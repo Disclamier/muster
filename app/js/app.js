@@ -158,7 +158,14 @@
     const r = await checkForUpdates(false);
     if (!S.data) { $("#main").innerHTML = `<div class="empty">No points data available${r.offline ? " offline" : ""}. Connect once to download the Munitorum Field Manual data.</div>`; return; }
     route();
-    if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register("sw.js").catch(() => {});
+    if ("serviceWorker" in navigator && /^https?:/.test(location.protocol)) {
+      const hadSW = !!navigator.serviceWorker.controller; let reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => { if (hadSW && !reloaded) { reloaded = true; location.reload(); } });
+      navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => {
+        reg.update().catch(() => {});
+        document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") reg.update().catch(() => {}); });
+      }).catch(() => {});
+    }
   }
 
   /* ------------------------------------------------------------------ chrome: banner, footer */

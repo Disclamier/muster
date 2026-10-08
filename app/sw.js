@@ -2,14 +2,14 @@
    - App shell: precached, served stale-while-revalidate (works offline, picks up new code on next load).
    - data/*.json: network-first (fresh points when online), falling back to the cached copy offline.
    - Faction artwork: precached from assets/factions/index.json, cache-first. */
-const SHELL = "muster-shell-v7", DATA = "muster-data-v1", ART = "muster-art-v1";
+const SHELL = "muster-shell-v8", DATA = "muster-data-v1", ART = "muster-art-v1";
 const SHELL_FILES = ["./", "index.html", "css/app.css", "js/core.js", "js/app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png"];
 
 self.addEventListener("install", (ev) => {
   ev.waitUntil((async () => {
     const shell = await caches.open(SHELL);
-    await shell.addAll(SHELL_FILES);
+    await shell.addAll(SHELL_FILES.map((f) => new Request(f, { cache: "reload" })));
     const data = await caches.open(DATA);
     await Promise.all(["data/version.json", "data/points.json", "data/winrates.json", "data/datasheets.json"].map((u) => data.add(u).catch(() => {})));
     try {
@@ -56,10 +56,16 @@ self.addEventListener("fetch", (ev) => {
     return;
   }
   ev.respondWith((async () => {
+    // App shell: network-first (bypassing the browser HTTP cache) so new code shows on the first refresh;
+    // falls back to the cached copy when offline or the network is slow.
     const cache = await caches.open(SHELL);
     const isNav = req.mode === "navigate";
-    const hit = await cache.match(isNav ? "index.html" : req, { ignoreSearch: true });
-    const net = fetch(req).then((res) => { if (res.ok) cache.put(isNav ? "index.html" : req, res.clone()); return res; }).catch(() => null);
+    const key = isNav ? "index.html" : req;
+    const net = fetch(req, { cache: "no-cache" }).then((res) => { if (res.ok) cache.put(key, res.clone()); return res; }).catch(() => null);
+    const timeout = new Promise((r) => setTimeout(() => r(null), 4000));
+    const res = await Promise.race([net, timeout]);
+    if (res) return res;
+    const hit = await cache.match(key, { ignoreSearch: true });
     if (hit) { ev.waitUntil(net); return hit; }
     return (await net) || new Response("Offline", { status: 503 });
   })());
