@@ -1,0 +1,25 @@
+## DS Terminator Squad
+STATS 5" 6 2+ 3 6+ 1 | 4+
+R Assault Cannon | 24" 6 3+ 6 -2 1 | Sustained Hits 1
+R Cyclone Missile Launcher - Frag | 36" 8 3+ 4 -1 1 | Blast 2
+R Cyclone Missile Launcher - Krak | 36" 2 3+ 10 -2 D3+3 |
+R Heavy Flamer | 12" 3 N/A 5 -1 1 | Blast 2, Torrent
+R Storm Bolter | 24" 2 3+ 5 -1 1 | Rapid Fire 2
+M Chainfist - Standard | Melee 2 4+ 8 -2 2 |
+M Chainfist - Hunter | Melee 3 3+ 12 -2 3 | Hunter: Monster/Vehicle
+M Power Fist | Melee 3 3+ 8 -2 2 |
+M Power Weapon | Melee 5 3+ 5 -2 1 |
+CORE Deep Strike
+ARMY Combat Doctrines
+AB Teleport Homer (Once per battle, per unit): At the start of the battle, you can set up one Teleport Homer token for this unit on the battlefield. If you do:
+■ When you target this unit with the Rapid Ingress stratagem, you can use that Teleport Homer token. If you do, that use is -1 CP, but when resolving that stratagem, this unit must be set up within 3" of that Teleport Homer token and not within 8" of an enemy unit. That Teleport Homer token is then removed from the battlefield.
+■ If an enemy unit ends a move within 1" of that Teleport Homer token, that Teleport Homer token is removed from the battlefield.
+AB Fury of the First: This unit's attacks that target a unit within 9" of this unit have +1 AP.
+WO The Terminator Sergeant can have their Power Fist replaced with one of the following: 1 Chainfist; 1 Power Weapon.
+WO Any number of Terminator models can each have their Power Fist replaced with 1 Chainfist.
+WO For every 5 models in this unit, 1 Terminator model can have their Storm Bolter replaced with one of the following: 1 Assault Cannon; 1 Heavy Flamer; 1 Cyclone Missile Launcher and 1 Storm Bolter (that model's Storm Bolter cannot be replaced).
+COMP ■ 1 Terminator Sergeant model
+COMP ■ 4-9 Terminator models
+COMP Every model is equipped with: 1 Power Fist; 1 Storm Bolter.
+KW Infantry; Imperium; Terminator
+FKW Adeptus Astartes

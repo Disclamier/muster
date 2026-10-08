@@ -1,0 +1,20 @@
+## DET Gravis Siege Force
+UNIQUE Gravis
+RULE Indomitable Defence
+While a friendly GRAVIS unit is within range of an objective, attacks that target that unit with a S greater than that unit's T have -1 to wound rolls.
+ENH Immovable Conquerors | upgrade
+GRAVIS unit only. This unit has +1 OC.
+ENH Narthecis Gauntlet
+APOTHECARY BIOLOGIS model only. In your Command phase, this unit heals D3+1 wounds.
+STRAT Annihilating Force | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly GRAVIS unit is selected to attack.
+TARGET: That GRAVIS unit.
+EFFECT: Your unit's attacks have [LETHAL HITS].
+STRAT Stand Unyielding | 1
+WHEN: End of your Movement phase.
+TARGET: One friendly GRAVIS unit.
+EFFECT: Select one objective your unit is controlling. That objective is secured.
+STRAT Suppression Volleys | 1
+WHEN: Your Shooting phase, when a friendly GRAVIS unit has shot.
+TARGET: That GRAVIS unit.
+EFFECT: Select one enemy unit hit by those attacks. That enemy unit makes a battle-shock roll, with -1 to that battle-shock roll.

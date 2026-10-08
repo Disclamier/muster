@@ -1,0 +1,26 @@
+## DET Ironstorm Spearhead
+RULE Ironstorm Auto-targeters
+Friendly ADEPTUS ASTARTES VEHICLE units' (excluding WALKER units) ranged attacks can:
+■ Re-roll one hit roll.
+■ Re-roll one wound roll.
+ENH Redoubtable Machine Spirit | upgrade
+ADEPTUS ASTARTES VEHICLE unit only (excluding DEDICATED TRANSPORT/FLY/WALKER units). This unit:
+■ Has 5+ InSv.
+■ At the end of your Command phase, heals 1 wound.
+ENH Gunnery Honours | upgrade
+ADEPTUS ASTARTES VEHICLE unit only (excluding DEDICATED TRANSPORT/FLY/WALKER units). This unit's ranged attacks have [HEAVY].
+STRAT Layered Ceramite | 1
+WHEN: Any phase, when a friendly ADEPTUS ASTARTES VEHICLE unit suffers a mortal wound.
+TARGET: That ADEPTUS ASTARTES VEHICLE unit.
+EFFECT: Your unit has Feel No Pain 5+ against mortal wounds.
+STRAT Might of the Machine Spirit | 1
+WHEN: Your Command phase.
+TARGET: One friendly ADEPTUS ASTARTES VEHICLE unit (excluding DEDICATED TRANSPORT/FLY/WALKER units).
+EFFECT: Until the start of your next Command phase, your unit can ignore modifiers to your unit's:
+■ M.
+■ BS.
+■ Hit rolls and wound rolls.
+STRAT Headhunter Doctrine | 1
+WHEN: Your Shooting phase, when a friendly ADEPTUS ASTARTES VEHICLE unit (excluding DEDICATED TRANSPORT/FLY/WALKER units) is selected to shoot.
+TARGET: That ADEPTUS ASTARTES VEHICLE unit.
+EFFECT: Your unit's ranged attacks have [LETHAL HITS: MONSTER/VEHICLE].

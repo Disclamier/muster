@@ -1,0 +1,34 @@
+## DS Kor'sarro Khan
+STATS 6" 5 3+ 5 6+ 1 | 4+
+R Anzuq | 18" 2 3+ 4 -1 2 | Anti-Infantry 4+, Close-quarters, Devastating Wounds: Infantry
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+M Moonfang | Melee 6 2+ 6 -3 2 | Anti-Character 5+, Devastating Wounds, Precision
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Trophy Taker: This unit's attacks that target a CHARACTER unit can:
+■ Re-roll hit rolls of 1.
+■ Re-roll wound rolls of 1.
+AB For the Khan!:
+■ This unit's ranged attacks have [ASSAULT].
+■ This unit's melee attacks have [LANCE].
+COMP ■ 1 Kor'sarro Khan model
+COMP This model is equipped with: 1 Anzuq; 1 Bolt Pistol; 1 Moonfang.
+KW Infantry; Captain; Character; Epic Hero; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes; White Scars
+## DS Suboden Khan
+STATS 12" 6 3+ 8 6+ 2 | 4+
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+R Onslaught Gatling Cannon | 24" 8 2+ 5 -1 1 | Devastating Wounds: non-Monster/Vehicle
+M Power Sword | Melee 3 2+ 5 -2 1 | Extra Attacks, Sustained Hits 1: non-Monster/Vehicle
+M Stormtooth | Melee 6 2+ 7 -3 2 | Anti-Monster/Vehicle 4+, Lance
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Spear of Chogoris:
+■ This unit's ranged attacks have [ASSAULT].
+■ When this unit is selected to make an advance move, that advance move does not prevent this unit from being eligible to declare a charge.
+■ If the assault doctrine is active for this unit, this unit has +1 to advance rolls and charge rolls.
+AB Skilled Riders: This unit has MOBILE.
+COMP ■ 1 Suboden Khan model
+COMP This model is equipped with: 1 Heavy Bolt Pistol; 1 Onslaught Gatling Cannon; 1 Power Sword; 1 Stormtooth.
+KW Mounted; Captain; Character; Epic Hero; Explosives; Imperium
+FKW Adeptus Astartes; White Scars

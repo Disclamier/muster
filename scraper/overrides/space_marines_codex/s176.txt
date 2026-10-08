@@ -1,0 +1,33 @@
+## DS Roboute Guilliman
+STATS 8" 10 2+ 16 5+ 4 | 4+
+R Hand of Dominion | 36" 4 2+ 6 -2 2 | Rapid Fire 2, Sustained Hits 1
+M Emperor's Sword | Melee 10 2+ 10 -3 2 | Cleave 2, Devastating Wounds
+M Hand of Dominion | Melee 7 2+ 14 -4 4 | Lethal Hits
+CORE Feel No Pain 5+
+ARMY Combat Doctrines, Transhuman Strategist
+AB Supreme Commander: If this model is in your army, it must be your WARLORD.
+AB Codex Adept: The assault doctrine, devastator doctrine and tactical doctrine are active for this unit.
+AB Primarch of the XIII (Aura): While a friendly ADEPTUS ASTARTES unit is within 6" of this unit, that unit's attacks can:
+■ Re-roll hit rolls of 1.
+■ Re-roll wound rolls of 1.
+AB Author of the Codex: In your Movement phase, you can select one visible friendly ADEPTUS ASTARTES unit within 12" of this model, and select one combat doctrine. That combat doctrine is active for that unit in addition to any other combat doctrines that are active for that unit until the start of your next Command phase.
+AB Leader of Astartes: While this unit is within 3" of a friendly ADEPTUS ASTARTES INFANTRY unit, this unit has Lone Operative.
+COMP ■ 1 Roboute Guilliman model
+COMP This model is equipped with: 1 Emperor's Sword; 1 Hand of Dominion.
+KW Monster; Character; Epic Hero; Imperium; Mobile; Primarch
+FKW Adeptus Astartes; Ultramarines
+
+## DS Marneus Calgar
+STATS 6" 6 2+ 6 6+ 1 | 4+
+R Gauntlets of Ultramar | 18" 4 2+ 5 -2 2 | Close-quarters, Twin-linked
+M Gauntlets of Ultramar | Melee 6 2+ 10 -3 3 | Twin-linked
+M Gauntlets of Ultramar - Overhead Smash | Melee 1 2+ 14 -3 D3+3 | Extra Attacks, Twin-linked
+CORE Deep Strike, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Codex Adept: The assault doctrine, devastator doctrine and tactical doctrine are active for this unit.
+AB Master Tactician: In your Movement phase, you can select one visible friendly ADEPTUS ASTARTES unit within 9" of this model, and select one combat doctrine. That combat doctrine is active for that unit until the start of your next Command phase.
+AB Thunderhawk Insertion: In the Declare Battle Formations step, you can select one friendly GRAVIS/PHOBOS/TACTICUS unit. That unit has Deep Strike.
+COMP ■ 1 Marneus Calgar model
+COMP This model is equipped with: 1 Gauntlets of Ultramar.
+KW Infantry; Chapter Master; Character; Epic Hero; Imperium; Terminator
+FKW Adeptus Astartes; Ultramarines

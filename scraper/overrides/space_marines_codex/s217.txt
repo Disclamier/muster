@@ -1,0 +1,23 @@
+## DS Impulsor
+STATS 12" 9 3+ 11 6+ 2 |
+R Bellicatus Missile Array - Frag | 48" 4 3+ 4 -1 1 | Blast 1
+R Bellicatus Missile Array - Icarus | 48" 3 3+ 6 -1 2 | Anti-Fly 2+
+R Bellicatus Missile Array - Krak | 48" 1 3+ 10 -2 D3+3 |
+R Fragstorm Grenade Launchers | 18" 6 3+ 4 -1 1 | Blast 2
+R Ironhail Heavy Stubber | 36" 3 3+ 4 -1 1 | Rapid Fire 3
+R Ironhail Skytalon Array | 36" 6 3+ 4 -1 1 | Rapid Fire 6
+R Storm Bolters | 24" 4 3+ 5 -1 1 | Rapid Fire 4
+M Armoured Hull | Melee 3 4+ 6 0 1 |
+CORE Deadly Demise D3, Firing Deck 7
+ARMY Combat Doctrines
+AB Rapid Disembarkation: In your Movement phase, when this unit ends an advance move, units embarked within this unit can make a shock disembark move (pg 157).
+WA Orbital Comms Array: This unit has Scouts 6".
+WA Shield Dome: This unit has 5+ InSv.
+TRANS This model has a transport capacity of 7 ADEPTUS ASTARTES INFANTRY models. It cannot transport TERMINATOR/JUMP PACK models. Each GRAVIS model takes up the space of 2 models.
+WO This model can be equipped with one of the following: 1 Bellicatus Missile Array; 1 Orbital Comms Array; 1 Ironhail Skytalon Array; 1 Shield Dome.
+WO This model's Storm Bolters can be replaced with 1 Fragstorm Grenade Launchers.
+WO This model can be equipped with 1 Ironhail Heavy Stubber.
+COMP ■ 1 Impulsor model
+COMP This model is equipped with: 1 Armoured Hull; 1 Storm Bolters.
+KW Vehicle; Dedicated Transport; Frame; Imperium; Transport
+FKW Adeptus Astartes

@@ -1,0 +1,12 @@
+## DS Tor Garadon
+STATS 5" 6 3+ 6 6+ 1 | 4+
+R Artificer Grav-gun | 18" 3 2+ 5 -1 2 | Anti-Vehicle 2+
+M Hand of Defiance | Melee 5 2+ 12 -2 2 |
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Siege Captain: This model's attacks that target a FORTIFICATION/MONSTER/VEHICLE unit have +2 S, AP and D.
+AB Signum Array: In your Shooting phase, you can select one visible enemy unit within 18" of this unit. That enemy unit cannot have the benefit of cover.
+COMP ■ 1 Tor Garadon model
+COMP This model is equipped with: 1 Artificer Grav-gun; 1 Hand of Defiance.
+KW Infantry; Captain; Character; Epic Hero; Gravis; Imperium
+FKW Adeptus Astartes; Imperial Fists

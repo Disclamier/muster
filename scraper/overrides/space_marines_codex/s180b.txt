@@ -1,0 +1,15 @@
+## DS Kaius Konorius
+STATS 6" 5 2+ 5 6+ 1 | 4+
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+M Severance and Rebuke - Strike | Melee 5 2+ 10 -3 3 | Precision
+M Severance and Rebuke - Sweep | Melee 6 2+ 6 -3 2 | Cleave 2
+CORE Support
+ARMY Combat Doctrines
+AB Veteran Bodyguard: While this model is attached to a unit, other CHARACTER models in this unit have Feel No Pain 4+.
+AB Calgar's Champion: This model's attacks that target a CHARACTER unit can:
+■ Re-roll hit rolls of 1.
+■ Re-roll wound rolls of 1.
+COMP ■ 1 Kaius Konorius model
+COMP This model is equipped with: 1 Heavy Bolt Pistol; 1 Severance and Rebuke.
+KW Infantry; Character; Epic Hero; Explosives; Tacticus
+FKW Adeptus Astartes; Ultramarines

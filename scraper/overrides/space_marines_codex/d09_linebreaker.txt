@@ -1,0 +1,25 @@
+## DET Gravis Linebreaker Force
+UNIQUE Gravis
+RULE Walking Fortress
+In a turn a friendly GRAVIS unit made a normal move, that unit's ranged attacks:
+■ Do not have [HEAVY].
+■ Have +1 to hit rolls.
+ENH Indefatigable Fortitude
+GRAVIS model only. Attacks that target this unit with a S greater than this unit's T have -1 to wound rolls.
+ENH Relentless Advance
+GRAVIS model only. This unit has Scouts 5".
+STRAT Annihilating Force | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly GRAVIS unit is selected to attack.
+TARGET: That GRAVIS unit.
+EFFECT: Your unit's attacks have [LETHAL HITS].
+STRAT Purgation Push | 1
+WHEN: Your Shooting phase, when a friendly GRAVIS unit has shot.
+TARGET: That GRAVIS unit.
+EFFECT:
+■ If your unit is unengaged, your unit can make a normal move of up to 5", and must end that move within range of an objective.
+■ Your unit is not eligible to declare a charge or embark within a TRANSPORT until the end of the turn.
+STRAT Armoured Impact | 1
+WHEN: Your Charge phase, when a friendly GRAVIS unit ends a charge move.
+TARGET: That GRAVIS unit.
+EFFECT: When your unit ends a charge move, you can select one enemy unit engaged with your unit. If you do, roll one D6 for each model in your unit engaged with that enemy unit:
+■ For each 3+, that enemy unit suffers 1 mortal wound.

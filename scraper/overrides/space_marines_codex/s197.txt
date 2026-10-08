@@ -1,0 +1,28 @@
+## DS Ancient
+STATS 6" 5 3+ 4 6+ 2 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Bolt Rifle - Focused Fire | 24" 1 3+ 6 -1 2 | Heavy, Rapid Fire 1
+R Bolt Rifle - Saturation | 24" 2 3+ 5 -1 1 | Assault, Rapid Fire 1
+M Ceramite Fists | Melee 4 3+ 5 0 1 |
+M Power Weapon | Melee 5 3+ 5 -2 1 |
+CORE Support
+ARMY Combat Doctrines
+AB Raise the Banner: At the end of your Movement phase, if this unit is controlling an objective, that objective is secured.
+AB Honour of the Company: This unit has +1 OC.
+WO This model's Bolt Rifle can be replaced with 1 Power Weapon.
+COMP ■ 1 Ancient model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Bolt Rifle; 1 Ceramite Fists.
+KW Infantry; Character; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes
+## DS Bladeguard Ancient
+STATS 6" 5 3+ 4 6+ 3 | 4+
+R Heavy Bolt Pistol | 18" 1 3+ 5 -1 1 | Close-quarters
+M Relics of Battle | Melee 4 3+ 5 -2 2 |
+CORE Support
+ARMY Combat Doctrines
+AB Raise the Banner: At the end of your Movement phase, if this unit is controlling an objective, that objective is secured.
+AB Deeds of Legend: While this unit is within range of an objective, this unit's melee attacks have +1 A.
+COMP ■ 1 Bladeguard Ancient model
+COMP This model is equipped with: 1 Heavy Bolt Pistol; 1 Relics of Battle.
+KW Infantry; Ancient; Character; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes

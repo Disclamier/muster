@@ -1,0 +1,40 @@
+## DS Eliminator Squad
+STATS 8" 4 3+ 2 6+ 1 |
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Bolt Sniper Rifle | 36" 1 3+ 6 -2 3 | Heavy, Precision
+R Instigator Bolt Carbine | 24" 2 2+ 5 -2 2 | Lethal Hits: non-Monster/Vehicle, Precision, Rapid Fire 2
+R Las Fusil | 36" 1 3+ 10 -3 D3+3 | Heavy
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+CORE Infiltrators, Stealth
+ARMY Combat Doctrines
+AB Chameleoline Cloaks: This unit has -3" detection range.
+AB Special-issue Optics and Ammunition: In your Shooting phase, when this unit is selected to shoot, you can select one of the following:
+■ This unit's ranged attacks have [IGNORES COVER].
+■ Or: Select one enemy unit within 24" of this unit. That enemy unit has +6" detection range until this unit has shot.
+WO The Eliminator Sergeant can have their Bolt Sniper Rifle replaced with one of the following: 1 Instigator Bolt Carbine; 1 Las Fusil.
+WO All Eliminator models in this unit can each have their Bolt Sniper Rifle replaced with 1 Las Fusil.
+COMP ■ 1 Eliminator Sergeant model
+COMP ■ 2 Eliminator models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Bolt Sniper Rifle; 1 Ceramite Fists.
+KW Infantry; Explosives; Imperium; Phobos; Smoke
+FKW Adeptus Astartes
+## DS Outrider Squad
+STATS 12" 6 3+ 4 6+ 2 |
+R Heavy Bolt Pistol | 18" 1 3+ 5 -1 1 | Close-quarters
+R Plasma Pistol - Standard | 12" 1 3+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 3+ 8 -3 2 | Close-quarters, Hazardous
+R Twin Bolt Rifle | 24" 2 2+ 5 -1 1 | Assault, Rapid Fire 2, Twin-linked
+M Chainsword | Melee 4 3+ 5 -1 1 |
+M Power Weapon | Melee 3 3+ 5 -2 1 |
+M Thunder Hammer | Melee 3 4+ 8 -2 3 | Devastating Wounds
+ARMY Combat Doctrines
+AB Full-throttle Assault: If this unit made a charge move this turn, this unit's:
+■ Thunder Hammer weapons have +1 to hit rolls and [SUSTAINED HITS 1].
+■ Other melee weapons have +1 D and [SUSTAINED HITS 1].
+WO The Outrider Sergeant can have their Chainsword replaced with one of the following: 1 Power Weapon; 1 Thunder Hammer.
+WO For every 3 models in this unit, 1 model can have their Heavy Bolt Pistol replaced with 1 Plasma Pistol.
+COMP ■ 1 Outrider Sergeant model
+COMP ■ 2-5 Outrider models
+COMP Every model is equipped with: 1 Chainsword; 1 Heavy Bolt Pistol; 1 Twin Bolt Rifle.
+KW Mounted; Explosives; Imperium
+FKW Adeptus Astartes

@@ -1,0 +1,31 @@
+## DS Aggressor Squad
+STATS 5" 6 3+ 3 6+ 1 |
+R Auto Boltstorm Gauntlets | 18" 3 3+ 5 -1 1 | Close-quarters, Twin-linked
+R Flamestorm Gauntlets - Close Quarters | 12" 3 N/A 4 -1 1 | Close-quarters, Torrent, Twin-linked
+R Flamestorm Gauntlets - Ranged | 12" 3 N/A 4 -1 1 | Blast 2, Torrent, Twin-linked
+R Fragstorm Grenade Launcher | 18" 3 3+ 4 -1 1 | Blast 1
+M Twin Power Fists | Melee 3 3+ 8 -2 2 | Twin-linked
+ARMY Combat Doctrines
+AB Close-quarters Firestorm: This unit's attacks that target an enemy unit within 9" of this unit have +1 S.
+WO All models in this unit can each have their Flamestorm Gauntlets replaced with 1 Auto Boltstorm Gauntlets and 1 Fragstorm Grenade Launcher.
+COMP ■ 1 Aggressor Sergeant model
+COMP ■ 2-5 Aggressor models
+COMP Every model is equipped with: 1 Flamestorm Gauntlets; 1 Twin Power Fists.
+KW Infantry; Gravis; Imperium
+FKW Adeptus Astartes
+## DS Inceptor Squad
+STATS 10" 6 3+ 3 6+ 1 |
+R Assault Bolters | 18" 3 3+ 5 -1 2 | Assault, Close-quarters, Sustained Hits 2, Twin-linked
+R Plasma Exterminators - Standard | 18" 2 3+ 7 -2 2 | Assault, Close-quarters, Twin-linked
+R Plasma Exterminators - Supercharge | 18" 2 3+ 8 -3 3 | Assault, Close-quarters, Hazardous, Twin-linked
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+CORE Deep Strike
+ARMY Combat Doctrines
+AB Meteoric Descent: If this unit made an ingress move this turn, this unit's ranged attacks have +1 to hit rolls.
+AB Parabolic Jetleap: At the end of your opponent's Fight phase, if this unit is unengaged, you can place this unit in strategic reserves.
+WO All models in this unit can each have their Assault Bolters replaced with 1 Plasma Exterminators.
+COMP ■ 1 Inceptor Sergeant model
+COMP ■ 2-5 Inceptor models
+COMP Every model is equipped with: 1 Assault Bolters; 1 Ceramite Fists.
+KW Infantry; Fly; Gravis; Imperium; Jump Pack
+FKW Adeptus Astartes

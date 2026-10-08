@@ -1,0 +1,19 @@
+## DS Repulsor
+STATS 10" 12 3+ 16 6+ 5 |
+R Defensive Array | 24" 18 3+ 5 -1 1 |
+R Heavy Onslaught Gatling Cannon | 24" 12 3+ 6 -1 1 | Devastating Wounds: non-Monster/Vehicle, Sustained Hits 2: non-Monster/Vehicle
+R Hunter-slayer Missile | 48" 1 2+ 14 -3 D3+3 | Indirect Fire, One Shot
+R Las-talon | 36" 2 3+ 10 -3 D3+3 |
+R Twin Heavy Bolter | 36" 3 3+ 5 -1 2 | Sustained Hits 1, Rapid Fire 2, Twin-linked
+R Twin Lascannon | 48" 1 3+ 12 -3 D3+3 | Twin-linked
+M Armoured Hull | Melee 6 4+ 8 0 1 |
+CORE Damaged 6, Deadly Demise D6
+ARMY Combat Doctrines
+AB Combat Embarkation: In your opponent's Charge phase, when an enemy unit has selected charge targets, you can select one friendly unengaged ADEPTUS ASTARTES unit that was one of those charge targets and is eligible to embark within this TRANSPORT. If every model in that unit is within 3" of this TRANSPORT, that unit can embark within this TRANSPORT. That enemy unit can then select new charge targets for that charge move.
+TRANS This model has a transport capacity of 14 ADEPTUS ASTARTES INFANTRY models. It cannot transport JUMP PACK models. Each GRAVIS/TERMINATOR model takes up the space of 2 models.
+WO This model's Heavy Onslaught Gatling Cannon can be replaced with 1 Las-talon.
+WO This model's Twin Heavy Bolter can be replaced with 1 Twin Lascannon.
+COMP ■ 1 Repulsor model
+COMP This model is equipped with: 1 Armoured Hull; 1 Defensive Array; 1 Heavy Onslaught Gatling Cannon; 1 Hunter-slayer Missile; 1 Twin Heavy Bolter.
+KW Vehicle; Frame; Imperium; Smoke; Transport
+FKW Adeptus Astartes

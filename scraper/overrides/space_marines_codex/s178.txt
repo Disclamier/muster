@@ -1,0 +1,19 @@
+## DS Captain Titus
+STATS 6" 5 3+ 6 6+ 1 | 4+
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+R Master-crafted Bolter | 24" 2 2+ 5 -1 2 | Assault, Heavy, Rapid Fire 1
+M Master-crafted Chainsword | Melee 8 2+ 5 -1 2 | Anti-non-Monster/Vehicle 2+
+CORE Feel No Pain 5+, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Press the Attack: This unit's melee attacks have:
+■ [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+■ Or: If the assault doctrine is active for this unit, [SUSTAINED HITS 1].
+AB Righteous Fury (Once per battle, per army): In the Fight phase, you can use this ability. If you do, this unit's melee attacks have +1 S, and when this unit has fought:
+■ This unit heals D3 wounds.
+■ Or: If this unit destroyed an enemy model this phase, this unit heals 2D3 wounds.
+AB Honour of Ultramar: In the fight phase, when this model is destroyed, if this unit has not been selected to fight this phase, roll one D6:
+■ On a 2+, do not remove this model from the battlefield. When your unit has fought, or at the end of the phase (whichever comes first), this model is removed from the battlefield.
+COMP ■ 1 Captain Titus model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Master-crafted Bolter; 1 Master-crafted Chainsword.
+KW Infantry; Captain; Character; Epic Hero; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes; Ultramarines

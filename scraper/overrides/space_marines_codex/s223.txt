@@ -1,0 +1,20 @@
+## DS Land Raider Redeemer
+STATS 12" 12 2+ 16 6+ 5 |
+R Flamestorm Cannon | 12" 4 N/A 6 -2 2 | Blast 2, Torrent
+R Hunter-killer Missile | 48" 1 2+ 14 -3 D3+3 | One Shot
+R Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3
+R Storm Bolter | 24" 2 3+ 5 -1 1 | Rapid Fire 2
+R Twin Assault Cannon | 24" 6 3+ 6 -2 1 | Sustained Hits 1, Twin-linked
+M Armoured Tracks | Melee 6 4+ 8 0 1 |
+CORE Damaged 6, Deadly Demise D6
+ARMY Combat Doctrines
+AB Assault Ramp: In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move (pg 157).
+AB Wrath of the Machine Spirit: This unit's ranged attacks that target a unit within 12" of this unit have [DEVASTATING WOUNDS: non-MONSTER/VEHICLE].
+TRANS This model has a transport capacity of 14 ADEPTUS ASTARTES INFANTRY models. It cannot transport JUMP PACK models. Each GRAVIS/TERMINATOR model takes up the space of 2 models.
+WO This model can be equipped with 1 Hunter-killer Missile.
+WO This model can be equipped with 1 Multi-melta.
+WO This model can be equipped with 1 Storm Bolter.
+COMP ■ 1 Land Raider Redeemer model
+COMP This model is equipped with: 1 Armoured Tracks; 2 Flamestorm Cannon; 1 Twin Assault Cannon.
+KW Vehicle; Explosives; Frame; Imperium; Smoke; Transport
+FKW Adeptus Astartes

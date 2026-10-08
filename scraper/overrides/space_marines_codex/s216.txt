@@ -1,0 +1,30 @@
+## DS Invader ATVs
+STATS 10" 6 3+ 8 6+ 2 |
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3
+R Onslaught Gatling Cannon | 24" 8 3+ 5 -1 1 | Devastating Wounds: non-Monster/Vehicle
+R Twin Bolt Rifle | 24" 2 3+ 5 -1 1 | Assault, Rapid Fire 2, Twin-linked
+M Armoured Impact | Melee 4 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Aggressive Reconnaissance: In your Shooting phase, this unit's ranged attacks that target an enemy unit that is not within 6" of any other enemy units have +1 to wound rolls.
+WO All models in this unit can each have their Onslaught Gatling Cannon replaced with 1 Multi-melta.
+COMP ■ 1-2 Invader ATV models
+COMP Every model is equipped with: 1 Armoured Impact; 1 Bolt Pistol; 1 Onslaught Gatling Cannon; 1 Twin Bolt Rifle.
+KW Mounted; Vehicle; Frame; Imperium
+FKW Adeptus Astartes
+## DS Rhino
+STATS 12" 9 3+ 10 6+ 2 |
+R Hunter-killer Missile | 48" 1 2+ 14 -3 D3+3 | One Shot
+R Storm Bolter | 24" 2 3+ 5 -1 1 | Rapid Fire 2
+M Armoured Tracks | Melee 3 4+ 6 0 1 |
+CORE Deadly Demise D3, Firing Deck 2
+ARMY Combat Doctrines
+AB Veiling Smoke (Once per phase, per unit): You can target this unit with the Smokescreen stratagem, regardless of any other uses of that stratagem this phase. If you do:
+■ That use is -1 CP.
+■ That use does not prevent any uses of that stratagem on other units this phase.
+TRANS This model has a transport capacity of 12 ADEPTUS ASTARTES INFANTRY models. It cannot transport GRAVIS/JUMP PACK/TERMINATOR models.
+WO This model can be equipped with 1 Hunter-killer Missile.
+COMP ■ 1 Rhino model
+COMP This model is equipped with: 1 Armoured Tracks; 1 Storm Bolter.
+KW Vehicle; Dedicated Transport; Frame; Imperium; Smoke; Transport
+FKW Adeptus Astartes

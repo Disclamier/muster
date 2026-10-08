@@ -1,0 +1,20 @@
+## ARMYRULE Combat Doctrines
+At the start of your Command phase, you can select one combat doctrine listed below. If you do, that combat doctrine is active for friendly ADEPTUS ASTARTES units with this ability until the start of your next Command phase.
+■ Assault Doctrine: When this unit is selected to make an advance move, that advance move does not prevent this unit from being eligible to declare a charge.
+■ Devastator Doctrine: This unit's ranged attacks have [ASSAULT].
+■ Tactical Doctrine: When this unit is selected to make a fall-back move, that fall-back move does not prevent this unit from being eligible to shoot and eligible to declare a charge.
+Unless otherwise stated:
+■ You can only select each combat doctrine once per battle.
+■ Only one combat doctrine can be active for each unit. If a rule makes a combat doctrine active for a unit, any combat doctrine previously active for that unit is no longer active for that unit.
+## ARMYRULE Transhuman Strategist
+At the start of the battle round, if a model with this ability is your WARLORD, gain 1CP.
+## ARMYRULE Librarius
+ADEPTUS ASTARTES PSYKER units with this ability have a psyker level of 1 or higher, specified in that unit's abilities. Each psychic ability has a psychic level of 1 or higher, specified in that ability's name.
+In a battle round, a friendly ADEPTUS ASTARTES PSYKER unit can use a number of psychic abilities whose total psychic level does not exceed that PSYKER unit's psyker level.
+## ARMYRULE Space Marine Chapters
+If an ADEPTUS ASTARTES unit has a second Faction keyword on its datasheet, that Faction keyword is the name of that unit's Chapter. For example, Marneus Calgar has both the ADEPTUS ASTARTES and ULTRAMARINES Faction keywords, and is therefore from the Ultramarines Chapter.
+You cannot include units from more than one Chapter in your army.
+## ARMYRULE Special Move Types: Shock Disembark Move
+Set-up distance: 3". Eligible if: as stated in the rule allowing this move type, if your unit is embarked within a TRANSPORT model that is on the battlefield and did not embark within that TRANSPORT this phase. Effect: your unit is set up as described in Set Up (Core Rules, 03.02). While moving: set up each model in your unit wholly within the set-up distance of that TRANSPORT. After moving: your unit is not eligible to declare a charge until the end of the turn.
+## ARMYRULE Special Move Types: Assault Disembark Move
+Set-up distance: 3". Eligible if: as stated in the rule allowing this move type, if your unit is embarked within a TRANSPORT model that is on the battlefield, did not embark within that TRANSPORT this phase, and that TRANSPORT has not made an advance/fall-back move this phase. Effect: your unit is set up as described in Set Up (Core Rules, 03.02). While moving: set up each model in your unit wholly within the set-up distance of that TRANSPORT.

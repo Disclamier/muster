@@ -1,0 +1,27 @@
+## DS Drop Pod
+STATS - 7 3+ 8 6+ - |
+CORE Deadly Demise 1, Deep Strike
+ARMY Combat Doctrines
+AB Drop Pod Assault:
+■ This unit must start the battle in strategic reserves.
+■ In your first Movement phase, this unit can make an ingress move.
+■ When this unit is set up, all units embarked within this unit must make a disembark/assault disembark move (pg 157), and those units must be set up more than 8" away from all enemy units.
+AB Deployment Complete: When this unit is set up and all units embarked within it have disembarked, units cannot embark within this unit.
+TRANS This model has a transport capacity of 12 ADEPTUS ASTARTES INFANTRY models. It cannot transport GRAVIS/JUMP PACK/TERMINATOR models.
+COMP ■ 1 Drop Pod model
+KW Vehicle; Dedicated Transport; Frame; Imperium; Transport
+FKW Adeptus Astartes
+## DS Firestrike Servo-turrets
+STATS 5" 6 2+ 6 6+ 2 |
+R Twin Firestrike Autocannon | 48" 4 2+ 9 -1 3 | Rapid Fire 2, Twin-linked
+R Twin Firestrike Las-talon | 36" 2 2+ 10 -3 D3+3 | Twin-linked
+M Hovering Bulk | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Sentinel Protocols (Once per phase, per unit): You can target this unit with the Fire Overwatch stratagem, regardless of any other uses of that stratagem this phase. If you do:
+■ This unit's snap shooting attacks hit on unmodified hit rolls of 4+ until that stratagem is resolved.
+■ That use does not prevent any uses of that stratagem on other units this phase.
+WO Any number of models can each have their Twin Firestrike Las-talon replaced with 1 Twin Firestrike Autocannon.
+COMP ■ 1-2 Firestrike Servo-turrets models
+COMP Every model is equipped with: 1 Hovering Bulk; 1 Twin Firestrike Las-talon.
+KW Vehicle; Artillery; Imperium
+FKW Adeptus Astartes

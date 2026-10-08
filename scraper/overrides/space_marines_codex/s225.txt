@@ -1,0 +1,33 @@
+## DS Ballistus Dreadnought
+STATS 8" 10 2+ 12 6+ 4 |
+R Ballistus Lascannon | 48" 2 3+ 12 -3 D3+3 |
+R Ballistus Missile Launcher - Frag | 48" D6+6 3+ 5 -1 1 | Blast 2
+R Ballistus Missile Launcher - Krak | 48" 2 3+ 10 -2 D3+3 |
+R Storm Bolters | 24" 4 3+ 5 -1 1 | Rapid Fire 4
+M Armoured Feet | Melee 5 3+ 7 0 1 |
+CORE Damaged 4, Deadly Demise D3
+ARMY Combat Doctrines
+AB Ballistus Strike: This unit's ranged attacks that target an enemy unit within 24" of this unit have [SUSTAINED HITS 1].
+COMP ■ 1 Ballistus Dreadnought model
+COMP This model is equipped with: 1 Armoured Feet; 1 Ballistus Lascannon; 1 Ballistus Missile Launcher; 1 Storm Bolters.
+KW Vehicle; Dreadnought; Imperium; Walker
+FKW Adeptus Astartes
+## DS Brutalis Dreadnought
+STATS 10" 10 2+ 12 6+ 4 |
+R Bolt Rifles | 24" 4 3+ 5 -1 1 | Twin-linked
+R Twin Heavy Bolter | 36" 3 3+ 5 -1 2 | Rapid Fire 2, Sustained Hits 1, Twin-linked
+R Twin Icarus Ironhail Heavy Stubber | 36" 3 3+ 4 -1 1 | Anti-Fly 3+, Rapid Fire 3, Twin-linked
+R Twin Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3, Twin-linked
+M Brutalis Fists | Melee 6 3+ 12 -3 D3+3 | Twin-linked
+M Brutalis Talons | Melee 8 3+ 10 -2 2 | Cleave 2, Sustained Hits 1: non-Monster/Vehicle, Twin-linked
+CORE Damaged 4, Deadly Demise D3
+ARMY Combat Doctrines
+AB Brutalis Charge (Once per phase, per unit): You can target this unit with the Crushing Impact stratagem, regardless of any other uses of that stratagem this phase. If you do:
+■ That use is -1 CP.
+■ That use does not prevent any uses of that stratagem on other units this phase.
+WO This model's Bolt Rifles and Brutalis Fists can be replaced with 1 Brutalis Talons.
+WO This model's Twin Heavy Bolter can be replaced with 1 Twin Multi-melta.
+COMP ■ 1 Brutalis Dreadnought model
+COMP This model is equipped with: 1 Bolt Rifles; 1 Brutalis Fists; 1 Twin Heavy Bolter; 1 Twin Icarus Ironhail Heavy Stubber.
+KW Vehicle; Dreadnought; Imperium; Walker
+FKW Adeptus Astartes

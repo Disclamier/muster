@@ -1,0 +1,23 @@
+## DS Captain
+STATS 6" 5 3+ 5 6+ 1 | 4+
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+R Master-crafted Bolter | 24" 2 2+ 5 -1 2 | Assault, Rapid Fire 1
+R Neo-volkite Pistol | 12" 1 2+ 5 0 2 | Close-quarters, Devastating Wounds
+R Plasma Pistol - Standard | 12" 1 2+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 2+ 8 -3 2 | Close-quarters, Hazardous
+M Master-crafted Power Weapon | Melee 6 2+ 6 -2 2 |
+M Power Fist | Melee 5 2+ 8 -2 2 |
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Strategic Acumen: In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase.
+AB Finest Hour (Once per battle, per unit): In the Fight phase, when this unit is selected to fight, you can use this ability. If you do, this model's melee attacks have:
+■ +3 A.
+■ [DEVASTATING WOUNDS].
+WA Relic Shield: This model has +1 W.
+WO This model's Master-crafted Bolter and Heavy Bolt Pistol can be replaced with one of the following: 1 Neo-volkite Pistol; 1 Plasma Pistol.
+WO This model's Master-crafted Bolter can be replaced with 1 Relic Shield (this model's Master-crafted Power Weapon cannot be replaced).
+WO This model's Master-crafted Power Weapon can be replaced with 1 Power Fist.
+COMP ■ 1 Captain model
+COMP This model is equipped with: 1 Heavy Bolt Pistol; 1 Master-crafted Bolter; 1 Master-crafted Power Weapon.
+KW Infantry; Character; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes

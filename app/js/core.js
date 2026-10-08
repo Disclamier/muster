@@ -83,7 +83,7 @@
     const m = t.match(/(?:^|[.!?:]\s+|\n)\s*([A-Za-z][^.!?\n:]*?)\s+(?:models?|units?)\s+only\b\s*(?:\(\s*excluding\s+([^)]*)\))?/i);
     if (m) {
       const alts = m[1].split(/\s*,\s*|\s*\/\s*|\s+or\s+|\s+and\/or\s+/i).map((x) => kwNorm(x.replace(/^(a|an|the)\s+/i, ""))).filter(Boolean);
-      const excl = m[2] ? m[2].split(/\s*,\s*|\s+or\s+|\s+and\s+/i).map((x) => kwNorm(x.replace(/\b(units?|models?)\b/gi, ""))).filter(Boolean) : [];
+      const excl = m[2] ? m[2].split(/\s*,\s*|\s*\/\s*|\s+or\s+|\s+and\s+/i).map((x) => kwNorm(x.replace(/\b(units?|models?)\b/gi, ""))).filter(Boolean) : [];
       res = { alts, excl, text: m[0].replace(/^[.!?:\s]+/, "").trim().replace(/\.?$/, ".") };
     }
     _enhRx.set(key, res);

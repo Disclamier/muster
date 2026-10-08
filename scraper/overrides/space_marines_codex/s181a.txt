@@ -1,0 +1,11 @@
+## DS Darnath Lysander
+STATS 5" 6 2+ 7 6+ 1 | 4+
+M Fist of Dorn | Melee 5 2+ 10 -3 3 | Cleave 1, Devastating Wounds
+CORE Deep Strike, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Rampart (Once per battle, per army): At the start of any phase, you can use this ability. If you do, this model has 2+ InSv until the end of the phase.
+AB Icon of Obstinacy: Attacks that target this unit have -1 to hit rolls.
+COMP ■ 1 Darnath Lysander model
+COMP This model is equipped with: 1 Fist of Dorn.
+KW Infantry; Captain; Character; Epic Hero; Imperium; Terminator
+FKW Adeptus Astartes; Imperial Fists

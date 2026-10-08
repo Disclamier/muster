@@ -1,0 +1,32 @@
+## DS Land Speeder
+STATS 14" 8 3+ 9 6+ 3 |
+R Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3
+R Onslaught Gatling Cannon | 24" 8 3+ 5 -1 1 | Devastating Wounds: non-Monster/Vehicle
+R Pyrecannon | 12" 4 N/A 6 -1 1 | Blast 2, Torrent
+R Stormfury Missile Launcher | 48" 1 3+ 10 -3 D3+3 |
+M Armoured Impact | Melee 3 4+ 6 0 1 |
+CORE Deep Strike
+ARMY Combat Doctrines
+AB Purgation Run: In your Shooting phase, when this unit has shot, you can use this ability. If you do:
+■ This unit can make a normal move of up to D6".
+■ This unit is not eligible to declare a charge until the end of the turn.
+WO This model's Onslaught Gatling Cannon can be replaced with 1 Pyrecannon.
+COMP ■ 1 Land Speeder model
+COMP This model is equipped with: 1 Armoured Impact; 1 Multi-melta; 1 Onslaught Gatling Cannon; 1 Stormfury Missile Launcher.
+KW Vehicle; Fly; Frame; Imperium; Speeder
+FKW Adeptus Astartes
+## DS Gladiator Lancer
+STATS 10" 10 3+ 12 6+ 3 |
+R Defensive Array | 24" 6 3+ 5 -1 1 | Rapid Fire 6
+R Laser Destroyer | 72" 2 3+ 14 -3 D6+3 | Heavy
+M Armoured Hull | Melee 3 4+ 6 0 1 |
+CORE Damaged 4, Deadly Demise D3
+ARMY Combat Doctrines
+AB Aquilon Optics: This unit's ranged attacks that target a MONSTER/VEHICLE unit can:
+■ Re-roll one hit roll.
+■ Re-roll one wound roll.
+■ Re-roll one damage roll.
+COMP ■ 1 Gladiator Lancer model
+COMP This model is equipped with: 1 Armoured Hull; 1 Defensive Array; 1 Laser Destroyer.
+KW Vehicle; Frame; Imperium; Smoke
+FKW Adeptus Astartes

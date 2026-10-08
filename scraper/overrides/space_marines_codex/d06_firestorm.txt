@@ -1,0 +1,24 @@
+## DET Tacticus Firestorm Force
+UNIQUE Tacticus
+RULE Codex Fire-patterns
+Friendly TACTICUS units' [RAPID FIRE] attacks benefit from [RAPID FIRE] when targeting units up to that attack's maximum range.
+ENH Cyber-familiar
+TACTICUS model only. When both players have deployed their armies, you can redeploy up to three friendly ADEPTUS ASTARTES INFANTRY units. When doing so, you can set those units up in strategic reserves, regardless of how many units are already in strategic reserves.
+ENH Tempered in Battle (Aura)
+TACTICUS model only. Friendly ADEPTUS ASTARTES units within 6" of this model can re-roll leadership rolls.
+STRAT For the Emperor! | 1
+WHEN: Command phase.
+TARGET: One friendly TACTICUS unit that is within range of an objective.
+EFFECT: Your unit has +1 OC until the end of the turn.
+STRAT Relentless Assault | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly TACTICUS unit is selected to attack.
+TARGET: That TACTICUS unit.
+EFFECT: Your unit's attacks have:
+■ [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+■ Or: [LETHAL HITS: MONSTER/VEHICLE].
+STRAT Point-blank Brutality | 1
+WHEN: Your Shooting phase, when a friendly engaged TACTICUS unit is selected to shoot.
+TARGET: That TACTICUS unit.
+EFFECT: Your unit's ranged attacks (excluding [BLAST] attacks) have:
+■ [CLOSE-QUARTERS].
+■ [IGNORES COVER].

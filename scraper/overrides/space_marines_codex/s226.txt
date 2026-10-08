@@ -1,0 +1,31 @@
+## DS Invictor Tactical Warsuit
+STATS 10" 9 3+ 12 6+ 4 |
+R Fragstorm Grenade Launcher | 18" 3 3+ 4 -1 1 | Blast 1
+R Heavy Bolter | 36" 3 3+ 5 -1 2 | Rapid Fire 2, Sustained Hits 1
+R Incendium Cannon | 12" 4 N/A 6 -1 2 | Blast 2, Torrent
+R Ironhail Heavy Stubbers | 36" 6 3+ 4 -1 1 | Rapid Fire 6
+R Twin Ironhail Autocannon | 48" 4 3+ 9 -1 3 | Twin-linked
+M Invictor Fist | Melee 5 3+ 12 -2 3 |
+CORE Damaged 4, Deadly Demise D3, Scouts 8"
+ARMY Combat Doctrines
+AB Forward Assault Warsuit: At the start of the first battle round, you can select one enemy unit to be this unit's mark:
+■ This unit's attacks that target this unit's mark can re-roll wound rolls of 1.
+■ Each time this unit's mark is destroyed, select one enemy unit to be this unit's mark.
+WO This model's Incendium Cannon can be replaced with 1 Twin Ironhail Autocannon.
+COMP ■ 1 Invictor Tactical Warsuit model
+COMP This model is equipped with: 1 Fragstorm Grenade Launcher; 1 Heavy Bolter; 1 Incendium Cannon; 1 Invictor Fist; 1 Ironhail Heavy Stubbers.
+KW Vehicle; Imperium; Phobos; Walker
+FKW Adeptus Astartes
+## DS Storm Speeder Hailstrike
+STATS 14" 9 3+ 11 6+ 3 |
+R Fragstorm Grenade Launchers | 18" 6 3+ 4 -1 1 | Blast 2, Ignores Cover
+R Ironhail Heavy Stubber Array | 36" 6 3+ 4 -1 1 | Ignores Cover, Rapid Fire 6
+R Onslaught Gatling Cannon | 24" 8 3+ 5 -1 1 | Devastating Wounds: non-Monster/Vehicle, Ignores Cover
+M Armoured Impact | Melee 3 4+ 6 0 1 |
+CORE Deadly Demise D3, Deep Strike
+ARMY Combat Doctrines
+AB Hailstrike: In your Shooting phase, when this unit has shot, select one enemy unit hit by those attacks. Friendly ADEPTUS ASTARTES units' ranged attacks that target that enemy unit have [IGNORES COVER].
+COMP ■ 1 Storm Speeder Hailstrike model
+COMP This model is equipped with: 1 Armoured Impact; 1 Fragstorm Grenade Launchers; 1 Ironhail Heavy Stubber Array; 1 Onslaught Gatling Cannon.
+KW Vehicle; Fly; Frame; Imperium; Speeder
+FKW Adeptus Astartes

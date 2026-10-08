@@ -1,0 +1,18 @@
+## DS Captain in Gravis Armour
+STATS 5" 6 3+ 6 6+ 1 | 4+
+R Boltstorm Gauntlet | 12" 3 2+ 5 -1 1 | Close-quarters
+R Master-crafted Heavy Bolt Rifle | 30" 2 2+ 6 -1 3 | Assault, Heavy, Rapid Fire 1
+M Boltstorm Gauntlet | Melee 5 2+ 8 -2 2 |
+M Master-crafted Power Weapon | Melee 6 2+ 6 -2 2 |
+M Relic Blade | Melee 2 2+ 6 -2 2 | Extra Attacks
+M Relic Chainsword | Melee 3 2+ 5 -1 2 | Extra Attacks
+M Relic Power Fist | Melee 1 2+ 8 -2 2 | Extra Attacks
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Strategic Acumen: In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase.
+AB Refuse to Yield: Attacks allocated to this model have -1 D.
+WO This model's Master-crafted Heavy Bolt Rifle and Master-crafted Power Weapon can be replaced with one of the following: 1 Boltstorm Gauntlet and 1 Relic Blade; 1 Boltstorm Gauntlet and 1 Relic Chainsword; 1 Boltstorm Gauntlet and 1 Relic Power Fist.
+COMP ■ 1 Captain in Gravis Armour model
+COMP This model is equipped with: 1 Master-crafted Heavy Bolt Rifle; 1 Master-crafted Power Weapon.
+KW Infantry; Captain; Character; Explosives; Gravis; Imperium
+FKW Adeptus Astartes

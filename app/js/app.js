@@ -384,7 +384,7 @@
   function renderFooter() {
     const m = S.meta || {};
     $("#footer").innerHTML = `Muster is an <b>unofficial</b> fan tool, not affiliated with or endorsed by Games Workshop. Points: Munitorum Field Manual ${esc(m.mfm_version || "?")}
-      (fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}) · rules, stratagems &amp; profiles: GrimSlate${S.ds && S.ds.data_version ? ` (data ${esc(S.ds.data_version)})` : ""}${S.wr ? " · win rates: listhammer.info" : ""} · faction artwork © Games Workshop, personal use.
+      (fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}) · rules, stratagems &amp; profiles: GrimSlate${S.ds && S.ds.data_version ? ` (data ${esc(S.ds.data_version)})` : ""} · Adeptus Astartes: Codex: Space Marines (11th ed.)${S.wr ? " · win rates: listhammer.info" : ""} · faction artwork © Games Workshop, personal use.
       <button data-action="about">About</button>`;
   }
   function setActiveNav() {
@@ -692,8 +692,8 @@
     let lines = r && r.loLines, lo = r && r.lo;
     if (!lines && C.hasLoadout(u)) { const o = C.modelOptions(u, 1)[0] || { models: 1 }; lo = C.getLoadout(u, {}, o.models, o.label); lines = C.loadoutLines(u, lo); }
     if (!lines || !lines.length) return null;
-    const w = new Map(); for (const l of lines) for (const g of l.gear) w.set(C.norm(g.name), (w.get(C.norm(g.name)) || 0) + (g.count || 1));
-    const picks = new Set(); for (const v of Object.values((lo && lo.p) || {})) for (const [k, n] of Object.entries(v)) if (n > 0) picks.add(C.norm(k));
+    const w = new Map(); for (const l of lines) for (const g of l.gear) for (const part of String(g.name).split(" + ")) w.set(C.norm(part), (w.get(C.norm(part)) || 0) + (g.count || 1));
+    const picks = new Set(); for (const v of Object.values((lo && lo.p) || {})) for (const [k, n] of Object.entries(v)) if (n > 0) for (const part of String(k).split(" + ")) picks.add(C.norm(part));
     return { w, picks };
   }
   function datasheetHtml(F, u, r, o) {
@@ -707,7 +707,7 @@
     if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "GrimSlate has no datasheet for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
     else {
       if (!filt) html += `<table class="ds-t ds-unit" data-testid="ds-stats"><tr><th class="nm">Unit</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>
-        <tr><td class="nm">${esc(u.n)}</td><td>${esc(st.M || "-")}</td><td>${esc(st.T || "-")}</td><td>${esc(st.SV || st.Sv || "-")}</td><td>${esc(st.W || "-")}</td><td>${esc(st.LD || st.Ld || "-")}</td><td>${esc(st.OC || "-")}</td><td data-testid="ds-inv">${esc(ds.inv || "-")}</td></tr></table>`;
+        <tr><td class="nm">${esc(u.n)}</td><td>${esc(st.M || "-")}</td><td>${esc(st.T || "-")}</td><td>${esc(st.SV || st.Sv || "-")}</td><td>${esc(st.W || "-")}</td><td>${esc(st.LD || st.Ld || "-")}</td><td>${esc(st.OC || "-")}</td><td data-testid="ds-inv">${esc(ds.inv || "-")}</td></tr>${(ds.sx || []).map((x) => `<tr data-testid="ds-sx"><td class="nm">${esc(x[0])}</td><td>${esc(x[1].M || "-")}</td><td>${esc(x[1].T || "-")}</td><td>${esc(x[1].SV || "-")}</td><td>${esc(x[1].W || "-")}</td><td>${esc(x[1].LD || "-")}</td><td>${esc(x[1].OC || "-")}</td><td>${esc(x[2] || "-")}</td></tr>`).join("")}</table>${ds.src === "codex" ? `<div class="ds-src muted" data-testid="ds-codex">Source: Codex: Space Marines (11th edition)</div>` : ""}`;
       const wtab = (kind, label, skill) => {
         let ws = ds.wp.filter((w) => w[1] === kind && matchItem(w[0]));
         if (!ws.length) return "";
@@ -738,6 +738,7 @@
         const plain = ds.ab.filter((a) => !isAura(a) && !isDmg(a)).map((a) => card(esc(a[0]), esc(clean(a[1])))).join("");
         const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a)).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("");
         const dmg = ds.ab.filter(isDmg).map((a) => card(esc(a[0]), esc(clean(a[1])), "dmg")).join("");
+        const psy = (ds.ps || []).map((a) => card(esc(a[0]), esc(clean(a[1])), "psy")).join("");
         const by = F.f.units.filter((x) => (x.ldr || []).concat(x.sup || []).some((y) => C.norm(y) === C.norm(u.n))).map((x) => x.n);
         const lead = [
           u.ldr && u.ldr.length ? card("Leader", `This model can be attached to the following units:<ul class="ab-ul">${u.ldr.map((x) => `<li>${esc(title(x))}</li>`).join("")}</ul>`, "lead") : "",
@@ -746,13 +747,17 @@
           r && r.attachedTo ? card("Attached", `${esc(r.attachKind === "support" ? "Support unit" : "Leader")} attached to <b>${esc(r.attachedTo.name)}</b>`, "lead") : "",
           ds.tr ? card("Transport", esc(clean(typeof ds.tr === "string" ? ds.tr : JSON.stringify(ds.tr))), "lead") : ""].join("");
         html += `<div class="ds-sec" data-testid="ds-abilities"><div class="ds-h">Abilities</div>
-          ${sub("core", "Core", core)}${sub("faction", "Faction", fac)}${sub("datasheet", "Abilities", plain)}${sub("aura", "Auras", auras)}${sub("wargear", "Wargear Abilities", waHtml)}${sub("damaged", "Damaged", dmg)}${sub("leader", "Leader &amp; attachment", lead)}</div>`;
+          ${sub("core", "Core", core)}${sub("faction", "Faction", fac)}${sub("datasheet", "Abilities", plain)}${sub("aura", "Auras", auras)}${sub("psychic", "Psychic Abilities", psy)}${sub("wargear", "Wargear Abilities", waHtml)}${sub("damaged", "Damaged", dmg)}${sub("leader", "Leader &amp; attachment", lead)}</div>`;
+        if (ds.wo && ds.wo.length) html += `<div class="ds-sec" data-testid="ds-wargear-options"><div class="ds-h">Wargear Options</div><ul class="ds-ul">${ds.wo.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
+        if (ds.comp && ds.comp.length) html += `<div class="ds-sec" data-testid="ds-composition"><div class="ds-h">Unit Composition</div><ul class="ds-ul">${ds.comp.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
       } else if (wa.length) html += `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${waHtml}</div>`;
       if (filt && !html.includes("<table") && !wa.length) html += `<div class="muted">No separate profile for ${esc(String(o.item).replace(/\|/g, ", "))}.</div>`;
     }
     if (!filt) {
-      html += `<div class="ds-sec" data-testid="ds-keywords"><div class="ds-h">Keywords</div><div class="ds-ab">${esc((u.kw || []).join(", ") || "—")}</div>
-        <div class="ds-ab"><b>Faction keywords:</b> ${esc(u.fk || F.f.name)}</div></div>`;
+      const dk = ds || {};
+      html += `<div class="ds-sec" data-testid="ds-keywords"><div class="ds-h">Keywords</div><div class="ds-ab">${esc((dk.kwm ? u.kw.filter((k) => !dk.kwm.some((m) => m[1].includes(k))) : u.kw || []).join(", ") || "—")}</div>
+        ${(dk.kwm || []).map((m) => `<div class="ds-ab"><b>${esc(m[0])}:</b> ${esc(m[1].join(", "))}</div>`).join("")}
+        <div class="ds-ab"><b>Faction keywords:</b> ${esc(dk.fkw ? dk.fkw.join(", ") : u.fk || F.f.name)}</div></div>`;
       if (!o.noPoints) html += `<div class="ds-sec"><div class="ds-h">Points (MFM)</div>${pointsTable(u)}</div>`;
     }
     return `<div class="ds" data-testid="datasheet">${html}</div>`;
@@ -1289,6 +1294,7 @@
     modal("About Muster", `<p><b>Muster</b> is an unofficial, offline-capable Warhammer 40,000 army list builder for personal use. It is not affiliated with, endorsed by or connected to Games Workshop. Warhammer 40,000 and all faction names and artwork are trademarks/© of Games Workshop.</p>
       <table class="ptable"><tr><td>Points</td><td>Munitorum Field Manual ${esc(m.mfm_version || "?")}, fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}</td></tr>
       <tr><td>Rules text &amp; stratagems</td><td>GrimSlate (secondary), ${esc(m.gs_fetched_at ? localTime(m.gs_fetched_at) : "?")}</td></tr>
+      <tr><td>Space Marines datasheets, detachments &amp; stratagems</td><td>Codex: Space Marines (11th edition) – overrides GrimSlate for Adeptus Astartes; points stay MFM</td></tr>
       <tr><td>Win rates</td><td>${W ? `listhammer.info, ${esc((W.date_range || {}).label || "")} ${esc((W.date_range || {}).dates || "")}, fetched ${esc(localTime(W.fetched_at))}` : "not loaded"}</td></tr>
       <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} ${SY && SY.session() ? `(synced to your account)` : "(stored only on this device)"}</td></tr>
       ${SY && SY.session() ? `<tr><td>Account</td><td>${esc(SY.user().email || "")} · ${esc(SYNC_TXT[(S.sync || SY.info()).status] || "")} <a href="#" data-action="account">Manage / sign out</a></td></tr>` : ""}</table>

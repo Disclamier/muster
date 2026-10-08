@@ -1,0 +1,25 @@
+## DS Gladiator Reaper
+STATS 10" 10 3+ 12 6+ 3 |
+R Defensive Array | 24" 12 3+ 5 -1 1 | Rapid Fire 12
+R Twin Heavy Onslaught Gatling Cannon | 24" 12 3+ 6 -1 1 | Devastating Wounds: non-Monster/Vehicle, Sustained Hits 2: non-Monster/Vehicle, Twin-linked
+M Armoured Hull | Melee 3 4+ 6 0 1 |
+CORE Damaged 4, Deadly Demise D3
+ARMY Combat Doctrines
+AB Reaping Tally: This unit's ranged attacks that target a unit (excluding MONSTER/VEHICLE units) have +1 AP.
+COMP ■ 1 Gladiator Reaper model
+COMP This model is equipped with: 1 Armoured Hull; 1 Defensive Array; 1 Twin Heavy Onslaught Gatling Cannon.
+KW Vehicle; Frame; Imperium; Smoke
+FKW Adeptus Astartes
+## DS Gladiator Valiant
+STATS 10" 10 3+ 12 6+ 3 |
+R Defensive Array | 24" 6 3+ 5 -1 1 | Rapid Fire 6
+R Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3
+R Twin Las-talon | 36" 2 3+ 10 -3 D3+3 | Twin-linked
+M Armoured Hull | Melee 3 4+ 6 0 1 |
+CORE Damaged 4, Deadly Demise D3
+ARMY Combat Doctrines
+AB Priority Target Acquisition: This unit's ranged attacks that target a unit within 12" of this unit have +1 S.
+COMP ■ 1 Gladiator Valiant model
+COMP This model is equipped with: 1 Armoured Hull; 1 Defensive Array; 2 Multi-melta; 1 Twin Las-talon.
+KW Vehicle; Frame; Imperium; Smoke
+FKW Adeptus Astartes

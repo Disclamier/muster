@@ -1,0 +1,19 @@
+## DS Terminator Assault Squad
+STATS 5" 6 2+ 3 6+ 1 | 4+
+M Thunder Hammer | Melee 3 3+ 8 -2 3 | Devastating Wounds
+M Twin Lightning Claws | Melee 6 3+ 5 -2 1 | Twin-linked
+CORE Deep Strike
+ARMY Combat Doctrines
+AB Teleport Homer (Once per battle, per unit): At the start of the battle, you can set up one Teleport Homer token for this unit on the battlefield. If you do:
+■ When you target this unit with the Rapid Ingress stratagem, you can use that Teleport Homer token. If you do, that use is -1 CP, but when resolving that stratagem, this unit must be set up within 3" of that Teleport Homer token and not within 8" of an enemy unit. That Teleport Homer token is then removed from the battlefield.
+■ If an enemy unit ends a move within 1" of that Teleport Homer token, that Teleport Homer token is removed from the battlefield.
+AB Terminatus Assault: If this unit made a charge move this turn, this unit's:
+■ Lightning Claws weapons have [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+■ Thunder Hammer weapons have [SUSTAINED HITS 1: MONSTER/VEHICLE].
+WA Storm Shield: This model has +1 W.
+WO Any number of models can each have their Twin Lightning Claws replaced with 1 Storm Shield and 1 Thunder Hammer.
+COMP ■ 1 Terminator Sergeant model
+COMP ■ 4-9 Terminator models
+COMP Every model is equipped with: 1 Twin Lightning Claws.
+KW Infantry; Imperium; Terminator
+FKW Adeptus Astartes

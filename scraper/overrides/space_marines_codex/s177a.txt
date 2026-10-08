@@ -1,0 +1,19 @@
+## DS Chief Librarian Tigurius
+STATS 6" 5 3+ 5 6+ 1 | 4+
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+R Storm of the Emperor's Wrath | 18" D3+6 2+ 6 -2 2 | Blast 1, Psychic
+M Rod of Tigurius | Melee 5 2+ 7 -2 2 | Psychic
+CORE Leader
+ARMY Combat Doctrines, Librarius, Transhuman Strategist
+AB Chief Librarian (psyker level 3): This model has the psychic abilities listed in the Psychic Abilities section.
+AB Hood of Hellfire (Psychic): This unit has Feel No Pain 4+ against psychic attacks and mortal wounds.
+PSY Prescience (psychic level 2): In your Movement phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ This unit has +1 Sv until the start of your next turn.
+PSY Telepathic Assault (psychic level 1): In your Shooting phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ Select one visible enemy unit within 24" of this unit. That enemy unit suffers 2D3 mortal wounds.
+COMP ■ 1 Chief Librarian Tigurius model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Rod of Tigurius; 1 Storm of the Emperor's Wrath.
+KW Infantry; Character; Epic Hero; Explosives; Psyker; Tacticus
+FKW Adeptus Astartes; Ultramarines

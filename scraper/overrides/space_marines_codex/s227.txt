@@ -1,0 +1,27 @@
+## DS Storm Speeder Hammerstrike
+STATS 14" 9 3+ 11 6+ 3 |
+R Hammerstrike Missile Launcher | 36" 2 3+ 10 -3 D3+2 |
+R Krakstorm Grenade Launchers | 18" 2 3+ 9 -1 2 |
+R Melta Destroyer | 18" 3 3+ 10 -3 D3+2 | Melta 3
+M Armoured Impact | Melee 3 4+ 6 0 1 |
+CORE Deadly Demise D3, Deep Strike
+ARMY Combat Doctrines
+AB Hammerstrike: This unit's ranged attacks that target an enemy unit within a terrain area have [SUSTAINED HITS 1].
+COMP ■ 1 Storm Speeder Hammerstrike model
+COMP This model is equipped with: 1 Armoured Impact; 1 Hammerstrike Missile Launcher; 1 Krakstorm Grenade Launchers; 1 Melta Destroyer.
+KW Vehicle; Fly; Frame; Imperium; Speeder
+FKW Adeptus Astartes
+## DS Storm Speeder Thunderstrike
+STATS 14" 9 3+ 11 6+ 3 |
+R Stormfury Missile Launcher | 48" 2 3+ 10 -3 D3+3 |
+R Thunderstrike Icarus Rocket Pod | 24" 6 3+ 6 -1 2 | Anti-Fly 2+
+R Thunderstrike Las-talon | 36" 2 3+ 10 -3 D3+3 |
+M Armoured Impact | Melee 3 4+ 6 0 1 |
+CORE Deadly Demise D3, Deep Strike
+ARMY Combat Doctrines
+AB Thunderstrike: This unit's ranged attacks that target a MONSTER/VEHICLE unit have +1 to wound rolls.
+AB Shattered Defences: In your Shooting phase, when this unit has shot, select one enemy MONSTER/VEHICLE unit hit by those attacks. Friendly ADEPTUS ASTARTES units' ranged attacks that target that enemy unit have +1 AP.
+COMP ■ 1 Storm Speeder Thunderstrike model
+COMP This model is equipped with: 1 Armoured Impact; 1 Stormfury Missile Launcher; 1 Thunderstrike Icarus Rocket Pod; 1 Thunderstrike Las-talon.
+KW Vehicle; Fly; Frame; Imperium; Speeder
+FKW Adeptus Astartes

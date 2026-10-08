@@ -1,0 +1,18 @@
+## DS Captain on Bike
+STATS 12" 6 3+ 6 6+ 2 | 4+
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+R Plasma Pistol - Standard | 12" 1 2+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 2+ 8 -3 2 | Close-quarters, Hazardous
+R Twin Bolt Rifle | 24" 2 2+ 5 -1 1 | Assault, Rapid Fire 2, Twin-linked
+M Master-crafted Power Weapon | Melee 6 2+ 6 -2 2 |
+M Thunder Hammer | Melee 5 3+ 8 -2 3 | Devastating Wounds
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Strategic Acumen: In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase.
+AB Into the Fray: If this unit made a charge move this turn, this unit's melee attacks have [CLEAVE 1].
+WO This model's Heavy Bolt Pistol can be replaced with 1 Plasma Pistol.
+WO This model's Master-crafted Power Weapon can be replaced with 1 Thunder Hammer.
+COMP ■ 1 Captain on Bike model
+COMP This model is equipped with: 1 Heavy Bolt Pistol; 1 Master-crafted Power Weapon; 1 Twin Bolt Rifle.
+KW Mounted; Captain; Character; Explosives; Imperium
+FKW Adeptus Astartes

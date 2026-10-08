@@ -1,0 +1,40 @@
+## DS Librarian in Phobos Armour
+STATS 8" 4 3+ 4 6+ 1 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Smite - Focused Witchfire | 24" D3+3 3+ 6 -2 2 | Devastating Wounds, Hazardous, Psychic
+R Smite - Witchfire | 24" D6 3+ 6 -1 2 | Psychic
+M Force Weapon | Melee 4 3+ 6 -2 2 | Psychic
+CORE Deep Strike, Infiltrators, Leader, Scouts 6", Stealth
+ARMY Combat Doctrines, Librarius
+AB Librarian (psyker level 1): This model has the psychic abilities listed in the Psychic Abilities section.
+AB Psychic Hood (Psychic): This unit has Feel No Pain 4+ against psychic attacks.
+PSY Shrouding (psychic level 1): When an enemy unit targets this unit, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ Attacks that target this unit have -1 to hit rolls until the end of the phase.
+PSY Soul Sight (psychic level 1): In your Shooting phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ Select one visible enemy unit. Ranged attacks that target that enemy unit have [IGNORES COVER].
+COMP ■ 1 Librarian in Phobos Armour model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Force Weapon; 1 Smite.
+KW Infantry; Character; Explosives; Imperium; Phobos; Psyker
+FKW Adeptus Astartes
+## DS Librarian in Terminator Armour
+STATS 5" 6 2+ 5 6+ 1 | 4+
+R Smite - Focused Witchfire | 24" D3+3 3+ 6 -2 2 | Devastating Wounds, Hazardous, Psychic
+R Smite - Witchfire | 24" D6 3+ 6 -1 2 | Psychic
+R Storm Bolter | 24" 2 3+ 5 -1 1 | Rapid Fire 2
+M Force Weapon | Melee 4 3+ 6 -2 2 | Psychic
+CORE Deep Strike, Leader
+ARMY Combat Doctrines, Librarius
+AB Librarian (psyker level 1): This model has the psychic abilities listed in the Psychic Abilities section.
+AB Psychic Hood (Psychic): This unit has Feel No Pain 4+ against psychic attacks.
+PSY Might of Heroes (psychic level 1): In the Fight phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ This unit's melee attacks have +2 S.
+PSY Thunderous Force (psychic level 1): In your Shooting phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ This unit's ranged attacks have +6" R.
+COMP ■ 1 Librarian in Terminator Armour model
+COMP This model is equipped with: 1 Force Weapon; 1 Smite; 1 Storm Bolter.
+KW Infantry; Imperium; Psyker; Terminator
+FKW Adeptus Astartes

@@ -1,0 +1,30 @@
+## DS Desolation Squad
+STATS 6" 5 3+ 2 6+ 1 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Castellan Launcher | 24" 2 3+ 5 -1 1 | Heavy
+R Superfrag Rocket Launcher | 48" 4 3+ 5 -1 1 | Blast 1, Heavy
+R Superkrak Rocket Launcher | 48" 1 3+ 10 -2 D3+3 | Heavy
+R Vengor Launcher | 48" 4 3+ 7 -1 2 | Blast 1, Heavy, Indirect Fire
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Targeter Optics: This unit's ranged attacks that target a visible enemy unit have [IGNORES COVER].
+WO The Desolation Sergeant can have their Superfrag Rocket Launcher replaced with 1 Vengor Launcher.
+WO The Desolation Sergeant can have their Superkrak Rocket Launcher replaced with 1 Vengor Launcher.
+WO All models in this unit can each have their Superfrag Rocket Launcher replaced with 1 Superkrak Rocket Launcher.
+COMP ■ 1 Desolation Sergeant model
+COMP ■ 4 Desolation Marine models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Castellan Launcher; 1 Ceramite Fists; 1 Superfrag Rocket Launcher.
+KW Infantry; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes
+## DS Infernus Squad
+STATS 6" 5 3+ 2 6+ 1 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Pyreblaster | 12" 3 N/A 5 -1 1 | Blast 1, Torrent
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Driven from Cover: In your Shooting phase, when this unit has shot, select one enemy unit hit by those attacks. Friendly ADEPTUS ASTARTES units' ranged attacks that target that enemy unit have [IGNORES COVER].
+COMP ■ 1 Infernus Sergeant model
+COMP ■ 4-9 Infernus Marine models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Pyreblaster.
+KW Infantry; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes

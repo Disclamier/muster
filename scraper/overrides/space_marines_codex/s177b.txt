@@ -1,0 +1,15 @@
+## DS Cato Sicarius
+STATS 6" 5 2+ 5 6+ 1 | 4+
+R Artisan Plasma Pistol | 12" 1 2+ 8 -3 2 | Close-quarters
+M Talassarian Tempest Blade - Strike | Melee 5 2+ 6 -3 3 | Devastating Wounds
+M Talassarian Tempest Blade - Coup de Grace | Melee 7 2+ 6 -2 2 | Precision
+M Talassarian Tempest Blade - Sweep | Melee 9 2+ 5 -2 1 | Sustained Hits 1: Infantry
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Captain of the Honour Guard: If your army includes a MARNEUS CALGAR unit, replace this unit's Leader ability with the Support ability (this unit can still be attached to the same units).
+AB Knight Champion of Macragge (Once per phase, per army): In your opponent's Movement phase, when an enemy unit ends a move within 8" of this unit, if this unit is unengaged, this unit can make a normal move of up to 6".
+AB Honour or Death: When you target this unit with the Heroic Intervention stratagem, that use is -1 CP.
+COMP ■ 1 Cato Sicarius model
+COMP This model is equipped with: 1 Artisan Plasma Pistol; 1 Talassarian Tempest Blade.
+KW Infantry; Character; Epic Hero; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes; Ultramarines

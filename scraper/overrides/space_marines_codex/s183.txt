@@ -1,0 +1,30 @@
+## DS Vulkan He'stan
+STATS 6" 5 2+ 5 6+ 1 | 4+
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+R Gauntlet of the Forge | 12" D6+3 N/A 6 -1 1 | Close-quarters, Torrent
+M Spear of Vulkan | Melee 6 2+ 7 -2 2 | Devastating Wounds
+CORE Feel No Pain 6+, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Seeker of the Unfound: The first time this model is set up on the battlefield, select one objective on the battlefield. While this model is within range of that objective, this model has:
+■ 10 OC.
+■ 5+ Ld.
+■ Feel No Pain 4+.
+AB Forgefather: In your Shooting phase, select one visible enemy unit within 24" of this model. Friendly ADEPTUS ASTARTES units' [MELTA]/[TORRENT] attacks that target that enemy unit have +2 S.
+COMP ■ 1 Vulkan He'stan model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Gauntlet of the Forge; 1 Spear of Vulkan.
+KW Infantry; Character; Epic Hero; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes; Salamanders
+## DS Adrax Agatone
+STATS 6" 5 2+ 5 6+ 1 | 4+
+R Drakkis | 12" D6+3 N/A 5 -1 1 | Close-quarters, Torrent
+M Malleus Noctum | Melee 5 2+ 10 -2 3 | Devastating Wounds
+CORE Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Lord of the Pyroclasts: While an enemy unit is engaged with this unit, that enemy unit has -1 OC.
+AB Unto the Anvil: This unit's melee attacks can:
+■ Re-roll wound rolls of 1.
+■ Or: If the assault doctrine is active for this unit, re-roll wound rolls.
+COMP ■ 1 Adrax Agatone model
+COMP This model is equipped with: 1 Drakkis; 1 Malleus Noctum.
+KW Infantry; Captain; Character; Epic Hero; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes; Salamanders

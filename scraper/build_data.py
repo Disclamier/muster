@@ -20,6 +20,9 @@ points.json schema (compact keys):
 import argparse, datetime as dt, hashlib, json, os, re, sys
 from collections import Counter
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import codex_override  # noqa: E402  committed codex override layer (Space Marines 11th-ed codex)
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 
@@ -166,6 +169,7 @@ def merge(mfm, gs):
     stats = Counter()
     unmatched_dets, out_factions = [], []
     ds_out = merge.datasheets = {}
+    merge.codex_report = {}
     for mf in mfm["factions"]:
         gf = gsf.get(SLUG_MAP.get(mf["id"], mf["id"]))
         fu = {}
@@ -308,7 +312,13 @@ def merge(mfm, gs):
                 stats["units_with_datasheet"] += 1
                 stats["units_with_weapon_profiles"] += bool(cds["wp"])
                 stats["units_with_abilities"] += bool(cds["ab"] or cds["cr"] or cds["fa"])
-        ds_out[mf["id"]] = {"rules": [[r.get("name"), r.get("text") or ""] for r in frules], "units": f_ds}
+        f_rules = [[r.get("name"), r.get("text") or ""] for r in frules]
+        # codex override layer: beats GrimSlate for datasheets / loadouts / detachment rules+stratagems+enhancement text
+        codex_override.apply(mf["id"], units, dets, f_ds, f_rules,
+                             {x["n"]: [{"name": w[0]} for w in x.get("w") or []] for x in units},
+                             stats, merge.codex_report, role_from_keywords)
+        units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))
+        ds_out[mf["id"]] = {"rules": f_rules, "units": f_ds}
         out_factions.append({"id": mf["id"], "name": mf["name"], "url": mf["url"], "units": units, "dets": dets})
     return out_factions, stats, unmatched_dets
 
@@ -493,7 +503,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             print("warn: winrates not bundled:", e, file=sys.stderr)
     # datasheets (GrimSlate profiles/abilities) - separate file so rules-text changes never touch the points hash
-    dsb = {"source": "GrimSlate (profiles, abilities, keywords)", "gs_fetched_at": gs.get("fetched_at"),
+    dsb = {"source": "GrimSlate (profiles, abilities, keywords); Codex: Space Marines 11th ed. override (scraper/overrides)", "gs_fetched_at": gs.get("fetched_at"),
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
            "weapon_keywords": gs.get("weapon_keywords") or {}, "factions": merge.datasheets}
     # hash the content only (not the fetch time) so an unchanged GrimSlate isn't republished every day
@@ -523,6 +533,9 @@ def main():
           f"{s['loadout_options']} options; MFM priced wargear linked to options: {s['wargear_linked']}/{s['wargear_priced']}", file=sys.stderr)
     print(f"  duplicate unit names disambiguated: {s['renamed_duplicate_units']}", file=sys.stderr)
     print(f"  factions with artwork: {s['factions_with_images']}/{len(factions)}", file=sys.stderr)
+    print(f"  codex override: {s['codex_datasheets']} datasheets, {s['codex_detachments']} detachments, "
+          f"{s['codex_stratagems']} stratagems, {s['codex_enhancements']} enhancement texts", file=sys.stderr)
+    json.dump(merge.codex_report, open(os.path.join(ROOT, "data", "codex_report.json"), "w"), indent=1, ensure_ascii=False)
     stats_path = os.path.join(ROOT, "data", "build_stats.json")
     json.dump({"stats": dict(s), "unmatched_mfm_detachments": unmatched}, open(stats_path, "w"), indent=1)
 

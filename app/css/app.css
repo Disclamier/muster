@@ -440,7 +440,7 @@ details.ds-ab summary { cursor: pointer; }
 .ab-h::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .ab-card { background: var(--sect); border: 1px solid var(--border); border-left: 3px solid var(--border); border-radius: 6px; padding: 6px 9px; margin: 0 0 6px; line-height: 1.4; }
 .ab-n { font-weight: 700; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-.ab-t { margin-top: 2px; }
+.ab-t { margin-top: 2px; white-space: pre-line; }
 .ab-ul { margin: 2px 0 0; padding-left: 18px; }
 .ab-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .ab-chip { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1px 9px; font-size: 12px; font-weight: 600; }
@@ -450,6 +450,10 @@ details.ab-card summary.ab-n { display: list-item; }
 .ab-card.aura { border-left-color: #8a5cd1; background: color-mix(in srgb, #8a5cd1 9%, var(--sect)); }
 .aura-badge { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: #8a5cd1; border-radius: 4px; padding: 1px 6px; }
 .ab-card.dmg { border-left-color: var(--red); background: color-mix(in srgb, var(--red) 8%, var(--sect)); }
+.ab-card.psy { border-left-color: #2a9fb8; background: color-mix(in srgb, #2a9fb8 9%, var(--sect)); }
+.ds-src { font-size: 11px; margin: -4px 0 8px; }
+.ds-ul { margin: 4px 0 4px 18px; padding: 0; font-size: 13px; }
+.ds-ul li { margin: 2px 0; }
 .ab-card.lead { border-left-color: var(--green); }
 .ab-card.eq { border-left-color: var(--cost); }
 .ab-card.uneq { opacity: .55; }

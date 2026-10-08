@@ -1,0 +1,22 @@
+## DS Land Raider
+STATS 10" 12 2+ 16 6+ 5 |
+R Godhammer Lascannon | 48" 2 3+ 12 -3 D3+3 |
+R Hunter-killer Missile | 48" 1 2+ 14 -3 D3+3 | One Shot
+R Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3
+R Storm Bolter | 24" 2 3+ 5 -1 1 | Rapid Fire 2
+R Twin Heavy Bolter | 36" 3 3+ 5 -1 2 | Rapid Fire 2, Sustained Hits 1, Twin-linked
+M Armoured Tracks | Melee 6 4+ 8 0 1 |
+CORE Damaged 6, Deadly Demise D6
+ARMY Combat Doctrines
+AB Assault Ramp: In your Movement phase, when this unit ends a normal move, units embarked within this unit can make an assault disembark move (pg 157).
+AB Power of the Machine Spirit: This unit's ranged attacks can:
+■ Re-roll one hit roll.
+■ Re-roll one wound roll.
+TRANS This model has a transport capacity of 14 ADEPTUS ASTARTES INFANTRY models. It cannot transport JUMP PACK models. Each GRAVIS/TERMINATOR model takes up the space of 2 models.
+WO This model can be equipped with 1 Hunter-killer Missile.
+WO This model can be equipped with 1 Multi-melta.
+WO This model can be equipped with 1 Storm Bolter.
+COMP ■ 1 Land Raider model
+COMP This model is equipped with: 1 Armoured Tracks; 2 Godhammer Lascannon; 1 Twin Heavy Bolter.
+KW Vehicle; Frame; Imperium; Smoke; Transport
+FKW Adeptus Astartes

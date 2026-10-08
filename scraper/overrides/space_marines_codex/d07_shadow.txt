@@ -1,0 +1,28 @@
+## DET Phobos Shadow Force
+UNIQUE Phobos
+RULE Shadow Masters
+When a friendly PHOBOS or SCOUT SQUAD unit has shot:
+■ Those attacks do not prevent that unit from being hidden.
+■ Or: That unit can make a normal move of up to D6". That unit is not eligible to declare a charge until the end of the turn.
+ENH Venator Omni-auspex
+PHOBOS model only. This unit's attacks that target a hidden unit can:
+■ Re-roll wound rolls of 1.
+■ Or: If the assault doctrine is active for this unit, re-roll wound rolls of 1 and 2.
+ENH Execute and Redeploy
+PHOBOS model only. In your Shooting phase, after this unit has shot, if this unit is unengaged, this unit can make a normal move of up to 6". If it does, this unit is not eligible to declare a charge until the end of the turn.
+STRAT Strike from the Shadows | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly hidden PHOBOS unit is selected to attack.
+TARGET: That PHOBOS unit.
+EFFECT: Your unit's attacks have:
+■ +1 S.
+■ [LETHAL HITS].
+STRAT Mortis Snares | 1
+WHEN: End of your Movement phase.
+TARGET: One friendly unengaged PHOBOS/SCOUT SQUAD unit.
+EFFECT: If your unit is controlling an objective, that objective is snared. While an objective is snared, when an enemy unit ends a move within range of that objective, roll one D6:
+■ On a 2+, that enemy unit suffers D6 mortal wounds.
+■ That objective is no longer snared.
+STRAT Tactical Withdrawal | 1
+WHEN: End of your opponent's Fight phase.
+TARGET: One friendly unengaged PHOBOS/SCOUT SQUAD unit.
+EFFECT: Place your unit in strategic reserves.

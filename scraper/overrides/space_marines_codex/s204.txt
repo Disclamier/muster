@@ -1,0 +1,30 @@
+## DS Heavy Intercessor Squad
+STATS 5" 6 3+ 3 6+ 2 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Heavy Bolt Rifle | 30" 2 3+ 5 -1 2 | Heavy, Rapid Fire 1
+R Heavy Bolter | 36" 3 3+ 5 -1 2 | Heavy, Rapid Fire 2, Sustained Hits 1
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Unyielding in the Face of the Foe: While this unit is controlling an objective, this unit has +1 to save rolls.
+WO For every 5 models in this unit, 1 Heavy Intercessor model can have their Heavy Bolt Rifle replaced with 1 Heavy Bolter.
+COMP ■ 1 Heavy Intercessor Sergeant model
+COMP ■ 4-9 Heavy Intercessor models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Heavy Bolt Rifle.
+KW Infantry; Battleline; Explosives; Gravis; Imperium
+FKW Adeptus Astartes
+## DS Hellblaster Squad
+STATS 6" 5 3+ 2 6+ 1 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Plasma Incinerator - Standard | 24" 2 3+ 7 -2 2 | Assault, Rapid Fire 1
+R Plasma Incinerator - Supercharge | 24" 2 3+ 8 -3 2 | Assault, Hazardous, Rapid Fire 1
+R Plasma Pistol - Standard | 12" 1 3+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 3+ 8 -3 2 | Close-quarters, Hazardous
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Rites of Thermal Appeasement: This unit has +1 to hazard rolls made for its Plasma Incinerator and Plasma Pistol weapons.
+WO The Hellblaster Sergeant can have their Bolt Pistol replaced with 1 Plasma Pistol.
+COMP ■ 1 Hellblaster Sergeant model
+COMP ■ 4-9 Hellblaster models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Plasma Incinerator.
+KW Infantry; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes

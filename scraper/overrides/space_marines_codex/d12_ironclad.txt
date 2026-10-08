@@ -1,0 +1,21 @@
+## DET Ironclad Champions
+RULE Enduring Vengeance
+Friendly ADEPTUS ASTARTES DREADNOUGHT units can re-roll hit rolls of 1.
+ENH Artificer Sarcophagus | upgrade
+DREADNOUGHT unit only. Attacks that target this unit have -1 D.
+ENH Venerable Champion (Aura) | upgrade
+DREADNOUGHT unit only. While a friendly ADEPTUS ASTARTES INFANTRY/MOUNTED unit is within 6" of this unit, that unit's attacks can re-roll hit rolls of 1.
+STRAT Adamantine Terror | 1
+WHEN: Start of the Fight phase.
+TARGET: One friendly DREADNOUGHT unit.
+EFFECT: Each enemy unit engaged with your unit makes a battle-shock roll, with -1 to that battle-shock roll.
+STRAT Mercy Is Weakness | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly DREADNOUGHT unit is selected to attack.
+TARGET: That DREADNOUGHT unit.
+EFFECT: Your unit's attacks have:
+■ [LETHAL HITS].
+■ Or: [SUSTAINED HITS 1].
+STRAT Unstoppable Advance | 1
+WHEN: Your Movement/Charge phase, when a friendly DREADNOUGHT unit is selected to move or declares a charge.
+TARGET: That DREADNOUGHT unit.
+EFFECT: Your unit has MOBILE.

@@ -1,0 +1,28 @@
+## DS Lieutenant in Phobos Armour
+STATS 8" 4 3+ 4 6+ 1 | 
+R Master-crafted Bolt Carbine | 24" 2 2+ 5 -1 2 | Assault, Rapid Fire 1
+R Special-issue Bolt Pistol | 12" 1 2+ 5 -2 2 | Close-quarters, Precision
+M Monomolecular Combat Blades | Melee 6 2+ 5 -1 1 | Precision, Sustained Hits 1
+CORE Deep Strike, Infiltrators, Scouts 6", Support
+ARMY Combat Doctrines
+AB Demi-company Commander (Once per turn, per unit): When a friendly CAPTAIN unit uses its Strategic Acumen ability, you can use this ability. If you do, the selected combat doctrine is active for this unit until the start of your next Command phase.
+AB Tactical Precision: This unit's attacks have [LETHAL HITS: non-MONSTER/VEHICLE].
+WO This model's Special-issue Bolt Pistol can be replaced with 1 Master-crafted Bolt Carbine.
+COMP ■ 1 Lieutenant in Phobos Armour model
+COMP This model is equipped with: 1 Monomolecular Combat Blades; 1 Special-issue Bolt Pistol.
+KW Infantry; Character; Explosives; Imperium; Phobos; Smoke
+FKW Adeptus Astartes
+## DS Lieutenant with Combi-weapon
+STATS 8" 4 3+ 4 6+ 1 | 
+R Combi-weapon - Bolter | 24" 2 2+ 5 -1 2 | Assault, Rapid Fire 1
+R Combi-weapon - Flamer | 12" 3 N/A 5 -1 1 | Assault, Blast 1, Torrent
+M Paired Combat Blades | Melee 6 2+ 5 -1 1 | Sustained Hits 1
+CORE Feel No Pain 5+, Infiltrators, Lone Operative, Stealth
+ARMY Combat Doctrines
+AB Priority Target Identified (Once per battle, per unit): In your Command phase, you can use this ability. If you do, select one visible terrain feature. That terrain feature is identified until the end of the turn.
+■ While an enemy unit is within an identified terrain feature, that enemy unit has +3" detection range.
+AB Evade and Survive (Once per phase, per unit): In your opponent's Movement phase, when an enemy unit ends a move within 8" of this unit, if this unit is unengaged, this unit can make a normal move of up to D3+3".
+COMP ■ 1 Lieutenant with Combi-weapon model
+COMP This model is equipped with: 1 Combi-weapon; 1 Paired Combat Blades.
+KW Infantry; Character; Explosives; Imperium; Phobos; Smoke
+FKW Adeptus Astartes

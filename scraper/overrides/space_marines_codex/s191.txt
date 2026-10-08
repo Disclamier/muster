@@ -1,0 +1,25 @@
+## DS Lieutenant
+STATS 6" 5 3+ 4 6+ 1 | 
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+R Master-crafted Bolter | 24" 2 2+ 5 -1 2 |
+R Neo-volkite Pistol | 12" 1 2+ 5 0 2 | Close-quarters, Devastating Wounds
+R Plasma Pistol - Standard | 12" 1 2+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 2+ 8 -3 2 | Close-quarters, Hazardous
+M Ceramite Fists | Melee 5 2+ 5 0 1 |
+M Master-crafted Power Weapon | Melee 5 2+ 6 -2 2 |
+M Power Fist | Melee 4 2+ 8 -2 2 |
+CORE Support
+ARMY Combat Doctrines
+AB Demi-company Commander (Once per turn, per unit): When a friendly CAPTAIN unit uses its Strategic Acumen ability, you can use this ability. If you do, the selected combat doctrine is active for this unit until the start of your next Command phase.
+AB Tactical Precision: This unit's attacks have [LETHAL HITS: non-MONSTER/VEHICLE].
+WA Storm Shield: This model has 4+ InSv.
+WO This model's Master-crafted Bolter and Bolt Pistol can be replaced with 1 Neo-volkite Pistol and 1 Master-crafted Power Weapon.
+WO If this model is equipped with 1 Neo-volkite Pistol, it can be equipped with 1 Storm Shield (this model's 1 Neo-volkite Pistol cannot be replaced).
+WO This model's Bolt Pistol can be replaced with 1 Heavy Bolt Pistol.
+WO This model's Master-crafted Bolter can be replaced with one of the following: 1 Master-crafted Power Weapon; 1 Plasma Pistol; 1 Power Fist.
+WO This model's Ceramite Fists can be replaced with one of the following: 1 Master-crafted Power Weapon; 1 Power Fist.
+COMP ■ 1 Lieutenant model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Master-crafted Bolter.
+KW Infantry; Character; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes

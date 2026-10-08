@@ -1,0 +1,33 @@
+## DS Infiltrator Squad
+STATS 8" 4 3+ 2 6+ 1 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Marksman Bolt Carbine | 24" 2 3+ 5 -1 1 | Precision, Rapid Fire 1
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+CORE Infiltrators
+ARMY Combat Doctrines
+AB Omni-scramblers: In your Shooting phase, you can select one visible enemy unit within 18" of this unit. That unit is detected:
+■ While a unit is detected, that unit has +3" detection range.
+WA Helix Gauntlet: In your Command phase, this unit heals D3 wounds.
+WO 1 model can be equipped with 1 Helix Gauntlet.
+COMP ■ 1 Infiltrator Sergeant model
+COMP ■ 4-9 Infiltrator models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Marksman Bolt Carbine.
+KW Infantry; Explosives; Imperium; Phobos; Smoke
+FKW Adeptus Astartes
+## DS Bladeguard Veteran Squad
+STATS 6" 5 3+ 3 6+ 1 | 4+
+R Heavy Bolt Pistol | 18" 1 3+ 5 -1 1 | Close-quarters
+R Neo-volkite Pistol | 12" 1 3+ 5 0 2 | Close-quarters, Devastating Wounds
+R Plasma Pistol - Standard | 12" 1 3+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 3+ 8 -3 2 | Close-quarters, Hazardous
+M Master-crafted Power Sword | Melee 4 3+ 5 -2 2 |
+ARMY Combat Doctrines
+AB Bladeguard (Once per turn, per unit): In the Fight phase, when this unit is selected to fight or when an enemy unit targets this unit, you can select one of the following:
+■ This unit's melee attacks have +1 to hit rolls.
+■ Or: Attacks that target this unit have -1 to hit rolls.
+WO The Bladeguard Veteran Sergeant can have their Heavy Bolt Pistol replaced with one of the following: 1 Neo-volkite Pistol; 1 Plasma Pistol.
+COMP ■ 1 Bladeguard Veteran Sergeant model
+COMP ■ 2-5 Bladeguard Veteran models
+COMP Every model is equipped with: 1 Heavy Bolt Pistol; 1 Master-crafted Power Sword.
+KW Infantry; Explosives; Imperium; Tacticus
+FKW Adeptus Astartes

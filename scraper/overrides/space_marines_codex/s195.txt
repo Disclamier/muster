@@ -1,0 +1,31 @@
+## DS Judiciar
+STATS 6" 5 3+ 4 6+ 1 | 4+ (against melee attacks only)
+R Absolvor Bolt Pistol | 18" 1 3+ 5 -2 2 | Close-quarters
+M Executioner Relic Blade | Melee 5 2+ 7 -2 2 | Devastating Wounds, Precision
+CORE Fights First, Support
+ARMY Combat Doctrines
+AB Tempormortis: This unit has Fights First.
+COMP ■ 1 Judiciar model
+COMP This model is equipped with: 1 Absolvor Bolt Pistol; 1 Executioner Relic Blade.
+KW Infantry; Character; Imperium; Tacticus
+FKW Adeptus Astartes
+## DS Librarian
+STATS 6" 5 3+ 4 6+ 1 | 
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Smite - Focused Witchfire | 24" D3+3 3+ 6 -2 2 | Devastating Wounds, Hazardous, Psychic
+R Smite - Witchfire | 24" D6 3+ 6 -1 2 | Psychic
+M Force Weapon | Melee 4 3+ 6 -2 2 | Psychic
+CORE Leader
+ARMY Combat Doctrines, Librarius
+AB Librarian (psyker level 1): This model has the psychic abilities listed in the Psychic Abilities section.
+AB Psychic Hood (Psychic): This unit has Feel No Pain 4+ against psychic attacks.
+PSY Veil of Time (psychic level 1): When this unit is selected to make an advance move, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ This unit can change that advance roll to a 6.
+PSY Force Dome (psychic level 1): In your Movement phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:
+■ On a 1, this unit is battle-shocked.
+■ This unit has 4+ InSv until the start of your next turn.
+COMP ■ 1 Librarian model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Force Weapon; 1 Smite.
+KW Infantry; Character; Explosives; Imperium; Psyker; Tacticus
+FKW Adeptus Astartes

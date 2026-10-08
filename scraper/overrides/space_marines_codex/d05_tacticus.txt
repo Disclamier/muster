@@ -1,0 +1,24 @@
+## DET Tacticus Attack Force
+UNIQUE Tacticus
+RULE Wrath of the Chapter
+Friendly TACTICUS units can re-roll advance rolls.
+ENH Martial Paragon
+TACTICUS model only. This unit's attacks can:
+■ Re-roll one hit roll.
+■ Re-roll one wound roll.
+ENH Spearpoint War Leader
+TACTICUS model only. This unit has Scouts 6".
+STRAT Relentless Assault | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly TACTICUS unit is selected to attack.
+TARGET: That TACTICUS unit.
+EFFECT: Your unit's attacks have:
+■ [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+■ Or: [LETHAL HITS: MONSTER/VEHICLE].
+STRAT Transhuman Swiftness | 1
+WHEN: Fight phase, when an enemy unit has fought.
+TARGET: One friendly TACTICUS unit that is within range of an objective and is eligible to fight.
+EFFECT: Your unit has Fights First and must be the next unit you select to fight.
+STRAT Tactical Focus | 1
+WHEN: Fight phase, when a friendly TACTICUS unit is selected to make a consolidation move.
+TARGET: That TACTICUS unit.
+EFFECT: When making that consolidation move, your unit can move up to D3+3".

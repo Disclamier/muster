@@ -1,0 +1,22 @@
+## DET Gauntlet Task Force
+RULE Combined Deployment
+In your Shooting phase, when a friendly ADEPTUS ASTARTES TRANSPORT unit has shot, you can select one enemy unit hit by those attacks. That enemy unit is assailed until the end of the turn:
+■ While a unit is assailed, when an ADEPTUS ASTARTES unit that disembarked this turn targets that unit, those attacks have [SUSTAINED HITS 1].
+ENH Linebreaker Onslaught
+ADEPTUS ASTARTES INFANTRY model only. If this unit disembarked this turn:
+■ This unit can re-roll charge rolls.
+■ Enemy units cannot target this unit with snap shooting attacks.
+ENH Damocles-class Uplink
+CAPTAIN model only. In your Movement phase, if this unit is embarked within a TRANSPORT unit, you can select one friendly ADEPTUS ASTARTES INFANTRY unit within 6" of that TRANSPORT unit and select one combat doctrine. That combat doctrine is active for that INFANTRY unit.
+STRAT Aggressive Disembarkation | 1
+WHEN: Any phase, when a friendly ADEPTUS ASTARTES unit embarked within a TRANSPORT is selected to move.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: While making that move, each model in your unit can be set up within the set-up distance of that TRANSPORT. (This allows you to set up your unit within the set-up distance of your TRANSPORT, instead of wholly within that distance.)
+STRAT Duty Is Never Done | 1
+WHEN: End of the Fight phase.
+TARGET: One friendly unengaged ADEPTUS ASTARTES INFANTRY unit that was eligible to fight this phase, is wholly within 6" of a friendly TRANSPORT unit, and is eligible to embark within that TRANSPORT unit.
+EFFECT: Your unit embarks within that TRANSPORT unit.
+STRAT Storm and Secure | 1
+WHEN: End of your Movement phase.
+TARGET: One friendly ADEPTUS ASTARTES TRANSPORT unit that has an ADEPTUS ASTARTES BATTLELINE unit embarked within it.
+EFFECT: Select one objective your unit is controlling. That objective is secured.

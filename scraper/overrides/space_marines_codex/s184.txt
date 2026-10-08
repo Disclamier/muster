@@ -1,0 +1,32 @@
+## DS Caanok Var
+STATS 5" 6 2+ 6 6+ 1 | 4+
+R Storm Bolter | 24" 2 2+ 5 -1 1 | Rapid Fire 2
+M Axiom | Melee 5 2+ 8 -3 2 | Cleave 1
+CORE Deep Strike, Feel No Pain 5+, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Cold and Calculating: In your Shooting phase or the Fight phase, when this unit is selected to attack, you can select one of the following for this unit's attacks to have:
+■ [LETHAL HITS: MONSTER/VEHICLE].
+■ Or: [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+■ Or: If the tactical doctrine is active for this unit, [LETHAL HITS: MONSTER/VEHICLE] and [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+AB Cerebrex Logic Engine: In the Declare Battle Formations step, you can select one friendly ADEPTUS ASTARTES INFANTRY unit. That unit has Scouts 6".
+COMP ■ 1 Caanok Var model
+COMP This model is equipped with: 1 Axiom; 1 Storm Bolter.
+KW Infantry; Captain; Character; Epic Hero; Imperium; Terminator
+FKW Adeptus Astartes; Iron Hands
+## DS Iron Father Feirros
+STATS 5" 6 2+ 6 6+ 1 | 
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+R Gorgon's Wrath | 36" 3 2+ 6 -1 2 | Rapid Fire 2, Sustained Hits 2
+M Harrowhand | Melee 6 3+ 7 -2 2 |
+M Medusan Manipuli | Melee 2 3+ 10 -2 3 | Extra Attacks
+CORE Feel No Pain 5+, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Master of the Forge: In your Movement phase, at the start or end of this unit's move, you can select one friendly ADEPTUS ASTARTES VEHICLE model within 3" of this model:
+■ That VEHICLE model heals 3 wounds.
+■ That VEHICLE model's attacks can ignore modifiers to the following until the start of your next Movement phase: BS; Hit rolls and wound rolls.
+AB Rites of Tempering: Attacks that target this unit with a S greater than this unit's T have -1 to wound rolls.
+AB Iron Father: While this model is within 3" of a friendly ADEPTUS ASTARTES VEHICLE unit, this unit has Lone Operative.
+COMP ■ 1 Iron Father Feirros model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Gorgon's Wrath; 1 Harrowhand; 1 Medusan Manipuli.
+KW Infantry; Character; Epic Hero; Gravis; Imperium
+FKW Adeptus Astartes; Iron Hands

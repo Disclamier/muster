@@ -1,0 +1,48 @@
+## DET Assault Brethren
+UNIQUE Doctrines
+RULE Assault Mastery
+You can select the assault doctrine one additional time per battle.
+ENH Imperium's Sword
+ADEPTUS ASTARTES model only. This model has the following weapon:
+Imperium's Sword (Melee): Range Melee, A 6, WS 2+, S 7, AP -3, D 3.
+ENH Furious Assault | upgrade
+ADEPTUS ASTARTES INFANTRY unit only. This unit's melee attacks have [SUSTAINED HITS 1: non-MONSTER/VEHICLE].
+STRAT Armour of Contempt | 1
+WHEN: Your opponent's Shooting phase or the Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Attacks that target your unit have -1 AP until that enemy unit has attacked.
+STRAT Gene-wrought Might | 1
+WHEN: Fight phase, when a friendly ADEPTUS ASTARTES unit is selected to fight.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Your unit's melee attacks have:
+■ [LANCE].
+■ Or: If the assault doctrine is active for your unit, [LANCE] and +1 AP.
+STRAT Duty in Death | 1
+WHEN: Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: When a model in your unit is destroyed, if your unit has not been selected to fight this phase, roll one D6, with +1 to that roll if the assault doctrine is active for your unit:
+■ On a 4+, do not remove that model from the battlefield. When your unit has fought, or at the end of the phase (whichever comes first), that model is removed from the battlefield.
+
+## DET Tactical Brethren
+UNIQUE Doctrines
+RULE Tactical Mastery
+You can select the tactical doctrine one additional time per battle.
+ENH Laurels of Vigilance
+ADEPTUS ASTARTES model only. (Once per battle round, per army) When you use the Fire Overwatch/Heroic Intervention stratagem, if you target a friendly ADEPTUS ASTARTES BATTLELINE unit within 12" of this model with that stratagem, that use is -1 CP.
+ENH Tactical Insight
+CAPTAIN model only. The tactical doctrine is active for this unit in addition to any other combat doctrine.
+STRAT Armour of Contempt | 1
+WHEN: Your opponent's Shooting phase or the Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Attacks that target your unit have -1 AP until that enemy unit has attacked.
+STRAT Domination Fire | 1
+WHEN: Your Shooting phase, when a friendly ADEPTUS ASTARTES unit has shot.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Select one enemy unit hit by those attacks. That enemy unit is suppressed until the start of your next turn:
+■ While a unit is suppressed, that unit's attacks have -1 to hit rolls.
+STRAT Masterful Tactics | 1
+WHEN: Your opponent's Movement phase, when an enemy unit ends a move within 8" of a friendly unengaged ADEPTUS ASTARTES INFANTRY/MOUNTED unit.
+TARGET: That ADEPTUS ASTARTES INFANTRY/MOUNTED unit.
+EFFECT: Your unit can make a normal move of:
+■ Up to D6".
+■ Or: If the tactical doctrine is active for your unit, up to 6".

@@ -1,0 +1,22 @@
+## DET Stormlance Task Force
+RULE Lightning-fast Strike
+Friendly ADEPTUS ASTARTES MOUNTED/SPEEDER units have +2" M.
+ENH Supercharged Engines | upgrade
+ADEPTUS ASTARTES MOUNTED unit only. This unit can re-roll advance rolls.
+ENH Auspex Triangulation Shrines | upgrade
+ADEPTUS ASTARTES SPEEDER unit only. At the start of your Shooting phase, select one visible enemy unit within 12" of this unit. That enemy unit is spotted:
+■ While a unit is spotted, that unit has +3" detection range.
+STRAT Wind-swift Evasion | 1
+WHEN: End of the Fight phase.
+TARGET: One friendly ADEPTUS ASTARTES MOUNTED unit that was eligible to fight this phase.
+EFFECT:
+■ If your unit is unengaged, your unit can make a normal move.
+■ Or: If your unit is engaged, your unit can make a fall-back move.
+STRAT Sudden Onslaught | 1
+WHEN: Your Movement phase, when a friendly ADEPTUS ASTARTES MOUNTED/SPEEDER unit is selected to make an advance move.
+TARGET: That ADEPTUS ASTARTES MOUNTED/SPEEDER unit.
+EFFECT: Your unit can change its advance rolls to a 6.
+STRAT Hurtling Targets | 1
+WHEN: Your opponent's Shooting phase, when an enemy unit targets a friendly ADEPTUS ASTARTES MOUNTED/SPEEDER unit.
+TARGET: That ADEPTUS ASTARTES MOUNTED/SPEEDER unit.
+EFFECT: Ranged attacks that target your unit have -1 to hit rolls.

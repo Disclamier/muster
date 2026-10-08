@@ -1,0 +1,19 @@
+## DS Victrix Honour Guard
+STATS 6" 5 2+ 3 6+ 2 |
+R Master-crafted Bolt Carbine | 24" 2 2+ 5 -1 2 | Assault, Rapid Fire 1
+M Blades of Honour | Melee 6 2+ 6 -2 2 | Precision, Twin-linked
+M Master-crafted Power Weapon | Melee 5 2+ 5 -2 2 |
+ARMY Combat Doctrines
+AB Glory of Ultramar: In your opponent's Shooting phase, when an enemy unit has shot, if a model in this unit was destroyed by those attacks, this unit can make a surge move of up to D6".
+AB Honour Guard of Macragge: Attacks that target this unit have -1 to wound rolls.
+WA Banner of Macragge: 
+■ At the end of your Movement phase, if this unit is controlling an objective, that objective is secured.
+■ (Once per battle, per army) When this unit is selected to fight, you can use this ability. If you do, this unit's melee attacks have +1 A and S.
+COMP ■ 0-1 Chapter Ancient model
+COMP ■ 0-1 Chapter Champion model
+COMP ■ 1-6 Victrix Honour Guard models
+COMP The Chapter Ancient is equipped with: Banner of Macragge; 1 Master-crafted Bolt Carbine; 1 Master-crafted Power Weapon.
+COMP The Chapter Champion is equipped with: 1 Blades of Honour.
+COMP Every Victrix Honour Guard is equipped with: 1 Master-crafted Bolt Carbine; 1 Master-crafted Power Weapon.
+KW All models: Infantry; Imperium; Tacticus | Chapter Ancient: Ancient; Epic Hero | Chapter Champion: Champion; Epic Hero
+FKW Adeptus Astartes; Ultramarines

@@ -1,0 +1,22 @@
+## DS Captain with Jump Pack
+STATS 12" 5 3+ 5 6+ 1 | 4+
+R Hand Flamer | 9" 3 N/A 4 0 1 | Close-quarters, Torrent
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+R Plasma Pistol - Standard | 12" 1 2+ 7 -2 1 | Close-quarters
+R Plasma Pistol - Supercharge | 12" 1 2+ 8 -3 2 | Close-quarters, Hazardous
+M Chainsword | Melee 8 2+ 5 -1 1 | Sustained Hits 1
+M Power Fist | Melee 5 2+ 8 -2 2 |
+M Relic Weapon | Melee 6 2+ 6 -2 2 |
+M Thunder Hammer | Melee 5 3+ 8 -2 3 | Devastating Wounds
+CORE Deep Strike, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Strategic Acumen: In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase.
+AB Angel's Wrath: This unit has +1 to advance rolls and charge rolls.
+WA Relic Shield: This model has +1 W.
+WO This model's Heavy Bolt Pistol can be replaced with one of the following: 1 Hand Flamer; 1 Plasma Pistol.
+WO This model's Chainsword can be replaced with one of the following: 1 Power Fist; 1 Relic Weapon.
+WO This model's Heavy Bolt Pistol and Chainsword can be replaced with one of the following: 1 Thunder Hammer and 1 Relic Shield; 1 Chainsword and 1 Relic Shield.
+COMP ■ 1 Captain with Jump Pack model
+COMP This model is equipped with: 1 Chainsword; 1 Heavy Bolt Pistol.
+KW Infantry; Captain; Character; Explosives; Fly; Imperium; Jump Pack; Tacticus
+FKW Adeptus Astartes

@@ -1,0 +1,37 @@
+## DS Incursor Squad
+STATS 8" 4 3+ 2 6+ 1 |
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Occulus Bolt Carbine | 24" 2 3+ 5 -1 1 | Assault, Ignores Cover
+M Paired Combat Blades | Melee 3 3+ 5 -1 1 | Sustained Hits 1
+CORE Scouts 6"
+ARMY Combat Doctrines
+AB Divinator-class Auspexes (Once per phase, per unit): In your Shooting phase, when a friendly ADEPTUS ASTARTES unit is selected to shoot, you can use this ability. If you do, select one visible enemy unit within 18" of this unit. That unit is scanned:
+■ While a unit is scanned, ranged attacks that target that unit can re-roll hit rolls of 1.
+AB Haywire Mine (Once per battle, per unit): In your Shooting phase, you can select one visible enemy unit within 6" of this unit and roll one D6. On a 2+:
+■ That enemy unit suffers D3 mortal wounds.
+■ Or: If that enemy unit is a VEHICLE unit, that enemy unit suffers 2D3 mortal wounds.
+COMP ■ 1 Incursor Sergeant model
+COMP ■ 4-9 Incursor models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Occulus Bolt Carbine; 1 Paired Combat Blades.
+KW Infantry; Explosives; Imperium; Phobos; Smoke
+FKW Adeptus Astartes
+## DS Reiver Squad
+STATS 8" 4 3+ 2 6+ 1 |
+R Bolt Carbine | 18" 3 3+ 5 -1 1 | Assault, Precision
+R Special-issue Bolt Pistol | 12" 1 3+ 5 -2 1 | Close-quarters, Precision
+M Monomolecular Combat Knife | Melee 4 3+ 5 -1 1 | Precision
+CORE Scouts 6"
+ARMY Combat Doctrines
+AB Terror Troops (Aura): While an enemy model is within 3" of this unit, that enemy model has -1 OC.
+AB Fearsome Assault: At the start of the Fight phase, each enemy unit engaged with a unit with this ability makes a battle-shock roll, with -1 to that battle-shock roll.
+WA Grapnel Launchers: When this unit makes a move, this unit can:
+■ Move through all types of model.
+■ Ignore all vertical distance for the purposes of how far this unit has moved.
+WA Grav-chutes: This unit has Deep Strike.
+WO This unit can be equipped with 1 Grav-chutes.
+WO This unit can be equipped with 1 Grapnel Launchers.
+COMP ■ 1 Reiver Sergeant model
+COMP ■ 4-9 Reiver models
+COMP Every model is equipped with: 1 Bolt Carbine; 1 Monomolecular Combat Knife; 1 Special-issue Bolt Pistol.
+KW Infantry; Explosives; Imperium; Phobos; Smoke
+FKW Adeptus Astartes

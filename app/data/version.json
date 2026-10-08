@@ -3,13 +3,13 @@
  "fetched_at": "2026-10-08T03:53:19+00:00",
  "mfm_version": "v1.5",
  "gs_fetched_at": "2026-10-08T04:06:03+00:00",
- "hash": "76d7dd0feefc04b2",
- "built_at": "2026-10-08T04:21:46+00:00",
+ "hash": "d03e5d5b5e395312",
+ "built_at": "2026-10-08T05:26:34+00:00",
  "factions": 30,
  "units": 1763,
  "winrates_fetched_at": "2026-10-08T05:08:34Z",
  "winrates_range": "1 Oct - 6 Oct 2026",
  "winrates_hash": "e7054beffb04da1c",
- "datasheets_hash": "914c60b65debe92a",
+ "datasheets_hash": "972dccb928b73bd9",
  "datasheets_version": "2026-10-07"
 }

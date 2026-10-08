@@ -1,0 +1,7 @@
+{
+ "source": "Codex: Space Marines (11th Edition), transcribed from James's scan (OCR + manual check against page images)",
+ "transcribed": "2026-10-07",
+ "factions": ["space-marines", "black-templars", "blood-angels", "dark-angels", "deathwatch", "space-wolves"],
+ "home_faction": "space-marines",
+ "note": "Override layer: applied by build_data.py on top of GrimSlate. Field Manual points always win."
+}

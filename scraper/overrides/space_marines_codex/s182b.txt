@@ -1,0 +1,14 @@
+## DS Kayvaan Shrike
+STATS 12" 4 3+ 5 6+ 1 | 4+
+R Blackout | 18" 1 2+ 5 -1 2 | Close-quarters, Precision
+M Raven's Talons | Melee 7 2+ 5 -2 2 | Precision, Twin-linked
+CORE Deep Strike, Leader, Lone Operative
+ARMY Combat Doctrines, Transhuman Strategist
+AB Trifold Path of Shadow: This unit has:
+■ Stealth.
+■ -3" detection range.
+AB Echo of the Ravenspire: At the end of your opponent's Fight phase, if this unit is unengaged, you can place this unit in strategic reserves.
+COMP ■ 1 Kayvaan Shrike model
+COMP This model is equipped with: 1 Blackout; 1 Raven's Talons.
+KW Infantry; Captain; Explosives; Fly; Imperium; Jump Pack; Phobos; Smoke
+FKW Adeptus Astartes; Raven Guard

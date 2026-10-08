@@ -1,0 +1,24 @@
+## DET Devastator Brethren
+UNIQUE Doctrines
+RULE Devastator Mastery
+You can select the devastator doctrine one additional time per battle.
+ENH Master-forged Firearms
+ADEPTUS ASTARTES INFANTRY/MOUNTED model only. This model's ranged attacks (excluding [PSYCHIC] attacks) have +1 A, S, AP and D.
+ENH Honour of Vigilance
+ADEPTUS ASTARTES model only.
+■ This unit's ranged attacks have [LETHAL HITS].
+■ If the devastator doctrine is active for this unit, this unit can re-roll advance rolls.
+STRAT Armour of Contempt | 1
+WHEN: Your opponent's Shooting phase or the Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Attacks that target your unit have -1 AP until that enemy unit has attacked.
+STRAT Storm of Fire | 1
+WHEN: Your Shooting phase, when a friendly ADEPTUS ASTARTES unit is selected to shoot.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Your unit's ranged attacks have:
+■ [IGNORES COVER].
+■ Or: If the devastator doctrine is active for your unit, [IGNORES COVER] and +1 AP.
+STRAT Hail of Vengeance | 2
+WHEN: Your opponent's Shooting phase, when an enemy unit has shot, if those attacks destroyed a model in a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Your unit shoots using normal shooting, but while doing so your unit can only target that enemy unit.

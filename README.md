@@ -34,6 +34,15 @@ Datasheets go to a separate `app/data/datasheets.json` (own `datasheets_hash`, p
 They are re-fetched by the same daily refresh; the refresh refuses to publish if fewer than MIN_DATASHEETS (1000)
 units have datasheets. Units missing in GrimSlate (Titans, Kaius Konorius, generic Soul Grinder) show "no datasheet".
 
+### Codex override (Space Marines, 11th edition)
+`scraper/overrides/space_marines_codex/*.txt` is a hand transcription of the Space Marines codex (army rules,
+15 detachments with rules/stratagems/enhancement text, 85 datasheets incl. wargear options + composition).
+`python3 scraper/codex_parse.py` compiles it to `scraper/overrides/space_marines_codex.json` (committed);
+`build_data.py` applies it after the GrimSlate merge (`scraper/codex_override.py`), so it survives the daily refresh
+and beats GrimSlate for Space Marines and the generic Adeptus Astartes units/detachments of Black Templars, Blood Angels,
+Dark Angels, Deathwatch and Space Wolves. MFM still owns all points, unit/detachment names, enhancement names/points
+and detachment unit restrictions; units are matched by name. Report: `data/codex_report.json`.
+
 ## Refresh
     make refresh          # = scripts/refresh.sh
 1. MFM → temp file; must have ≥ MIN_FACTIONS (25) factions and ≥ MIN_UNITS (1400) units, else **abort, old data kept, exit 1**

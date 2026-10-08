@@ -1,0 +1,33 @@
+## DS Captain in Phobos Armour
+STATS 8" 4 3+ 5 6+ 1 | 4+
+R Bolt Pistol | 12" 1 2+ 5 -1 1 | Close-quarters
+R Instigator Bolt Carbine | 24" 2 2+ 5 -2 2 | Assault, Precision, Rapid Fire 1
+M Combat Knife | Melee 6 2+ 5 -1 1 | Precision, Sustained Hits 1
+CORE Deep Strike, Infiltrators, Leader, Scouts 6", Stealth
+ARMY Combat Doctrines, Transhuman Strategist
+AB Strategic Acumen: In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase.
+AB Tactical Fluidity (Once per battle round, per unit):
+■ In your Shooting phase, when this unit has shot, if this unit is unengaged, this unit can make a normal move of up to D6".
+■ Or: At the end of your opponent's Fight phase if this unit is engaged, this unit can make a fall-back move of up to 6".
+COMP ■ 1 Captain in Phobos Armour model
+COMP This model is equipped with: 1 Bolt Pistol; 1 Combat Knife; 1 Instigator Bolt Carbine.
+KW Infantry; Captain; Character; Explosives; Imperium; Phobos
+FKW Adeptus Astartes
+## DS Captain in Terminator Armour
+STATS 5" 6 2+ 6 6+ 1 | 4+
+R Combi-weapon - Infernus | 12" 3 N/A 4 0 1 | Blast 1, Torrent
+R Combi-weapon - Purgatus | 24" 2 2+ 7 -2 2 |
+R Combi-weapon - Damnatus | 12" 1 2+ 9 -3 D3+2 | Melta 2
+R Storm Bolter | 24" 2 2+ 5 -1 1 | Rapid Fire 2
+M Relic Fist | Melee 5 2+ 8 -2 2 |
+M Relic Weapon | Melee 6 2+ 6 -2 2 |
+CORE Deep Strike, Leader
+ARMY Combat Doctrines, Transhuman Strategist
+AB Strategic Acumen: In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase.
+AB Unstoppable Valour: You can re-roll charge rolls for this unit.
+WO This model's Relic Weapon can be replaced with 1 Relic Fist.
+WO This model's Storm Bolter can be replaced with 1 Combi-weapon.
+COMP ■ 1 Captain in Terminator Armour model
+COMP This model is equipped with: 1 Relic Weapon; 1 Storm Bolter.
+KW Infantry; Captain; Character; Imperium; Terminator
+FKW Adeptus Astartes

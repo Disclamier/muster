@@ -1,0 +1,26 @@
+## DET Phobos Shock Force
+UNIQUE Phobos
+RULE Vanguard Ambushers
+At the end of your Movement phase, if a friendly PHOBOS unit is hidden, that unit's attacks can re-roll wound rolls of 1 until the end of the turn.
+ENH Seal of Shrouding
+PHOBOS model only. Enemy units cannot target this unit with snap shooting attacks.
+ENH Venator Omni-auspex
+PHOBOS model only. This unit's attacks that target a hidden unit can:
+■ Re-roll wound rolls of 1.
+■ Or: If the assault doctrine is active for this unit, re-roll wound rolls of 1-2.
+STRAT Strike from the Shadows | 1
+WHEN: Your Shooting phase or the Fight phase, when a friendly hidden PHOBOS unit is selected to attack.
+TARGET: That PHOBOS unit.
+EFFECT: Your unit's attacks have:
+■ +1 S.
+■ [LETHAL HITS].
+STRAT Transhuman Reactions | 1
+WHEN: Your opponent's Movement phase, when an enemy unit ends a move within 8" of a friendly unengaged PHOBOS unit.
+TARGET: That PHOBOS unit.
+EFFECT: Your unit can make a normal move of:
+■ Up to D6".
+■ Or: If the tactical doctrine is active for your unit, up to 6".
+STRAT Umbral Evasion | 1
+WHEN: Your opponent's Shooting phase, when an enemy unit targets a friendly PHOBOS unit.
+TARGET: That PHOBOS unit.
+EFFECT: Ranged attacks that target your unit have -1 to hit rolls.

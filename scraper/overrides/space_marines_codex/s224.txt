@@ -1,0 +1,22 @@
+## DS Redemptor Dreadnought
+STATS 8" 10 2+ 12 6+ 4 |
+R Fragstorm Grenade Launchers | 18" 6 3+ 4 -1 1 | Blast 2
+R Heavy Flamer | 12" 3 N/A 5 -1 1 | Blast 2, Torrent
+R Heavy Onslaught Gatling Cannon | 24" 12 3+ 6 -1 1 | Devastating Wounds: non-Monster/Vehicle, Sustained Hits 2: non-Monster/Vehicle
+R Icarus Rocket Pod | 24" 3 3+ 6 -1 2 | Anti-Fly 2+
+R Macro Plasma Incinerator - Standard | 36" D3+3 3+ 9 -3 2 | Blast 1
+R Macro Plasma Incinerator - Supercharge | 36" D3+3 3+ 10 -4 3 | Blast 1, Hazardous
+R Onslaught Gatling Cannon | 24" 8 3+ 5 -1 1 | Devastating Wounds: non-Monster/Vehicle
+R Storm Bolters | 24" 4 3+ 5 -1 1 | Rapid Fire 4
+M Redemptor Fist | Melee 5 3+ 12 -3 D3+3 |
+CORE Damaged 4, Deadly Demise D3
+ARMY Combat Doctrines
+AB Duty Eternal: Attacks that target this unit with a S greater than this unit's T have -1 to wound rolls.
+WO This model can be equipped with 1 Icarus Rocket Pod.
+WO This model's Fragstorm Grenade Launchers can be replaced with 1 Storm Bolters.
+WO This model's Heavy Flamer can be replaced with 1 Onslaught Gatling Cannon.
+WO This model's Heavy Onslaught Gatling Cannon can be replaced with 1 Macro Plasma Incinerator.
+COMP ■ 1 Redemptor Dreadnought model
+COMP This model is equipped with: 1 Fragstorm Grenade Launchers; 1 Heavy Flamer; 1 Heavy Onslaught Gatling Cannon; 1 Redemptor Fist.
+KW Vehicle; Dreadnought; Imperium; Walker
+FKW Adeptus Astartes

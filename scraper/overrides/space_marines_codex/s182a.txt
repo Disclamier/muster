@@ -1,0 +1,14 @@
+## DS Aethon Shaan
+STATS 14" 5 3+ 5 6+ 1 | 4+
+R Heavy Bolt Pistol | 18" 1 2+ 5 -1 1 | Close-quarters
+M Claws of Severax | Melee 7 2+ 5 -2 2 | Sustained Hits 2: non-Monster/Vehicle, Twin-linked
+CORE Deep Strike, Lone Operative, Stealth
+ARMY Combat Doctrines, Transhuman Strategist
+AB Master of Shadows: In your Command phase, you can select one friendly ADEPTUS ASTARTES INFANTRY unit. You can re-roll charge rolls for that unit until the start of your next Command phase.
+AB Blackwing Mantle (Once per phase, per army): You can target this unit with the Heroic Intervention stratagem, regardless of any other uses of that stratagem this phase. If you do:
+■ That use is -1 CP.
+■ That use does not prevent any uses of that stratagem on other units this phase.
+COMP ■ 1 Aethon Shaan model
+COMP This model is equipped with: 1 Claws of Severax; 1 Heavy Bolt Pistol.
+KW Infantry; Chapter Master; Character; Epic Hero; Explosives; Fly; Imperium; Jump Pack; Smoke; Tacticus
+FKW Adeptus Astartes; Raven Guard

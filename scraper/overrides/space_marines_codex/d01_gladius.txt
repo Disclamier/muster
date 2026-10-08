@@ -1,0 +1,43 @@
+## DET Gladius Task Force
+RULE Codex Discipline
+You can select one combat doctrine one additional time per battle.
+ENH Standard of the Emperor Ascendant
+ANCIENT model only. This model has:
+■ +1 OC and Ld.
+■ Feel No Pain 5+.
+■ The following ability: Ancient Exhortation (Once per battle, per army): When this unit is selected to fight, you can use this ability. If you do, this unit's melee attacks have +1 A until the end of the phase.
+ENH Laurels of Triumph
+ADEPTUS ASTARTES model only. This model's melee attacks have:
+■ +1 S and AP.
+■ Or: If the assault doctrine is active for this unit, +2 S and AP.
+ENH Adept of the Codex
+CAPTAIN model only. The tactical doctrine is active for this unit in addition to any other combat doctrine.
+ENH Artificer Armour
+ADEPTUS ASTARTES model only. This model has:
+■ 2+ Sv.
+■ Feel No Pain 5+.
+STRAT Armour of Contempt | 1
+WHEN: Your opponent's Shooting phase or the Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Attacks that target your unit have -1 AP until that enemy unit has attacked.
+STRAT A Worthy Death | 1
+WHEN: Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES unit.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: When a model in your unit is destroyed, if your unit has not been selected to fight this phase, roll one D6:
+■ On a 4+, do not remove that model from the battlefield. When your unit has fought, or at the end of the phase (whichever comes first), that model is removed from the battlefield.
+STRAT Might of Angels | 1
+WHEN: Fight phase, when a friendly ADEPTUS ASTARTES unit is selected to fight.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Your unit's melee attacks have [LANCE].
+STRAT Adaptive Strategy | 1
+WHEN: Your Command phase.
+TARGET: One friendly ADEPTUS ASTARTES unit.
+EFFECT: Select one combat doctrine. That combat doctrine is active for your unit until the start of your next Command phase.
+STRAT Storm of Devastation | 1
+WHEN: Your Shooting phase, when a friendly ADEPTUS ASTARTES unit is selected to shoot.
+TARGET: That ADEPTUS ASTARTES unit.
+EFFECT: Your unit's ranged attacks have [IGNORES COVER].
+STRAT Responsive Tactics | 1
+WHEN: Your opponent's Movement phase, when an enemy unit ends a move within 8" of a friendly unengaged ADEPTUS ASTARTES INFANTRY/MOUNTED unit.
+TARGET: That ADEPTUS ASTARTES INFANTRY/MOUNTED unit.
+EFFECT: Your unit can make a normal move of up to D6".

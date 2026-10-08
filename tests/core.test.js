@@ -285,13 +285,13 @@ test("real data: every default loadout is clean; Intercessors / Redemptor loadou
   const I = C.indexData(d); const sm = I.factions["space-marines"];
   const inter = sm.units["Intercessor Squad"];
   assert.deepEqual(C.loadoutLines(inter, C.getLoadout(inter, {}, 5)).map(C.loadoutText),
-    ["1x Intercessor Sergeant: Bolt pistol, Bolt Rifle, Close combat weapon", "4x Intercessor: Close combat weapon, Bolt pistol, Bolt Rifle"]);
+    ["1x Intercessor Sergeant: Bolt Pistol, Knives and Fists, Bolt Rifle", "4x Intercessor: Bolt Pistol, Bolt Rifle, Knives and Fists"]);  // codex loadout
   // Redemptor: Macro Plasma Incinerator is the MFM-priced option (+10)
   const red = sm.units["Redemptor Dreadnought"];
   const l = C.newList({ faction: "space-marines" }); l.dets = [sm.f.dets.find((x) => x.src === "mfm").n];
   const e = C.newEntry(red); l.entries.push(e);
   const base = C.calcList(l, I).entries[0].total;
-  e.lo = { c: { "Redemptor Dreadnought": 1 }, p: { "Redemptor Dreadnought|Weapon Option 1": { "Macro Plasma Incinerator": 1 } } };
+  e.lo = { c: { "Redemptor Dreadnought": 1 }, p: { "Redemptor Dreadnought|Heavy Onslaught Gatling Cannon": { "Macro Plasma Incinerator": 1 } } };
   const row = C.calcList(l, I).entries[0];
   assert.equal(row.total, base + 10);
   assert.match(C.loadoutText(row.loLines[0]), /Macro Plasma Incinerator/);

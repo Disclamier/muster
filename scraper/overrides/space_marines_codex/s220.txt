@@ -1,0 +1,18 @@
+## DS Repulsor Executioner
+STATS 10" 12 3+ 16 6+ 5 |
+R Defensive Array | 24" 18 3+ 5 -1 1 |
+R Heavy Laser Destroyer | 72" 2 3+ 16 -4 D6+4 | Devastating Wounds, Heavy
+R Heavy Onslaught Gatling Cannon | 24" 12 3+ 6 -1 1 | Devastating Wounds: non-Monster/Vehicle, Sustained Hits 2: non-Monster/Vehicle
+R Macro Plasma Incinerator - Standard | 36" D3+3 3+ 9 -3 2 | Blast 1
+R Macro Plasma Incinerator - Supercharge | 36" D3+3 3+ 10 -4 3 | Blast 1, Hazardous
+R Twin Heavy Bolter | 36" 3 3+ 5 -1 2 | Rapid Fire 2, Sustained Hits 1, Twin-linked
+M Armoured Hull | Melee 6 4+ 8 0 1 |
+CORE Damaged 6, Deadly Demise D6
+ARMY Combat Doctrines
+AB Executioner: This unit's ranged attacks that target a unit not below half-strength have +1 to hit rolls.
+TRANS This model has a transport capacity of 7 ADEPTUS ASTARTES INFANTRY models. It cannot transport JUMP PACK models. Each GRAVIS/TERMINATOR model takes up the space of 2 models.
+WO This model's Heavy Laser Destroyer can be replaced with 1 Macro Plasma Incinerator.
+COMP ■ 1 Repulsor Executioner model
+COMP This model is equipped with: 1 Armoured Hull; 1 Defensive Array; 1 Heavy Laser Destroyer; 1 Heavy Onslaught Gatling Cannon; 1 Twin Heavy Bolter.
+KW Vehicle; Frame; Imperium; Smoke; Transport
+FKW Adeptus Astartes

@@ -1,0 +1,22 @@
+## DET Terminator Storm Force
+UNIQUE Terminator
+RULE Death Blow
+Friendly ADEPTUS ASTARTES TERMINATOR units have +1 to charge rolls.
+ENH Champion of the First Company
+ADEPTUS ASTARTES TERMINATOR model only. This unit's melee attacks have [LETHAL HITS].
+ENH Corporeum Reliquary
+ADEPTUS ASTARTES TERMINATOR model only. In your first Movement phase, this unit can make an ingress move.
+STRAT Tactical Dreadnought Fortitude | 2
+WHEN: Your opponent's Shooting phase or the Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES TERMINATOR unit.
+TARGET: That ADEPTUS ASTARTES TERMINATOR unit.
+EFFECT: Attacks that target your unit have -1 D until that enemy unit has attacked.
+STRAT Merciless Veterans | 1
+WHEN: Your Shooting phase, when a friendly ADEPTUS ASTARTES TERMINATOR unit is selected to shoot.
+TARGET: That ADEPTUS ASTARTES TERMINATOR unit.
+EFFECT: Your unit's ranged attacks have:
+■ [LETHAL HITS].
+■ [SUSTAINED HITS 1].
+STRAT Gunship Extraction | 1
+WHEN: End of your opponent's Fight phase.
+TARGET: One friendly unengaged ADEPTUS ASTARTES TERMINATOR unit.
+EFFECT: Place your unit in strategic reserves.

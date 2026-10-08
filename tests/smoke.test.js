@@ -318,16 +318,19 @@ test("loadout options tree: defaults, weapon choice with MFM price, model counts
   // Intercessors: default loadout lines in the roster instead of "• 5 models"
   click(w, d.querySelector('.catalog .add[data-unit="Intercessor Squad"]'));
   const urow = () => [...d.querySelectorAll(".roster .urow")].find((e) => e.textContent.includes("Intercessor Squad"));
-  assert.match(urow().querySelector(".sum").textContent, /1x Intercessor Sergeant: Bolt pistol, Bolt Rifle, Close combat weapon/);
+  assert.match(urow().querySelector(".sum").textContent, /1x Intercessor Sergeant: Bolt Pistol, Knives and Fists, Bolt Rifle/);
   assert.ok(!/• 5 models/.test(urow().textContent));
   assert.ok(d.querySelectorAll(".panel [data-testid=lo-type]").length >= 2, "model types in the options tree");
-  // sergeant weapon radio -> Plasma pistol
-  const radio = [...d.querySelectorAll(".panel input[data-change=lo-pick]")].find((i) => i.dataset.key === "Intercessor Sergeant|Weapon 1" && i.dataset.opt === "Plasma pistol");
+  // sergeant weapon radio (codex: Bolt Rifle -> Plasma Pistol)
+  const radio = [...d.querySelectorAll(".panel input[data-change=lo-pick]")].find((i) => i.dataset.key === "Intercessor Sergeant|Bolt Rifle" && i.dataset.opt === "Plasma Pistol");
   change(w, radio, true);
-  assert.match(urow().querySelector(".sum").textContent, /1x Intercessor Sergeant: Bolt pistol, Close combat weapon, Plasma pistol|Plasma pistol/);
-  // upgrade model counter: grenade launcher trooper
-  const inc = d.querySelector('.panel [data-action=lo-count][data-type="Intercessor w/ Grenade Launcher"][data-d="1"]');
-  if (inc) { click(w, inc); const e = w.Muster.S.lists[0].entries[0]; assert.equal(e.lo.c["Intercessor w/ Grenade Launcher"], 1); assert.equal(e.lo.c.Intercessor, 3); }
+  assert.match(urow().querySelector(".sum").textContent, /1x Intercessor Sergeant: Bolt Pistol, Knives and Fists, Plasma Pistol/);
+  // codex: for every 5 models, 1 Intercessor can take a Grenade Launcher (optional, capped per unit size)
+  const glInc = () => [...d.querySelectorAll(".panel [data-action=lo-inc]")].find((i) => i.dataset.key === "Intercessor|Grenade Launcher" && i.dataset.d === "1");
+  assert.ok(glInc(), "grenade launcher option");
+  click(w, glInc());
+  assert.equal(w.Muster.S.lists[0].entries[0].lo.p["Intercessor|Grenade Launcher"]["Grenade Launcher"], 1);
+  assert.ok(glInc().disabled, "max 1 Grenade Launcher in a 5-model unit");
   // Redemptor: switching to the Macro Plasma Incinerator adds the MFM +10 wargear cost
   click(w, d.querySelector('.catalog .add[data-unit="Redemptor Dreadnought"]'));
   const before = C.calcList(w.Muster.S.lists[0], w.Muster.S.idx).total;
@@ -341,8 +344,8 @@ test("loadout options tree: defaults, weapon choice with MFM price, model counts
   click(w, d.querySelector("[data-action=export]"));
   change(w, d.querySelector('input[data-change=fmt][value="gw"]'), true);
   const gw = d.querySelector("[data-testid=export-text]").value;
-  assert.match(gw, /  • 1x Intercessor Sergeant\n    ◦ 1x Bolt pistol/);
-  assert.match(gw, /Redemptor Dreadnought \(\d+ Points\)\n  • 1x Redemptor Fist\n  • 1x Macro Plasma Incinerator/);
+  assert.match(gw, /  • 1x Intercessor Sergeant\n    ◦ 1x Bolt Pistol/);
+  assert.match(gw, /Redemptor Dreadnought \(\d+ Points\)\n(  • 1x .*\n)*  • 1x Redemptor Fist\n(  • 1x .*\n)*  • 1x Macro Plasma Incinerator/);
   change(w, d.querySelector('input[data-change=fmt][value="wtc"]'), true);
   assert.match(d.querySelector("[data-testid=export-text]").value, /x Intercessor Squad \(\d+ pts\): 1x Intercessor Sergeant: /);
   assert.ok(!/fetched 20\d\d-\d\d-\d\d/.test(d.querySelector("[data-testid=export-text]").value), "export date not raw UTC");
@@ -592,13 +595,13 @@ test("review 2: fixed editor layout, amber warning markers, dark textarea grip, 
   const m2 = d.querySelector(".card .sect-h .need"); assert.ok(m2 && !m2.classList.contains("warn"), "no detachment is a red error");
   assert.ok(d.querySelector("[data-testid=valid-dot]").classList.contains("err"));
   l.dets = [det.n]; w.Muster.route();
-  // Redemptor: "Icarus Rocket Pod" group with one same-named option has no heading
+  // Redemptor (codex loadout): "Icarus Rocket Pod" group with one same-named option has no heading
   click(w, [...d.querySelectorAll(".roster .urow")].find((x) => x.textContent.includes("Redemptor")));
   const lo = d.querySelector(".panel .loadout");
   assert.ok(lo, "loadout tree");
   const heads = [...lo.querySelectorAll(".slh")].map((x) => x.textContent.trim());
   assert.ok(!heads.some((h) => /^Icarus Rocket Pod/.test(h)), heads.join(" | "));
-  assert.ok(heads.some((h) => /^Weapon Option 1/.test(h)));
+  assert.ok(heads.some((h) => /^Heavy Onslaught Gatling Cannon/.test(h)), heads.join(" | "));
   const icarus = [...lo.querySelectorAll(".slot.solo label.opt")].find((x) => /Icarus Rocket Pod/.test(x.textContent));
   assert.ok(icarus && icarus.querySelector("input[type=checkbox]"), "option itself still offered");
   // back to lists: page scrolls normally again
@@ -957,7 +960,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v10/);
+  assert.match(read("sw.js"), /muster-shell-v11/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1187,4 +1190,36 @@ test("enhancement dropdown: collapsed New Recruit-style row, opens to pick, show
   assert.equal(l.entries[0].enh, null);
   // non-characters still have no enhancement section
   click(w, rowOf(2)); assert.equal(dd(), null);
+});
+
+test("codex override in the UI: Space Marines datasheet popup (codex source, extra sections) + codex stratagems", async () => {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore;
+  const SM = POINTS.factions.find((f) => f.id === "space-marines");
+  const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
+  for (const n of ["Roboute Guilliman", "Intercessor Squad", "Chief Librarian Tigurius"]) l.entries.push(C.newEntry(SM.units.find((u) => u.n === n)));
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => w.Muster.S.ds); w.Muster.route();
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[1].uid}"]`));
+  let m = d.querySelector("#modal .modal");
+  assert.ok(m.querySelector("[data-testid=ds-codex]"), "codex source note");
+  assert.match(m.querySelector("[data-testid=ds-melee]").textContent, /Knives and Fists/);
+  assert.match(m.querySelector("[data-testid=ds-wargear-options]").textContent, /Grenade Launcher/);
+  assert.match(m.querySelector("[data-testid=ds-composition]").textContent, /4-9 Intercessor models/);
+  assert.match(m.querySelector("[data-testid=ab-faction]").textContent, /Combat Doctrines/);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+  m = d.querySelector("#modal .modal");
+  assert.match(m.querySelector("[data-testid=ab-aura]").textContent, /Primarch of the XIII/);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[2].uid}"]`));
+  assert.match(d.querySelector("#modal .modal [data-testid=ab-psychic]").textContent, /Prescience/);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  // detachment view: codex rule + stratagems
+  const txt = [...d.querySelectorAll("[data-testid=det-strats], [data-testid=cfg-det]")].map((x) => x.textContent).join(" ");
+  assert.match(txt, /Codex Discipline/);
+  assert.match(txt, /Armour of Contempt/);
+  assert.match(txt, /Responsive Tactics/);
 });

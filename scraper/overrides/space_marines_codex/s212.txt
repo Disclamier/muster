@@ -1,0 +1,28 @@
+## DS Eradicator Squad with Heavy Bolters
+STATS 5" 6 3+ 3 6+ 1 |
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Heavy Bolter | 36" 3 3+ 6 -1 2 | Heavy, Rapid Fire 2, Sustained Hits 1
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Overlapping Destruction: In your Shooting phase, you can select one enemy unit. This unit's Heavy Bolter weapons that target that enemy unit have [BLAST 1].
+COMP ■ 1 Eradicator Sergeant model
+COMP ■ 2-5 Eradicator models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Heavy Bolter.
+KW Infantry; Explosives; Gravis; Imperium
+FKW Adeptus Astartes
+## DS Eradicator Squad with Melta Rifles
+STATS 5" 6 3+ 3 6+ 1 |
+R Bolt Pistol | 12" 1 3+ 5 -1 1 | Close-quarters
+R Melta Rifle | 18" 1 3+ 10 -3 D3+2 | Melta 2
+R Melta Rifle - Hunter | 18" 1 2+ 12 -3 D3+2 | Hunter: Monster/Vehicle, Melta 2
+R Multi-melta | 18" 2 3+ 10 -3 D3+2 | Melta 3
+R Multi-melta - Hunter | 18" 2 2+ 12 -3 D3+2 | Hunter: Monster/Vehicle, Melta 3
+M Ceramite Fists | Melee 3 3+ 5 0 1 |
+ARMY Combat Doctrines
+AB Total Obliteration: This unit's ranged attacks can re-roll damage rolls.
+WO For every 3 models in this unit, 1 Eradicator model can have their Melta Rifle replaced with 1 Multi-melta.
+COMP ■ 1 Eradicator Sergeant model
+COMP ■ 2-5 Eradicator models
+COMP Every model is equipped with: 1 Bolt Pistol; 1 Ceramite Fists; 1 Melta Rifle.
+KW Infantry; Explosives; Gravis; Imperium
+FKW Adeptus Astartes
