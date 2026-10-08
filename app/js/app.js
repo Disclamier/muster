@@ -560,7 +560,7 @@
     return `<div class="fhead"><div class="fname">${esc(F.f.name)}</div>${subOf(l) && subOf(l).name !== F.f.name ? `<div class="sub">${esc(subOf(l).name)}</div>` : ""}</div>
       <div class="scroll" data-sk="catalog" id="catbody">${renderCatalogBody(l, F, c)}</div>
       <div class="legend" title="Changes compared with the previous Munitorum Field Manual"><span><span class="chg-up">▲</span> points up</span><span><span class="chg-down">▼</span> points down</span><span><span class="chg-mixed">◆</span> mixed</span><span>in MFM ${esc((S.meta && S.meta.mfm_version) || "")} · n/N = taken / allowed</span></div>
-      <div class="catsearch"><input type="search" placeholder="Search Units, Categories, Costs, Keywords…" value="${esc(S.ui.q)}" data-input="cat-search" aria-label="Search units"></div>`;
+      <div class="catsearch"><input type="search" placeholder="Search units, keywords, costs…" value="${esc(S.ui.q)}" data-input="cat-search" aria-label="Search units"></div>`;
   }
   function renderCatalogBody(l, F, c) {
     const copies = {}; for (const e of l.entries) copies[e.unit] = (copies[e.unit] || 0) + 1;

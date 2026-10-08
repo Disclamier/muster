@@ -639,3 +639,16 @@ html[data-theme="dark"] .metatabs button.on { border-color: var(--green); }
   .pick { min-height: 40px; }
   .pick .t { font-size: 14.5px; }
 }
+
+/* Catalog: slightly bigger unit names + a proper search bar at the bottom (James, Oct 8) */
+.crow { font-size: 13.5px; }
+.crow .cname { font-weight: 600; }
+.catsearch { padding: 6px; background: var(--surface); }
+.catsearch input { font-size: 15px; padding: 8px 10px 8px 34px; min-height: 40px; border: 2px solid var(--blue); border-radius: 20px;
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M20 20l-4.8-4.8'/%3E%3C/svg%3E") no-repeat 11px center / 17px 17px; }
+.catsearch input:focus { outline: none; box-shadow: 0 0 0 3px rgba(77,141,255,.3); }
+@media (max-width: 760px) {
+  .crow { font-size: 14.5px; }
+  .catsearch { padding: 8px; }
+  .catsearch input { font-size: 16px; min-height: 46px; }
+}
