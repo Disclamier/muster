@@ -82,6 +82,52 @@ def clean_model(c):
             "add_on": bool(undef(c.get("isAddOn")))}
 
 
+def deep_undef(x):
+    if isinstance(x, dict):
+        return {k: deep_undef(v) for k, v in x.items() if undef(v) is not None}
+    if isinstance(x, list):
+        return [deep_undef(v) for v in x if undef(v) is not None]
+    return undef(x)
+
+
+def clean_weapon(w, kind):
+    profs = w.get("profiles") if isinstance(w.get("profiles"), list) and w.get("profiles") else [w]
+    return {"name": w.get("name"), "type": kind,
+            "profiles": [{"profile": undef(p.get("profileName")), "range": undef(p.get("range")), "a": undef(p.get("attacks")),
+                          "skill": undef(p.get("skill")), "s": undef(p.get("strength")), "ap": undef(p.get("ap")),
+                          "d": undef(p.get("damage")),
+                          "keywords": [k for k in (undef(p.get("keywords")) or []) if isinstance(k, str)]}
+                         for p in profs if isinstance(p, dict)]}
+
+
+def clean_datasheet(u):
+    """Datasheet for the unit view: stats, weapons (all options), abilities incl. wargear abilities, core rules."""
+    c = u.get("canonical") if isinstance(u.get("canonical"), dict) else {}
+    can_ab = {a.get("id"): a for a in c.get("abilities") or [] if isinstance(a, dict)}
+    wg = []
+    for g in c.get("optionGroups") or []:
+        if not isinstance(g, dict):
+            continue
+        for ch in g.get("choices") or []:
+            for ef in (ch.get("effects") or []) if isinstance(ch, dict) else []:
+                if isinstance(ef, dict) and ef.get("op") == "grantAbility" and ef.get("abilityId") in can_ab:
+                    a = can_ab[ef["abilityId"]]
+                    wg.append({"option": ch.get("name"), "name": a.get("name"), "text": undef(a.get("description"))})
+    stats = deep_undef(u.get("stats"))
+    return {"stats": stats,
+            "abilities": [{"name": a.get("name"), "text": undef(a.get("description"))} for a in u.get("abilities") or [] if isinstance(a, dict)],
+            "wargear_abilities": wg,
+            "rules": [r if isinstance(r, str) else r.get("name") for r in u.get("rules") or [] if isinstance(r, (str, dict))],
+            "weapons": [clean_weapon(w, "ranged") for w in u.get("rangedWeapons") or [] if isinstance(w, dict)] +
+                       [clean_weapon(w, "melee") for w in u.get("meleeWeapons") or [] if isinstance(w, dict)],
+            "model_loadouts": [{"name": m.get("name"), "weapons": [x.get("weaponId") for x in m.get("baseLoadout") or [] if isinstance(x, dict)]}
+                               for m in c.get("modelTypes") or [] if isinstance(m, dict)],
+            "weapon_ids": {w.get("id"): w.get("name") for w in c.get("weapons") or [] if isinstance(w, dict)},
+            "transport": deep_undef(u.get("transport")),
+            "leads": [x for x in (undef(u.get("leadsUnits")) or []) if isinstance(x, str)],
+            "support": bool(undef(u.get("isSupport")))}
+
+
 def faction_slugs():
     xml = http_get(f"{BASE}/sitemap.xml")
     return list(dict.fromkeys(re.findall(r"<loc>https://grimslate\.com/factions/([a-z0-9-]+)</loc>", xml)))
@@ -99,12 +145,24 @@ def find_rosters(slug):
     return list({d["id"]: d for d in out}.values())
 
 
+GLOBALS = {}
+
+
 def faction_data_from_roster(rid):
     rows = rsc(f"{BASE}/rosters/{rid}")
     for k, v in rows.items():
         if isinstance(v, (list, dict)) and "initialFactionData" in json.dumps(v)[:2_000_000]:
             for d in iter_dicts(resolve(rows, v)):
                 if isinstance(d.get("initialFactionData"), dict):
+                    # data version + rules glossary shared by every faction (kept once)
+                    idx = d.get("initialFactionIndex") if isinstance(d.get("initialFactionIndex"), dict) else {}
+                    if idx.get("version") and not GLOBALS.get("data_version"):
+                        GLOBALS.update({"data_version": idx.get("version"), "data_hash": undef(idx.get("dataVersion")),
+                                        "game_system": undef(idx.get("gameSystem"))})
+                    gr = d.get("initialGlobalRules") if isinstance(d.get("initialGlobalRules"), dict) else {}
+                    if gr and not GLOBALS.get("weapon_keywords"):
+                        GLOBALS["weapon_keywords"] = {k2: v2 for k2, v2 in (gr.get("weaponKeywords") or {}).items() if isinstance(v2, str)}
+                        GLOBALS["profile_schemas"] = deep_undef(gr.get("profileSchemas"))
                     return d["initialFactionData"]
     return None
 
@@ -139,12 +197,15 @@ def clean_faction(slug, fd, roster_id):
               "unit_wargear_options": [clean_slot(w) for w in u.get("wargearOptions") or [] if isinstance(w, dict)],
               "model_constraints": undef(u.get("compositionConstraints")),
               "wargear_costs": [{"item": w.get("item"), "points": undef(w.get("points")), "match_names": undef(w.get("matchNames")) or []}
-                                for w in u.get("wargearCosts") or [] if isinstance(w, dict)]}
+                                for w in u.get("wargearCosts") or [] if isinstance(w, dict)],
+              "datasheet": clean_datasheet(u)}
              for u in fd.get("units") or []]
     return {"id": slug, "name": fd.get("factionName"), "grimslate_faction_id": fd.get("factionId"),
             "catalogue_id": fd.get("catalogueId"), "schema_version": fd.get("schemaVersion"),
             "source_roster": f"{BASE}/rosters/{roster_id}", "url": f"{BASE}/factions/{slug}",
-            "detachments": dets, "units": units}
+            "detachments": dets, "units": units,
+            "faction_rules": [{"name": r.get("name"), "text": undef(r.get("description")), "table": deep_undef(r.get("table"))}
+                              for r in fd.get("factionRules") or [] if isinstance(r, dict)]}
 
 
 # MFM slug -> GrimSlate slug where they differ
@@ -235,6 +296,7 @@ def main():
         except Exception as e:
             print(f"  ! {slug}: {e}", file=sys.stderr)
             res["errors"].append({"faction": slug, "error": str(e)})
+    res.update(GLOBALS)   # data_version (GrimSlate's data date), data_hash, weapon_keywords glossary, profile_schemas
     res["comparison_with_mfm"] = compare_with_mfm(res, a.mfm)
     res["elapsed_seconds"] = round(time.time() - t0, 1)
     out = os.path.abspath(a.out)

@@ -23,11 +23,15 @@ tests/                  node:test unit tests + jsdom smoke tests + refresh fail-
 | Source | Used for | Notes |
 |---|---|---|
 | MFM (mfm.warhammer-community.com) | **all legal points**: units (cost tiers per copy), wargear add-ons, enhancements, detachment points, Muster battle sizes | primary; Next.js RSC payload |
-| GrimSlate | stratagems, detachment rules, enhancement text, unit keywords/roles, **unit compositions + wargear options/default loadouts** (never points); DP for detachments MFM lacks | secondary; MFM always wins; GrimSlate-only detachments are flagged "GrimSlate" and warn |
+| GrimSlate | stratagems, detachment rules, enhancement text, unit keywords/roles, **unit compositions + wargear options/default loadouts**, **datasheets: unit stats (M T Sv W Ld OC + invuln), ranged/melee weapon profiles, abilities, weapon-keyword glossary** (never points); DP for detachments MFM lacks | secondary; MFM always wins; GrimSlate-only detachments are flagged "GrimSlate" and warn |
 | listhammer.info | Meta Win Rates tab | server-rendered `__NUXT_DATA__` from `/stats`, `/stats?range=4weeks`, `/factions/<slug>`; `/api/` is never touched (robots.txt) |
 
 `build_data.py` merges `data/mfm.json` + `data/grimslate.json` into `app/data/points.json` (compact keys), writes
 `app/data/version.json` (MFM version, fetched_at, content hash, win-rate hash) and copies `data/winrates.json`.
+Datasheets go to a separate `app/data/datasheets.json` (own `datasheets_hash`, plus GrimSlate's own data date
+`data_version`, e.g. 2026-10-07, shown in the footer) so profile/text changes never trigger the points-change banner.
+They are re-fetched by the same daily refresh; the refresh refuses to publish if fewer than MIN_DATASHEETS (1000)
+units have datasheets. Units missing in GrimSlate (Titans, Kaius Konorius, generic Soul Grinder) show "no datasheet".
 
 ## Refresh
     make refresh          # = scripts/refresh.sh
@@ -55,8 +59,16 @@ Defaults come from GrimSlate's default choices. Options whose name/weapon matche
   detachment whose rule names that group. Currently: Blood Legions → Khorne Daemonkin, Plague Legions → Tallyband
   Summoners, Scintillating Legions → Changehost of Deceit, Legions of Excess → Carnival of Excess. Hidden in the
   catalog unless the detachment is selected (toggle shows them greyed); an error if the detachment is removed.
-* **Leaders / Support** (MFM "Leader"/"Support" lists): "Attach to" in the unit panel, one Leader + one Support per
-  bodyguard, nested in the roster, "Attached to: …" in exports, warnings for invalid attachments.
+* **Leaders / Support** (MFM "Leader"/"Support" lists), modelled on New Recruit: an "Attached to" group in the
+  character's panel lists only eligible bodyguards in the list (size, points and loadout; wargear that differs between
+  identical candidates in bold; filled slots disabled with the reason). Attached characters sit inside the bodyguard's
+  roster card with a combined Σ points chip and a combined datasheet; detach with the ⛓✕ button, by swiping a row left
+  on a phone (Duplicate / Unlink / Delete) or by choosing "Not attached". List option "Attached characters in their own
+  category" keeps them in the Character section. One Leader + one Support per bodyguard, "Attached to: …" in exports.
+* **Datasheets** (New Recruit "Profiles"): unit panel, catalog preview (eye) and the roster eye icon (popup; full-screen
+  sheet on phones) show the stat line, weapon tables with the current loadout highlighted (count per weapon) and other
+  options dimmed, core/faction/datasheet/wargear abilities, Leader/"can be joined by", keywords, faction keywords and
+  MFM points; eye icons beside loadout options show just that wargear's profile.
 * **Enhancements**: keyword restrictions parsed from the text ("WORLD EATERS INFANTRY model only", "(excluding …)"),
   each once per army, one per attached unit, the battle-size limit, no Epic Heroes (unless the text names them).
   Restrictions whose wording can't be mapped to keywords fall back to the basic rules.

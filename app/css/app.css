@@ -381,3 +381,44 @@ details.cfgdet .rules { font-size: 12px; margin-bottom: 4px; white-space: pre-li
 .ugroup { border-left: 3px solid var(--blue); margin: 2px 0; }
 .urow.attached { margin-left: 18px; border-left: 1px dashed var(--border); }
 .urow .att { color: var(--blue); font-weight: 700; margin-right: 2px; }
+
+/* ---------- datasheet / Profiles (New Recruit style) ---------- */
+.ds { font-size: 13px; }
+.ds-t { width: 100%; border-collapse: collapse; margin: 0 0 10px; font-variant-numeric: tabular-nums; }
+.ds-t th, .ds-t td { padding: 4px 6px; text-align: center; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.ds-t th { background: var(--hdr); color: var(--hdr-text, #fff); font-weight: 600; font-size: 12px; }
+.ds-t th.nm, .ds-t td.nm { text-align: left; white-space: normal; }
+.ds-t th.kw, .ds-t td.kw { text-align: left; white-space: normal; font-size: 12px; }
+.ds-unit td { font-weight: 700; font-size: 14px; }
+.ds-w tr.eq td { background: color-mix(in srgb, var(--cost) 12%, transparent); font-weight: 600; }
+.ds-w tr.uneq td { opacity: .55; }
+.ds-w .pn { font-weight: 400; color: var(--gray); }
+.ds-w .eqn { display: inline-block; min-width: 1.6em; padding: 0 3px; border-radius: 4px; background: var(--cost); color: #fff; font-size: 11px; text-align: center; }
+.kwc[title] { text-decoration: underline dotted; cursor: help; }
+.ds-sec { margin: 8px 0 10px; }
+.ds-h { font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: .04em; border-bottom: 2px solid var(--cost); padding-bottom: 2px; margin-bottom: 6px; }
+.ds-ab { margin: 4px 0; line-height: 1.4; }
+.ds-ab.uneq { opacity: .55; }
+.ds-ab.eq { border-left: 3px solid var(--cost); padding-left: 6px; }
+details.ds-ab summary { cursor: pointer; }
+.ds-note { font-size: 12px; margin: -4px 0 8px; }
+.ds-join { margin-top: 14px; border-top: 2px dashed var(--border); padding-top: 8px; }
+.ds-jh { font-weight: 700; margin-bottom: 6px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.profiles .cb { overflow-x: auto; }
+.ibtn.eye-s { width: 26px; height: 26px; margin-left: 4px; opacity: .7; flex: none; }
+.ibtn.eye-s svg { width: 15px; height: 15px; }
+.combo { font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 9px; border: 1px solid var(--cost); color: var(--cost); white-space: nowrap; }
+.cand { display: block; font-size: 12px; }
+.cand b { color: var(--text); }
+/* datasheet popup: wide modal on desktop, full-screen sheet on phones */
+.modal.sheet { max-width: 920px; width: calc(100vw - 32px); max-height: calc(100vh - 48px); overflow: auto; }
+@media (max-width: 760px) {
+  .modal-wrap.sheetwrap { padding: 0; align-items: stretch; }
+  .modal.sheet { width: 100vw; max-width: none; height: 100%; max-height: none; border-radius: 0; }
+  .ds-t th, .ds-t td { padding: 3px 4px; }
+}
+/* swipe actions on roster rows (phone) */
+.urow .swipe-acts { display: none; }
+.urow.swiped .swipe-acts { display: flex; gap: 6px; justify-content: flex-end; padding: 6px 0 2px; }
+.swipe-acts button { border: 1px solid var(--border); background: var(--surface); color: var(--text); border-radius: 6px; padding: 6px 10px; font: inherit; }
+.swipe-acts button.danger { background: var(--red, #c0392b); color: #fff; border-color: transparent; }

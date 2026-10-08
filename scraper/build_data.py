@@ -141,6 +141,17 @@ def compile_loadout(gu, wargear_costs):
     return lo
 
 
+def gs_alt_keys(name):
+    """Alternative GrimSlate lookup keys for an MFM unit name (spelling variants, never a different unit)."""
+    base = re.sub(r"\s*\[legends\]\s*", " ", str(name), flags=re.I).strip()
+    base = re.sub(r"(?i)defence", "defense", base)
+    out = []
+    for n in (base, re.sub(r"(?i)\s+with\s+.*$", "", base)):
+        k = norm(n)
+        out += [k, k[:-1] if k.endswith("s") else k + "s", norm(n + " battle tank"), norm(n + " [legends]")]
+    return [k for i, k in enumerate(out) if k and k not in out[:i]]
+
+
 def merge(mfm, gs):
     gsf = {f["id"]: f for f in gs.get("factions", [])}
     # global indexes for fallbacks (e.g. Space Marines units on chapter pages)
@@ -154,6 +165,7 @@ def merge(mfm, gs):
                 g_dets[norm(d["name"])] = d
     stats = Counter()
     unmatched_dets, out_factions = [], []
+    ds_out = merge.datasheets = {}
     for mf in mfm["factions"]:
         gf = gsf.get(SLUG_MAP.get(mf["id"], mf["id"]))
         fu = {}
@@ -163,12 +175,22 @@ def merge(mfm, gs):
         units = []
         for u in mf["units"]:
             gu = fu.get(norm(u["name"])) or g_units.get(norm(u["name"]))
+            fuzzy = None
+            if not gu:
+                # spelling variants only (plural/singular, Defence/Defense, "[Legends]", "... with <weapon>" suffix);
+                # the unit keeps its MFM display name so saved lists never change
+                for k in gs_alt_keys(u["name"]):
+                    fuzzy = fu.get(k) or g_units.get(k)
+                    if fuzzy:
+                        stats["units_matched_fuzzy"] += 1
+                        break
             stats["units"] += 1
-            stats["units_with_keywords"] += bool(gu)
-            kws = (gu or {}).get("keywords") or []
+            stats["units_with_keywords"] += bool(gu or fuzzy)
             name = (gu or {}).get("name") or title_name(u["name"])
+            gu = gu or fuzzy
+            kws = (gu or {}).get("keywords") or []
             name = re.sub(r"\s*\[Legends\]\s*$", "", name)
-            cu = {"n": name, "r": role_from_keywords(kws, name, u.get("leader_of")), "kw": kws,
+            cu = {"_gu": gu, "n": name, "r": role_from_keywords(kws, name, u.get("leader_of")), "kw": kws,
                   "t": [[t["from_unit"], t["to_unit"],
                          [[c["models"], c["points"]] + ([c["label"]] if c.get("label") else []) for c in t["costs"]]]
                         for t in u["cost_tiers"]]}
@@ -274,8 +296,49 @@ def merge(mfm, gs):
             dets.append(cd)
         dets.sort(key=lambda d: (d["src"] != "mfm", d["n"].lower()))
         apply_detachment_restrictions(mf, units, dets, stats)
+        # datasheets (profiles / abilities) ship in a separate file: unit display name -> compact datasheet
+        frules = (gf or {}).get("faction_rules") or []
+        frn = {norm(r.get("name")) for r in frules}
+        f_ds = {}
+        for x in units:
+            gu = x.pop("_gu", None)
+            cds = compact_ds(gu, frn) if gu else None
+            if cds:
+                f_ds[x["n"]] = cds
+                stats["units_with_datasheet"] += 1
+                stats["units_with_weapon_profiles"] += bool(cds["wp"])
+                stats["units_with_abilities"] += bool(cds["ab"] or cds["cr"] or cds["fa"])
+        ds_out[mf["id"]] = {"rules": [[r.get("name"), r.get("text") or ""] for r in frules], "units": f_ds}
         out_factions.append({"id": mf["id"], "name": mf["name"], "url": mf["url"], "units": units, "dets": dets})
     return out_factions, stats, unmatched_dets
+
+
+def compact_ds(gu, frn):
+    """GrimSlate datasheet -> compact form: s stats, inv invuln, ab [[name,text]], wa wargear abilities
+    [[option,name,text]], cr core rule names, fa faction ability names, wp weapons [[name, r|m, [[profile, range, A,
+    BS/WS, S, AP, D, [keywords]]]]], ml model loadouts [[model, [weapon names]]], tr transport text."""
+    ds = gu.get("datasheet") or {}
+    if not ds or not (ds.get("stats") or ds.get("weapons") or ds.get("abilities")):
+        return None
+    ab = ds.get("abilities") or []
+    is_inv = lambda a: norm(a.get("name")) in ("invulnerablesave", "invulnerable")
+    inv = next((a.get("text") for a in ab if is_inv(a)), None)
+    rules = [r for r in ds.get("rules") or [] if r]
+    wid = ds.get("weapon_ids") or {}
+    out = {"s": ds.get("stats"),
+           "ab": [[a.get("name"), a.get("text") or ""] for a in ab if not is_inv(a)],
+           "wa": [[w.get("option"), w.get("name"), w.get("text") or ""] for w in ds.get("wargear_abilities") or []],
+           "cr": [r for r in rules if norm(r) not in frn],
+           "fa": [r for r in rules if norm(r) in frn],
+           "wp": [[w.get("name"), "r" if w.get("type") == "ranged" else "m",
+                   [[p.get("profile"), p.get("range"), p.get("a"), p.get("skill"), p.get("s"), p.get("ap"), p.get("d"), p.get("keywords") or []]
+                    for p in w.get("profiles") or []]] for w in ds.get("weapons") or []],
+           "ml": [[m.get("name"), [wid.get(i, i) for i in m.get("weapons") or []]] for m in ds.get("model_loadouts") or []]}
+    if inv:
+        out["inv"] = inv
+    if ds.get("transport"):
+        out["tr"] = ds["transport"]
+    return out
 
 
 def apply_detachment_restrictions(mf, units, dets, stats):
@@ -404,6 +467,19 @@ def main():
             print(f"winrates.json: {len(wc)/1024:.0f} KB, {len(wr.get('factions', []))} factions", file=sys.stderr)
         except Exception as e:  # noqa: BLE001
             print("warn: winrates not bundled:", e, file=sys.stderr)
+    # datasheets (GrimSlate profiles/abilities) - separate file so rules-text changes never touch the points hash
+    dsb = {"source": "GrimSlate (profiles, abilities, keywords)", "gs_fetched_at": gs.get("fetched_at"),
+           "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
+           "weapon_keywords": gs.get("weapon_keywords") or {}, "factions": merge.datasheets}
+    dsc = json.dumps(dsb, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
+    dsh = hashlib.sha256(dsc.encode()).hexdigest()[:16]
+    dsj = os.path.join(a.outdir, "datasheets.json")
+    with open(dsj + ".tmp", "w", encoding="utf-8") as f:
+        f.write(json.dumps({"hash": dsh, **dsb}, ensure_ascii=False, separators=(",", ":")))
+    os.replace(dsj + ".tmp", dsj)
+    version["datasheets_hash"] = dsh
+    version["datasheets_version"] = gs.get("data_version")
+    print(f"datasheets.json: {os.path.getsize(dsj)/1024:.0f} KB, hash {dsh}", file=sys.stderr)
     vj = os.path.join(a.outdir, "version.json")
     with open(vj + ".tmp", "w", encoding="utf-8") as f:
         json.dump(version, f, ensure_ascii=False, indent=1)
@@ -415,6 +491,8 @@ def main():
           f"(with stratagems: {s['detachments_with_stratagems']}); DP disagreements: {s['dp_disagreements']}", file=sys.stderr)
     print(f"  enhancements with rules text: {s['enhancements_with_text']}/{s['enhancements']}", file=sys.stderr)
     print(f"  GrimSlate-only detachments added (flagged): {s['gs_only_detachments']}", file=sys.stderr)
+    print(f"  datasheets: {s['units_with_datasheet']}/{s['units']} units, weapon profiles {s['units_with_weapon_profiles']}, "
+          f"abilities {s['units_with_abilities']}", file=sys.stderr)
     print(f"  units with loadout data (GrimSlate composition): {s['units_with_loadout']}/{s['units']}, "
           f"{s['loadout_options']} options; MFM priced wargear linked to options: {s['wargear_linked']}/{s['wargear_priced']}", file=sys.stderr)
     print(f"  duplicate unit names disambiguated: {s['renamed_duplicate_units']}", file=sys.stderr)

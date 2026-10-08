@@ -96,17 +96,31 @@ if pts_changed:
 else:  # keep the published points.json and its timestamps
     for k in ("fetched_at", "gs_fetched_at", "built_at"):
         if k in cv: nv[k] = cv[k]
+def ds_units(path):
+    try:
+        return sum(len(f.get("units", {})) for f in json.load(open(path))["factions"].values())
+    except Exception:
+        return 0
+# datasheets only replace the published ones when they look complete (a stale/partial GrimSlate copy must not wipe them)
+ds_ok = ds_units(os.path.join(new, "datasheets.json")) >= int(os.environ.get("MIN_DATASHEETS", "1000"))
+if not ds_ok:
+    print("  !! datasheets look incomplete - keeping the published datasheets.json", file=sys.stderr)
+ds_changed = ds_ok and os.path.exists(os.path.join(new, "datasheets.json")) and (nv.get("datasheets_hash") != cv.get("datasheets_hash") or not os.path.exists(os.path.join(cur, "datasheets.json")))
+if ds_changed:
+    put("datasheets.json")
+elif cv.get("datasheets_hash"):
+    nv["datasheets_hash"] = cv["datasheets_hash"]
 if wr_changed:
     put("winrates.json")
 elif cv.get("winrates_hash"):
     for k in ("winrates_fetched_at", "winrates_range", "winrates_hash"):
         if k in cv: nv[k] = cv[k]
-if pts_changed or wr_changed:
+if pts_changed or wr_changed or ds_changed:
     with open(os.path.join(cur, "version.json.new"), "w", encoding="utf-8") as f:
         json.dump(nv, f, ensure_ascii=False, indent=1)
     os.replace(os.path.join(cur, "version.json.new"), os.path.join(cur, "version.json"))
 print(f"  points: {'UPDATED ' + str(cv.get('hash')) + ' -> ' + nv['hash'] if pts_changed else 'unchanged (' + nv['hash'] + ')'}; "
-      f"winrates: {'updated' if wr_changed else 'unchanged'}")
+      f"winrates: {'updated' if wr_changed else 'unchanged'}; datasheets: {'updated' if ds_changed else 'unchanged'}")
 PYEOF
   echo "OK: $(tr -d '\n ' < app/data/version.json)"
 else

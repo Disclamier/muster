@@ -133,6 +133,12 @@
         w._hash = (ver && ver.winrates_hash) || w.fetched_at; S.wr = w; out.wrUpdated = true; await idb.set("winrates", w);
       } catch (e) { /* win rates are optional */ }
     }
+    if (ver ? (ver.datasheets_hash && (!S.ds || S.ds.hash !== ver.datasheets_hash)) : !S.ds) {
+      try {
+        const ds = await fetchJSON(`data/datasheets.json?v=${encodeURIComponent((ver && ver.datasheets_hash) || "")}`, { cache: ver ? "no-store" : "default" });
+        if (ds && ds.factions) { S.ds = ds; out.dsUpdated = true; await idb.set("datasheets", ds); }
+      } catch (e) { /* datasheets are optional: the unit view says so when missing */ }
+    }
     if (manual) {
       if (out.updated) toast("New points loaded – see the banner for changes", 3500);
       else if (out.offline) toast("Offline – using saved points data", 3000);
@@ -147,6 +153,7 @@
     const cached = await idb.get("points");
     if (cached && cached.factions) setData(cached);
     S.wr = (await idb.get("winrates")) || null;
+    S.ds = (await idb.get("datasheets")) || null;
     if (S.data) route();
     const r = await checkForUpdates(false);
     if (!S.data) { $("#main").innerHTML = `<div class="empty">No points data available${r.offline ? " offline" : ""}. Connect once to download the Munitorum Field Manual data.</div>`; return; }
@@ -179,7 +186,7 @@
   function renderFooter() {
     const m = S.meta || {};
     $("#footer").innerHTML = `Muster is an <b>unofficial</b> fan tool, not affiliated with or endorsed by Games Workshop. Points: Munitorum Field Manual ${esc(m.mfm_version || "?")}
-      (fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}) · rules &amp; stratagems: GrimSlate${S.wr ? " · win rates: listhammer.info" : ""} · faction artwork © Games Workshop, personal use.
+      (fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}) · rules, stratagems &amp; profiles: GrimSlate${S.ds && S.ds.data_version ? ` (data ${esc(S.ds.data_version)})` : ""}${S.wr ? " · win rates: listhammer.info" : ""} · faction artwork © Games Workshop, personal use.
       <button data-action="about">About</button>`;
   }
   function setActiveNav() {
@@ -249,7 +256,7 @@
   /* ------------------------------------------------------------------ modals */
   function modal(titleText, body, opts) {
     const m = $("#modal");
-    m.innerHTML = `<div class="modal-wrap" data-action="modal-bg"><div class="modal${opts && opts.wide ? " wide" : ""}" role="dialog" aria-label="${esc(titleText)}">
+    m.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}" data-action="modal-bg"><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}" role="dialog" aria-label="${esc(titleText)}">
       <div class="mtitle"><span>${esc(titleText)}</span><button class="ibtn" data-action="close-modal" title="Close">${icon("x")}</button></div>
       <div class="mbody">${body}</div></div></div>`;
     const f = $(".modal input[autofocus], .modal textarea[autofocus]", m); if (f) setTimeout(() => f.focus(), 0);
@@ -419,6 +426,7 @@
         <div class="cb">${d.rule ? `<div class="rules"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
       <div class="cfgrow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? esc(dispName(l.disposition)) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
       <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends"></label>
+      <label class="cfgrow" title="Off: attached Leaders/Support units appear inside their bodyguard unit's card"><span class="n"><b>Attached characters in their own category</b></span><input type="checkbox" ${l.leadersOwnCat ? "checked" : ""} data-change="leaders-own" data-testid="leaders-own"></label>
       <div class="cfgnote">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
     </div></div>`;
     const rowHtml = (r, nested) => {
@@ -426,19 +434,24 @@
       return `<div class="urow${nested ? " attached" : ""}${sel.type === "unit" && sel.uid === r.uid ? " sel" : ""}" data-action="select-entry" data-uid="${esc(r.uid)}"${nested ? ` data-testid="attached-row" data-to="${esc(r.attachedTo.uid)}"` : ""}>
             <div class="line">${nested ? `<span class="att" title="${esc(r.attachKind === "support" ? "Support unit attached" : "Leader attached")}">↳</span>` : ""}${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : "Leader"}</span>` : ""}</span>
               ${errs.some((x) => c.errors.includes(x)) ? `<span class="dot err" title="${esc(errs.map((x) => x.msg).join("\n"))}">!</span>` : ""}
-              ${pts(r.total)}
+              ${pts(r.total)}${!nested && r.attached && r.attached.length ? `<span class="combo" title="Attached unit: ${esc([r.name, ...r.attached.map((x) => x.name)].join(" + "))}" data-testid="combo-pts">Σ ${r.total + r.attached.reduce((a, x) => a + x.total, 0)} pts</span>` : ""}
+              <button class="ibtn" data-action="ds-pop" data-uid="${esc(r.uid)}" title="View datasheet">${icon("eye")}</button>
+              ${nested ? `<button class="ibtn" data-action="unlink" data-uid="${esc(r.uid)}" title="Detach from ${esc(r.attachedTo.name)}" data-testid="unlink">⛓✕</button>` : ""}
               <button class="ibtn" data-action="dup-entry" data-uid="${esc(r.uid)}" title="Duplicate">${icon("copy")}</button>
               <button class="ibtn danger" data-action="del-entry" data-uid="${esc(r.uid)}" title="Remove">${icon("trash")}</button></div>
+            <div class="swipe-acts"><button data-action="dup-entry" data-uid="${esc(r.uid)}">Duplicate</button>${r.attachedTo ? `<button data-action="unlink" data-uid="${esc(r.uid)}">Unlink</button>` : ""}<button class="danger" data-action="del-entry" data-uid="${esc(r.uid)}">Delete</button></div>
             ${bits.length || errs.length || (r.loLines && r.loLines.length) ? `<div class="sum">${(r.loLines || []).map((x) => `<span class="lo-line">• ${esc(C.loadoutText(x))}</span>`).join("")}${bits.map((b) => "• " + esc(b)).join(" ")}${errs.map((x) => `<div class="${c.errors.includes(x) ? "err" : "warn"}">${esc(x.msg)}</div>`).join("")}</div>` : ""}
           </div>`;
     };
     // attached Leaders/Support units are shown nested under their bodyguard (and counted in its section)
-    const roles = C.ROLE_ORDER.filter((r) => c.byRole[r] && c.byRole[r].entries.some((x) => !x.attachedTo)).map((role) => {
+    // (list option "Attached characters in their own category" keeps them in their own role section instead)
+    const own = !!l.leadersOwnCat;
+    const roles = C.ROLE_ORDER.filter((r) => c.byRole[r] && c.byRole[r].entries.some((x) => own || !x.attachedTo)).map((role) => {
       const R = c.byRole[role]; const k = `ros:${role}`;
-      const top = R.entries.filter((x) => !x.attachedTo);
-      const ptsSum = top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total, 0), 0);
+      const top = R.entries.filter((x) => own || !x.attachedTo);
+      const ptsSum = own ? top.reduce((a, r) => a + r.total, 0) : top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total, 0), 0);
       return `<div class="card${collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}">${esc(role)} ${pts(ptsSum)}<span class="tri"></span></div><div class="sect-body">
-        ${top.map((r) => (r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group">${rowHtml(r, false)}${r.attached.map((x) => rowHtml(x, true)).join("")}</div>` : rowHtml(r, false))).join("")}</div></div>`;
+        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group">${rowHtml(r, false)}${r.attached.map((x) => rowHtml(x, true)).join("")}</div>` : rowHtml(r, false))).join("")}</div></div>`;
     }).join("");
     const missing = c.entries.filter((r) => r.missing);
     const miss = missing.length ? `<div class="card"><div class="sect-h">Not in current data</div>${missing.map((r) => `<div class="urow" data-uid="${esc(r.uid)}"><div class="line"><span class="n err">${esc(r.name)}</span>
@@ -469,6 +482,75 @@
   function stratHtml(s) {
     return `<div class="strat"><div class="sh"><span class="n">${esc(s[0])}</span><span class="cp">${esc(s[1])} CP</span></div>
       <div class="meta">${[s[3], s[2], s[4]].filter(Boolean).map(esc).join(" · ")}</div><div class="txt">${esc(clean(s[5]))}</div></div>`;
+  }
+  /* ---------------------------------------------------------------- datasheet / Profiles (New Recruit style) */
+  function dsOf(F, u) { const f = S.ds && S.ds.factions && F && S.ds.factions[F.f.id]; return (f && u && f.units[u.n]) || null; }
+  const kwTip = (k) => { const g = S.ds && S.ds.weapon_keywords; const base = String(k).replace(/\s+[\dD+\-"]+$/, "").replace(/^\[|\]$/g, "");
+    const t = g && (g[k] || g[base] || g[C.title ? base : base]); return t ? ` title="${esc(clean(t).slice(0, 400))}"` : ""; };
+  /* what the unit currently carries: weapon name -> count, picked option names; null when unknown */
+  function equipped(u, r) {
+    let lines = r && r.loLines, lo = r && r.lo;
+    if (!lines && C.hasLoadout(u)) { const o = C.modelOptions(u, 1)[0] || { models: 1 }; lo = C.getLoadout(u, {}, o.models, o.label); lines = C.loadoutLines(u, lo); }
+    if (!lines || !lines.length) return null;
+    const w = new Map(); for (const l of lines) for (const g of l.gear) w.set(C.norm(g.name), (w.get(C.norm(g.name)) || 0) + (g.count || 1));
+    const picks = new Set(); for (const v of Object.values((lo && lo.p) || {})) for (const [k, n] of Object.entries(v)) if (n > 0) picks.add(C.norm(k));
+    return { w, picks };
+  }
+  function datasheetHtml(F, u, r, o) {
+    o = o || {};
+    const ds = dsOf(F, u);
+    const st = (ds && ds.s) || {};
+    const eq = equipped(u, r);
+    const filt = o.item ? String(o.item).split("|").map(C.norm).filter(Boolean) : null;
+    const matchItem = (name) => !filt || filt.some((f) => C.norm(name).includes(f) || f.includes(C.norm(name)));
+    let html = "";
+    if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "GrimSlate has no datasheet for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
+    else {
+      if (!filt) html += `<table class="ds-t ds-unit" data-testid="ds-stats"><tr><th class="nm">Unit</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>
+        <tr><td class="nm">${esc(u.n)}</td><td>${esc(st.M || "-")}</td><td>${esc(st.T || "-")}</td><td>${esc(st.SV || st.Sv || "-")}</td><td>${esc(st.W || "-")}</td><td>${esc(st.LD || st.Ld || "-")}</td><td>${esc(st.OC || "-")}</td><td data-testid="ds-inv">${esc(ds.inv || "-")}</td></tr></table>`;
+      const wtab = (kind, label, skill) => {
+        let ws = ds.wp.filter((w) => w[1] === kind && matchItem(w[0]));
+        if (!ws.length) return "";
+        const cnt = (w) => (eq ? eq.w.get(C.norm(w[0])) || 0 : null);
+        if (eq) ws = ws.slice().sort((a, b) => (cnt(b) > 0) - (cnt(a) > 0));
+        return `<table class="ds-t ds-w" data-testid="ds-${kind === "r" ? "ranged" : "melee"}"><tr><th class="nm">${label}</th><th>Range</th><th>A</th><th>${skill}</th><th>S</th><th>AP</th><th>D</th><th class="kw">Keywords</th></tr>
+          ${ws.map((w) => { const n = cnt(w); const cls = n === null ? "" : n > 0 ? "eq" : "uneq";
+            return w[2].map((p, i) => `<tr class="${cls}"${i === 0 ? ` data-weapon="${esc(w[0])}"` : ""}><td class="nm">${i === 0 ? `${n ? `<span class="eqn" title="Equipped">${n}×</span> ` : ""}${esc(w[0])}` : ""}${p[0] ? `<span class="pn">${i === 0 ? " – " : "↳ "}${esc(p[0])}</span>` : ""}</td>
+              <td>${esc(p[1] || "-")}</td><td>${esc(p[2] || "-")}</td><td>${esc(p[3] || "-")}</td><td>${esc(p[4] || "-")}</td><td>${esc(p[5] || "-")}</td><td>${esc(p[6] || "-")}</td>
+              <td class="kw">${(p[7] || []).map((k) => `<span class="kwc"${kwTip(k)}>${esc(k)}</span>`).join(", ") || "-"}</td></tr>`).join(""); }).join("")}</table>`;
+      };
+      html += wtab("r", "Ranged Weapons", "BS") + wtab("m", "Melee Weapons", "WS");
+      if (eq && !filt && ds.wp.some((w) => !(eq.w.get(C.norm(w[0])) > 0))) html += `<div class="ds-note muted">Highlighted: current loadout (× = number of models carrying it). Dimmed: other wargear options.</div>`;
+      const fr = (S.ds.factions[F.f.id] || {}).rules || [];
+      const frText = (n) => { const x = fr.find((y) => C.norm(y[0]) === C.norm(n)); return x ? x[1] : ""; };
+      const wa = ds.wa.filter((a) => matchItem(a[0]) || matchItem(a[1]));
+      if (!filt) {
+        html += `<div class="ds-sec" data-testid="ds-abilities"><div class="ds-h">Abilities</div>
+          ${ds.cr.length ? `<div class="ds-ab"><b>Core:</b> ${ds.cr.map((n) => `<span class="kwc"${kwTip(n)}>${esc(n)}</span>`).join(", ")}</div>` : ""}
+          ${ds.fa.length ? ds.fa.map((n) => `<details class="ds-ab"><summary><b>Faction:</b> ${esc(n)}</summary><div class="rules">${esc(clean(frText(n)) || "")}</div></details>`).join("") : ""}
+          ${ds.ab.map((a) => `<div class="ds-ab"><b>${esc(a[0])}:</b> ${esc(clean(a[1]))}</div>`).join("")}
+          ${u.ldr && u.ldr.length ? `<div class="ds-ab"><b>Leader:</b> This model can be attached to the following units: ${u.ldr.map((x) => `■ ${esc(title(x))}`).join(" ")}</div>` : ""}
+          ${u.sup && u.sup.length ? `<div class="ds-ab"><b>Support:</b> This unit can be attached to: ${u.sup.map((x) => `■ ${esc(title(x))}`).join(" ")}</div>` : ""}
+          ${(() => { const by = F.f.units.filter((x) => (x.ldr || []).concat(x.sup || []).some((y) => C.norm(y) === C.norm(u.n))).map((x) => x.n); return by.length ? `<div class="ds-ab"><b>Can be joined by:</b> ${esc(by.join(", "))}</div>` : ""; })()}
+          ${ds.tr ? `<div class="ds-ab"><b>Transport:</b> ${esc(clean(typeof ds.tr === "string" ? ds.tr : JSON.stringify(ds.tr)))}</div>` : ""}</div>`;
+      }
+      if (wa.length) html += `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${wa.map((a) => { const on = eq && (eq.picks.has(C.norm(a[0])) || eq.w.has(C.norm(a[0])));
+        return `<div class="ds-ab${eq ? (on ? " eq" : " uneq") : ""}"><b>${esc(a[1])}</b>${C.norm(a[0]) !== C.norm(a[1]) ? ` <span class="muted">(${esc(a[0])})</span>` : ""}: ${esc(clean(a[2]))}</div>`; }).join("")}</div>`;
+      if (filt && !html.includes("<table") && !wa.length) html += `<div class="muted">No separate profile for ${esc(String(o.item).replace(/\|/g, ", "))}.</div>`;
+    }
+    if (!filt) {
+      html += `<div class="ds-sec" data-testid="ds-keywords"><div class="ds-h">Keywords</div><div class="ds-ab">${esc((u.kw || []).join(", ") || "—")}</div>
+        <div class="ds-ab"><b>Faction keywords:</b> ${esc(u.fk || F.f.name)}</div></div>`;
+      if (r && r.attachedTo) html += `<div class="ds-sec"><div class="ds-h">Attached</div><div class="ds-ab">${esc(r.attachKind === "support" ? "Support unit" : "Leader")} attached to <b>${esc(r.attachedTo.name)}</b></div></div>`;
+      if (!o.noPoints) html += `<div class="ds-sec"><div class="ds-h">Points (MFM)</div>${pointsTable(u)}</div>`;
+    }
+    return `<div class="ds" data-testid="datasheet">${html}</div>`;
+  }
+  /* combined card for an attached unit: bodyguard + its Leader/Support (New Recruit's combined unit card) */
+  function combinedDatasheet(F, r) {
+    let h = datasheetHtml(F, r.unit, r);
+    for (const x of r.attached || []) h += `<div class="ds-join" data-testid="ds-joined"><div class="ds-jh">+ ${esc(x.name)} <span class="tag">${x.attachKind === "support" ? "Support" : "Leader"}</span> ${pts(x.total)}</div>${datasheetHtml(F, x.unit, x, { noPoints: true })}</div>`;
+    return h;
   }
   function pointsTable(u) {
     return `<table class="ptable"><tr><th>Copies</th><th>Size</th><th>Points</th></tr>${(u.t || []).map((t) => t[2].map((r, i) => `<tr><td>${i ? "" : esc(t[1] === null ? (t[0] === 1 ? "any" : `${t[0]}+`) : t[0] === t[1] ? `#${t[0]}` : `${t[0]}–${t[1]}`)}</td>
@@ -518,12 +600,18 @@
       const kindOf = r.attachKind || (u.ldr && u.ldr.length ? "leader" : "support");
       const can = [...new Set([...(u.ldr || []), ...(u.sup || [])])].map(title);
       const curBad = e.attach && !targets.some((t) => t.entry.uid === e.attach);
-      attachHtml = `<div class="grp" data-testid="attach-grp"><div class="gh">Attach to <span class="muted">(${kindOf === "support" ? "Support" : "Leader"})</span></div><div class="gb">
+      attachHtml = `<div class="grp" data-testid="attach-grp"><div class="gh">Attached to <span class="muted">(${kindOf === "support" ? "Support" : "Leader"})</span></div><div class="gb">
         <label class="opt"><input type="radio" name="attach" value="" ${!e.attach ? "checked" : ""} data-change="attach"><span class="on">Not attached</span></label>
         ${targets.map((t) => { const sameName = l.entries.filter((x) => x.unit === t.entry.unit).length > 1; const idx = l.entries.filter((x) => x.unit === t.entry.unit).indexOf(t.entry) + 1;
+          const tr = c.entries.find((x) => x.uid === t.entry.uid) || {};
+          const gearOf = (row) => new Set((row.loLines || []).flatMap((ln) => ln.gear.map((g) => g.name)));
+          const peers = targets.filter((x) => x.entry.unit === t.entry.unit).map((x) => gearOf(c.entries.find((y) => y.uid === x.entry.uid) || {}));
+          const mine = [...gearOf(tr)]; const common = (g) => peers.length > 1 && peers.every((p) => p.has(g));
+          const gearTxt = mine.length ? mine.map((g) => (peers.length > 1 && !common(g) ? `<b>${esc(g)}</b>` : esc(g))).join(", ") : "";
+          const cand = `<span class="cand muted">${esc(tr.modelsLabel || "")}${tr.total != null ? `${tr.modelsLabel ? " · " : ""}${tr.total} pts` : ""}${gearTxt ? ` · ${gearTxt}` : ""}</span>`;
           const checked = e.attach === t.entry.uid; const dis = t.taken && !checked;
           return `<label class="opt${dis ? " disabled" : ""}" data-testid="attach-opt" data-to="${esc(t.entry.uid)}"${dis ? ` title="Already has ${esc(t.kind === "support" ? "a Support unit" : "a Leader")}: ${esc(t.by.join(", "))}"` : ""}><input type="radio" name="attach" value="${esc(t.entry.uid)}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="attach">
-            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${dis ? `<span class="why">Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${esc(t.by.join(", "))}</span>` : ""}</span></label>`; }).join("")}
+            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${cand}${dis ? `<span class="why">Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${esc(t.by.join(", "))}</span>` : ""}</span></label>`; }).join("")}
         ${curBad ? `<div class="warn">Currently attached to a unit it can't join – choose another or "Not attached".</div>` : ""}
         ${!targets.length ? `<div class="muted">Add a unit it can join: ${esc(can.join(", "))}.</div>` : ""}</div></div>`;
     }
@@ -544,8 +632,7 @@
         ${attachHtml}${attachedHere}
         ${enhHtml}
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
-        <details class="coll"><summary>Points</summary><div class="cb">${pointsTable(u)}</div></details>
-        ${unitInfo(u) ? `<details class="coll"><summary>Unit info</summary><div class="cb">${unitInfo(u)}</div></details>` : ""}
+        <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(combined with ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : ""}</summary><div class="cb">${combinedDatasheet(F, r)}</div></details>
         ${dets.length ? `<details class="coll" data-testid="unit-strats"><summary>Stratagems (${strats.length})${dets.length > 1 ? ` <span class="muted">– ${dets.length} detachments</span>` : ""}</summary><div class="cb">${dets.map((d) => `<div class="stgrp" data-det="${esc(d.n)}"><div class="stgrp-h">${esc(d.n)}${d.rule ? ` <span class="muted">– ${esc(d.rule[0])}</span>` : ""}</div>${d.rule ? `<div class="rules small">${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div>`).join("")}</div></details>` : ""}
       </div>`;
   }
@@ -562,10 +649,10 @@
       if (k === 1 && b === 1) {
         const type = a === 1 ? "radio" : "checkbox";
         body = s.opts.map((o) => `<label class="opt"><input type="${type}" name="lo:${esc(r.uid)}:${esc(key)}" ${picks[o.name] ? "checked" : ""} data-change="lo-pick" data-key="${esc(key)}" data-opt="${esc(o.name)}">
-          <span class="on">${esc(o.name)}${desc(o)}</span>${priceOf(o)}</label>`).join("");
+          <span class="on">${esc(o.name)}${desc(o)}</span>${priceOf(o)}<button class="ibtn eye-s" data-action="ds-pop" data-unit="${esc(u.n)}" data-item="${esc(o.name)}" title="Profile">${icon("eye")}</button></label>`).join("");
       } else {
         body = s.opts.map((o) => { const v = picks[o.name] || 0; const mx = C.optMax(o, N, s, k);
-          return `<div class="opt"><span class="on">${esc(o.name)}${mx !== Infinity ? ` <span class="muted">(max ${mx})</span>` : ""}${desc(o)}</span>${priceOf(o)}
+          return `<div class="opt"><span class="on">${esc(o.name)}${mx !== Infinity ? ` <span class="muted">(max ${mx})</span>` : ""}${desc(o)}</span>${priceOf(o)}<button class="ibtn eye-s" data-action="ds-pop" data-unit="${esc(u.n)}" data-item="${esc(o.name)}" title="Profile">${icon("eye")}</button>
           <span class="counter"><button data-action="lo-inc" data-key="${esc(key)}" data-opt="${esc(o.name)}" data-d="-1" ${v <= 0 ? "disabled" : ""}>−</button><span>${v}</span><button data-action="lo-inc" data-key="${esc(key)}" data-opt="${esc(o.name)}" data-d="1" ${v >= Math.min(mx, b) ? "disabled" : ""}>+</button></span></div>`; }).join("");
       }
       const need = a === b ? `${a}` : `${a}–${b}`;
@@ -579,7 +666,7 @@
       const adjustable = mx > t.min && (t.up || t.addOn || M.types.filter((x) => !x.up && !x.addOn).length > 1);
       const key = (sl) => `${t.name}|${sl.name}`;
       return `<div class="mt${k ? "" : " zero"}" data-testid="lo-type"><div class="mth"><span class="n">${esc(t.name)}</span>
-        ${adjustable ? `<span class="counter"><button data-action="lo-count" data-type="${esc(t.name)}" data-d="-1" ${k <= mn ? "disabled" : ""}>−</button><span>${k}</span><button data-action="lo-count" data-type="${esc(t.name)}" data-d="1" ${k >= mx ? "disabled" : ""}>+</button></span><span class="muted">${mn}–${mx}</span>` : `<span class="muted">×${k}</span>`}</div>
+        ${adjustable ? `<span class="counter"><button data-action="lo-count" data-type="${esc(t.name)}" data-d="-1" ${k <= mn ? "disabled" : ""}>−</button><span>${k}</span><button data-action="lo-count" data-type="${esc(t.name)}" data-d="1" ${k >= mx ? "disabled" : ""}>+</button></span><span class="muted">${mn}–${mx}</span>` : `<span class="muted">×${k}</span>`}${t.fixed.length ? `<button class="ibtn eye-s" data-action="ds-pop" data-unit="${esc(u.n)}" data-item="${esc(t.fixed.join("|"))}" data-title="${esc(t.name)}" title="Profiles of ${esc(t.name)}'s wargear" data-testid="lo-type-eye">${icon("eye")}</button>` : ""}</div>
         <div class="mtb">${t.fixed.length ? `<div class="fixed">${esc(t.fixed.join(", "))}</div>` : ""}${t.slots.map((sl) => slotHtml(sl, key(sl), k)).join("")}</div></div>`;
     }).join("");
     const unitSlots = M.unit.map((sl) => slotHtml(sl, `*|${sl.name}`, 1)).join("");
@@ -591,8 +678,7 @@
     const n = l.entries.filter((e) => e.unit === name).length;
     return phead(esc(u.n), `${pts(C.minCost(u, n + 1), "big")} <span class="muted">${esc(u.r)}</span>`) + `<div class="pbody scroll" data-sk="panel">
       ${C.unitAllowed(u, l).ok ? `<button class="btn" data-action="add-unit" data-unit="${esc(u.n)}">${icon("plus")} Add to roster</button>` : `<div class="warn">🔒 ${esc(C.unitAllowed(u, l).reason)}</div>`}
-      <details class="coll" open><summary>Points</summary><div class="cb">${pointsTable(u)}</div></details>
-      <div class="grp"><div class="gb">${unitInfo(u) || "<span class='muted'>No extra info.</span>"}</div></div></div>`;
+      <details class="coll profiles" open data-testid="profiles"><summary>Profiles</summary><div class="cb">${datasheetHtml(F, u, null)}</div></details></div>`;
   }
   function metaChip(l, detName) {
     const md = C.metaDetachment(C.metaFaction(S.wr, l.faction, l.sub), detName);
@@ -922,6 +1008,19 @@
     "dup-entry": (t) => { const e = entryOf(t.dataset.uid); if (!e) return; const c = JSON.parse(JSON.stringify(e)); c.uid = C.uid(); c.warlord = false; c.enh = null; delete c.attach;
       mutate((l) => { l.entries.splice(l.entries.indexOf(e) + 1, 0, c); }); },
     "del-entry": (t) => { const uid = t.dataset.uid; if (S.ui.panel && S.ui.panel.uid === uid) S.ui.panel = null; mutate((l) => { l.entries = l.entries.filter((e) => e.uid !== uid); for (const e of l.entries) if (e.attach === uid) delete e.attach; }); },
+    "ds-pop": (t, ev) => {
+      if (ev) ev.stopPropagation();
+      const F = C.getFaction(S.idx, CUR); if (!F) return;
+      if (t.dataset.uid) {
+        const c = C.calcList(CUR, S.idx); const r = c.entries.find((x) => x.uid === t.dataset.uid); if (!r || !r.unit) return;
+        modal(r.attached && r.attached.length ? `${r.name} + ${r.attached.map((x) => x.name).join(" + ")}` : r.name, combinedDatasheet(F, r), { wide: true, sheet: true });
+      } else {
+        const u = F.units[t.dataset.unit]; if (!u) return;
+        const c = C.calcList(CUR, S.idx); const r = S.ui.panel && S.ui.panel.uid ? c.entries.find((x) => x.uid === S.ui.panel.uid && x.unit === u) : null;
+        modal(t.dataset.item ? `${t.dataset.title || t.dataset.item} – ${u.n}` : u.n, datasheetHtml(F, u, r || null, { item: t.dataset.item || null }), { wide: true, sheet: true });
+      }
+    },
+    "unlink": (t, ev) => { if (ev) ev.stopPropagation(); const uid = t.dataset.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (e) delete e.attach; }); toast("Detached"); },
     "open-panel": (t) => { S.ui.panel = { type: t.dataset.panel }; renderEditor(CUR.id); },
     "close-panel": () => { S.ui.panel = null; renderEditor(CUR.id); },
     "focus-det": (t) => { S.ui.focusDet = t.dataset.det; renderEditor(CUR.id); },
@@ -987,6 +1086,7 @@
   const changes = {
     "legends": (t) => mutate((l) => { l.showLegends = t.checked; }),
     "show-locked": (t) => mutate((l) => { l.showLocked = t.checked; }),
+    "leaders-own": (t) => mutate((l) => { if (t.checked) l.leadersOwnCat = true; else delete l.leadersOwnCat; }),
     "attach": (t) => mutate((l) => { const e = l.entries.find((x) => x.uid === S.ui.panel.uid); if (!e) return; if (t.value) e.attach = t.value; else delete e.attach; }),
     "size": (t) => mutate((l) => { l.size = t.value; }),
     "disp": (t) => mutate((l) => { if (t.value) l.disposition = t.value; else delete l.disposition; }),
@@ -1031,6 +1131,17 @@
     if (t.tagName === "BUTTON" || t.tagName === "A") ev.preventDefault();
     a(t, ev);
   });
+  let SW = null;
+  document.addEventListener("touchstart", (ev) => { const row = ev.target.closest && ev.target.closest(".roster .urow"); if (!row || !ev.touches || !ev.touches[0]) { SW = null; return; } SW = { row, x: ev.touches[0].clientX, y: ev.touches[0].clientY }; }, { passive: true });
+  document.addEventListener("touchend", (ev) => {
+    if (!SW) return; const t = ev.changedTouches && ev.changedTouches[0]; if (!t) { SW = null; return; }
+    const dx = t.clientX - SW.x, dy = t.clientY - SW.y;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      document.querySelectorAll(".urow.swiped").forEach((x) => { if (x !== SW.row) x.classList.remove("swiped"); });
+      SW.row.classList.toggle("swiped", dx < 0);
+    }
+    SW = null;
+  }, { passive: true });
   document.addEventListener("change", (ev) => { const t = ev.target.closest("[data-change]"); if (t && changes[t.dataset.change]) changes[t.dataset.change](t, ev); });
   document.addEventListener("input", (ev) => { const t = ev.target.closest("[data-input]"); if (t && inputs[t.dataset.input]) inputs[t.dataset.input](t, ev); });
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { if ($("#modal").innerHTML) closeModal(); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });

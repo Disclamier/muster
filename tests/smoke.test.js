@@ -11,11 +11,12 @@ const read = (p) => fs.readFileSync(path.join(APP, p), "utf8");
 const HTML = read("index.html").replace(/<script src="[^"]+"><\/script>/g, "");
 const POINTS = JSON.parse(read("data/points.json"));
 const VERSION = JSON.parse(read("data/version.json"));
+const DS = fs.existsSync(path.join(APP, "data/datasheets.json")) ? JSON.parse(read("data/datasheets.json")) : null;
 const WR = fs.existsSync(path.join(APP, "data/winrates.json")) ? JSON.parse(read("data/winrates.json")) : null;
 
 function makeApp(opts) {
   opts = opts || {};
-  const server = { version: { ...VERSION }, points: POINTS, winrates: WR, offline: false, requests: [] };
+  const server = { version: { ...VERSION }, points: POINTS, winrates: WR, datasheets: opts.noDatasheets ? null : DS, offline: false, requests: [] };
   const dom = new JSDOM(HTML, {
     url: "http://localhost:8765/", runScripts: "dangerously", pretendToBeVisual: true,
     beforeParse(w) {
@@ -29,7 +30,7 @@ function makeApp(opts) {
         server.requests.push(String(url));
         if (server.offline) throw new TypeError("Failed to fetch");
         const p = String(url).split("?")[0];
-        const body = p.endsWith("version.json") ? server.version : p.endsWith("points.json") ? server.points : p.endsWith("winrates.json") ? server.winrates : null;
+        const body = p.endsWith("version.json") ? server.version : p.endsWith("points.json") ? server.points : p.endsWith("winrates.json") ? server.winrates : p.endsWith("datasheets.json") ? server.datasheets : null;
         if (!body) return { ok: false, status: 404, json: async () => ({}) };
         return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(body)) };
       };
@@ -668,4 +669,112 @@ test("enhancements: keyword restrictions, taken-once, one per attached unit, arm
   // a forced ineligible enhancement is a validation error
   loj.enh = { det: "Cult of Blood", name: "Butcher Lord" }; moe.enh = null;
   assert.ok(C.calcList(l, w.Muster.S.idx).errors.some((x) => /Lord on Juggernaut cannot take Butcher Lord: WORLD EATERS INFANTRY model only/.test(x.msg)));
+});
+
+test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highlight, abilities, keywords), eye popups, combined card", async () => {
+  assert.ok(DS && DS.factions && DS.data_version, "datasheets.json built with GrimSlate data version");
+  assert.equal(VERSION.datasheets_hash, DS.hash);
+  // coverage across all factions: nearly every unit has stats + weapons
+  let n = 0, withS = 0, withW = 0;
+  for (const f of POINTS.factions) for (const u of f.units) { n++; const x = DS.factions[f.id] && DS.factions[f.id].units[u.n]; if (x && x.s && x.s.M && x.s.T && x.s.W) withS++; if (x && x.wp.length) withW++; }
+  assert.ok(withS / n > 0.95 && withW / n > 0.95, `${withS}/${withW} of ${n}`);
+  const { w, d, C, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khorne Berzerkers", "Lord on Juggernaut", "Angron"]);
+  const [kb, loj, angron] = l.entries; loj.warlord = true;
+  await until(() => w.Muster.S.ds);
+  // roster click -> options panel with a Profiles section
+  click(w, rowOf(0));
+  const prof = d.querySelector(".panel [data-testid=profiles]"); assert.ok(prof);
+  const stats = prof.querySelector("[data-testid=ds-stats]"); assert.ok(stats);
+  assert.deepEqual([...stats.querySelectorAll("th")].map((x) => x.textContent), ["Unit", "M", "T", "Sv", "W", "Ld", "OC", "InSv"]);
+  const ks = DS.factions["world-eaters"].units["Khorne Berzerkers"].s;
+  assert.deepEqual([...stats.querySelectorAll("tr:nth-child(2) td")].slice(1, 7).map((x) => x.textContent), [ks.M, ks.T, ks.SV, ks.W, ks.LD, ks.OC]);
+  const ranged = prof.querySelector("[data-testid=ds-ranged]"), melee = prof.querySelector("[data-testid=ds-melee]");
+  assert.ok(ranged && melee);
+  assert.deepEqual([...melee.querySelectorAll("th")].map((x) => x.textContent), ["Melee Weapons", "Range", "A", "WS", "S", "AP", "D", "Keywords"]);
+  // default loadout: Chainblade + Bolt pistol equipped (highlighted), eviscerator/plasma shown dimmed
+  const wrow = (tab, n) => tab.querySelector(`tr[data-weapon="${n}"]`);
+  assert.ok(wrow(melee, "Chainblade").classList.contains("eq")); assert.ok(wrow(ranged, "Bolt pistol").classList.contains("eq"));
+  assert.ok(wrow(melee, "Khornate eviscerator").classList.contains("uneq"));
+  assert.match(wrow(ranged, "Plasma pistol").nextElementSibling.textContent, /supercharge/, "multi-profile weapon rows");
+  assert.match(ranged.textContent, /Pistol/);
+  const ab = prof.querySelector("[data-testid=ds-abilities]"); assert.match(ab.textContent, /Blood Surge:/); assert.match(ab.textContent, /Faction: Blessings of Khorne/);
+  assert.match(prof.querySelector("[data-testid=ds-wargear-ab]").textContent, /Icon of Khorne/);
+  assert.match(prof.querySelector("[data-testid=ds-keywords]").textContent, /Infantry/i);
+  assert.match(prof.querySelector("[data-testid=ds-keywords]").textContent, /World Eaters/i);
+  assert.match(ab.textContent, /Can be joined by:.*Lord on Juggernaut/);
+  // Angron: invulnerable save column
+  click(w, rowOf(2));
+  assert.equal(d.querySelector(".panel [data-testid=ds-inv]").textContent, DS.factions["world-eaters"].units.Angron.inv);
+  assert.notEqual(DS.factions["world-eaters"].units.Angron.inv, undefined);
+  // attach the Lord -> combined card on the bodyguard + combined points chip in the roster
+  loj.attach = kb.uid; w.Muster.route();
+  click(w, rowOf(0));
+  assert.ok(d.querySelector(".panel [data-testid=ds-joined]"));
+  const c = C.calcList(l, w.Muster.S.idx); const rk = c.entries.find((x) => x.uid === kb.uid), rl = c.entries.find((x) => x.uid === loj.uid);
+  assert.match(d.querySelector(".roster [data-testid=combo-pts]").textContent, new RegExp(`Σ ${rk.total + rl.total} pts`));
+  // roster eye icon -> popup sheet with the combined datasheet
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
+  const m = d.querySelector("#modal .modal.sheet"); assert.ok(m); assert.match(m.textContent, /Khorne Berzerkers \+ Lord on Juggernaut/);
+  assert.ok(m.querySelector("[data-testid=ds-stats]")); assert.equal(m.querySelectorAll("[data-testid=ds-joined]").length, 1);
+  click(w, d.querySelector("#modal [data-action=close-modal]"));
+  // option eye icon -> just that wargear's profile
+  click(w, rowOf(0));
+  const eye = [...d.querySelectorAll(".panel [data-action=ds-pop][data-item]")].find((b) => /eviscerator/i.test(b.dataset.item) && !/Chainblade/i.test(b.dataset.item));
+  assert.ok(eye, "eye icon next to loadout options");
+  click(w, eye);
+  const m2 = d.querySelector("#modal .modal.sheet"); assert.ok(m2.querySelector('tr[data-weapon="Khornate eviscerator"]'));
+  assert.equal(m2.querySelector('tr[data-weapon="Chainblade"]'), null);
+  // catalog eye -> preview with Profiles
+  click(w, d.querySelector("#modal [data-action=close-modal]"));
+  const prev = d.querySelector('#catbody .crow[data-unit="Jakhals"] [data-action=preview-unit]');
+  assert.ok(prev, "catalog eye icon"); click(w, prev);
+  assert.ok(d.querySelector(".panel [data-testid=profiles] [data-testid=ds-stats]"));
+});
+
+test("datasheet view: graceful without datasheets.json; phone opens a full-screen sheet; dark mode styles exist", async () => {
+  const app = makeApp({ noDatasheets: true }); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore;
+  const l = C.newList({ name: "X", faction: "world-eaters", sub: "world-eaters", size: "strikeforce" }); l.dets = ["Berzerker Warband"];
+  l.entries.push(C.newEntry(WE().units.find((u) => u.n === "Khorne Berzerkers"))); w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  click(w, d.querySelector(".roster .urow"));
+  assert.ok(d.querySelector(".panel [data-testid=ds-missing]")); assert.ok(d.querySelector(".panel [data-testid=ds-keywords]"));
+  const css = read("css/app.css");
+  assert.match(css, /@media \(max-width: 760px\)\s*\{\s*\.modal-wrap\.sheetwrap[^}]*\}\s*\.modal\.sheet \{[^}]*width: 100vw/);
+  assert.match(css, /\.ds-t th \{ background: var\(--hdr\)/);
+  assert.match(read("sw.js"), /data\/datasheets\.json/);
+});
+
+test("leader attachment (New Recruit style): candidates show size/points/differing wargear in bold, combined points, unlink, own-category option, swipe", async () => {
+  const { w, d, C, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khorne Berzerkers", "Khorne Berzerkers", "Lord on Juggernaut"]);
+  const [kb1, kb2, loj] = l.entries; loj.warlord = true;
+  // give Berzerkers #2 an eviscerator so the candidates differ
+  w.Muster.route(); click(w, rowOf(1));
+  const evi = [...d.querySelectorAll(".panel [data-testid=lo-type]")].map((o) => /eviscerator and bolt pistol/i.test(o.textContent) && o.querySelector('[data-action=lo-count][data-d="1"]:not([disabled])')).find(Boolean);
+  assert.ok(evi, "an eviscerator option with a + control"); click(w, evi);
+  assert.ok(C.calcList(l, w.Muster.S.idx).entries[1].loLines.some((ln) => ln.gear.some((g) => /eviscerator/i.test(g.name))));
+  click(w, rowOf(2));
+  const opts = [...d.querySelectorAll(".panel [data-testid=attach-opt]")];
+  assert.equal(opts.length, 2); assert.match(opts[0].textContent, /\d+ models · \d+ pts/);
+  assert.ok([...opts[1].querySelectorAll(".cand b")].some((b) => /eviscerator/i.test(b.textContent)), "differing wargear in bold");
+  change(w, opts[0].querySelector("input"), true, kb1.uid);
+  assert.equal(loj.attach, kb1.uid);
+  assert.ok(d.querySelector(".roster [data-testid=combo-pts]"));
+  // own-category option: the Lord goes back to the Character section, still attached
+  change(w, d.querySelector("[data-testid=leaders-own]"), true);
+  assert.equal(l.leadersOwnCat, true); assert.equal(d.querySelector(".roster [data-testid=attached-group]"), null);
+  const charSect = [...d.querySelectorAll(".roster .card")].find((c) => /^\s*Character/.test(c.querySelector(".sect-h").textContent));
+  assert.ok(charSect.querySelector(`.urow[data-uid="${loj.uid}"]`)); assert.match(charSect.textContent, /Attached to/);
+  change(w, d.querySelector("[data-testid=leaders-own]"), false);
+  // swipe left on the attached row reveals Unlink; unlink detaches
+  const row = d.querySelector(".roster [data-testid=attached-row]");
+  const T = (type, x) => { const e = new w.Event(type, { bubbles: true }); e.touches = [{ clientX: x, clientY: 100 }]; e.changedTouches = e.touches; row.dispatchEvent(e); };
+  T("touchstart", 300); T("touchend", 200);
+  assert.ok(row.classList.contains("swiped"));
+  click(w, row.querySelector(".swipe-acts [data-action=unlink]"));
+  assert.equal(loj.attach, undefined);
+  // desktop unlink control
+  loj.attach = kb2.uid; w.Muster.route();
+  click(w, d.querySelector(".roster [data-testid=unlink]")); assert.equal(loj.attach, undefined);
 });
