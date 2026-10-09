@@ -1838,6 +1838,16 @@ test("compact Configuration: Battle Size / Detachment / Force Disposition / Opti
   assert.match(dd().querySelector("[data-testid=dp-used]").textContent, /3 \/ 3 DP used/);
   assert.equal(dd().querySelectorAll("[data-testid=det-opt].sel").length, 2);
   assert.deepEqual([...d.querySelectorAll("[data-testid=cfg-dets] .dn")].map((x) => x.textContent), [BW.n, VW.n]);
+  // every picked detachment visible in the collapsed row as its own chip with its DP
+  assert.deepEqual([...d.querySelectorAll("[data-testid=cfg-dets] [data-testid=det-chip]")].map((x) => [x.dataset.det, x.querySelector(".dpchip").textContent]), [[BW.n, BW.dp + " DP"], [VW.n, VW.dp + " DP"]]);
+  assert.ok(d.querySelector("[data-testid=cfg-dets]").classList.contains("multi"));
+  // Force Disposition chips: chosen/other marks only on picked detachments
+  if ((BW.fd || []).length) { l.disposition = BW.fd[0]; w.Muster.route(); }
+  assert.ok(!(BW.fd || []).length || dd().querySelector(`[data-testid=det-opt][data-det="${BW.n}"] .dispc.chosen`), "picked detachment marks the chosen disposition");
+  for (const o of dd().querySelectorAll("[data-testid=det-opt]")) {
+    const picked = o.querySelector("input").checked;
+    if (!picked) assert.ok(!o.querySelector(".dispc.chosen, .dispc.other"), o.dataset.det + " not picked: plain chips");
+  }
   // Esc closes it
   dd().querySelector("input").dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
   assert.ok(!dd().open);

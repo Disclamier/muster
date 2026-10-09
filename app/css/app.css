@@ -920,3 +920,16 @@ details.cfg-dd .dd-more:hover { border-color: var(--blue); }
 details.cfg-dd.opts-dd .dd-list { padding: 0; }
 details.cfg-dd.opts-dd .dd-list .cfgrow { background: transparent; border-bottom: 1px solid var(--row); }
 details.cfg-dd.opts-dd .dd-list .cfgrow input[type=checkbox] { width: 18px; height: 18px; }
+/* Detachment row: every picked detachment visible as its own chip (wraps/stacks, never cut off) + total DP + chevron */
+details.cfg-dd.det-dd > summary { flex-wrap: wrap; row-gap: 4px; }
+details.cfg-dd.det-dd .dd-v { flex-wrap: wrap; justify-content: flex-end; row-gap: 4px; max-width: 100%; min-width: 0; }
+details.cfg-dd.det-dd .detchips { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; min-width: 0; max-width: 100%; }
+details.cfg-dd.det-dd .detchip { display: inline-flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: flex-end; min-width: 0; max-width: 100%; }
+details.cfg-dd.det-dd .detchip .dn { white-space: normal; overflow-wrap: anywhere; text-align: right; }
+details.cfg-dd.det-dd .dd-tot { display: inline-flex; align-items: center; gap: 6px; flex: none; align-self: center; }
+/* 2+ detachments: chips get the full width under the label, total DP + chevron at the end */
+details.cfg-dd.det-dd > summary.multi .dd-v { flex-basis: 100%; justify-content: space-between; align-items: center; margin-left: 0; }
+details.cfg-dd.det-dd > summary.multi .detchips { align-items: flex-start; }
+details.cfg-dd.det-dd > summary.multi .detchip { justify-content: flex-start; }
+details.cfg-dd.det-dd > summary.multi .detchip .dn { text-align: left; }
+details.cfg-dd.det-dd .detchip .dpchip { color: var(--cost); }
