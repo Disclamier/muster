@@ -492,9 +492,9 @@
           ${ls.map((l) => {
             let c = null; try { c = C.calcList(l, S.idx); } catch (e) { c = null; }
             const size = c && c.size;
-            return `<div class="lrow" data-action="open-list" data-id="${esc(l.id)}">
+            return `<div class="lrow${l.disposition ? " has-disp" : ""}"${dispAttr(l)} data-action="open-list" data-id="${esc(l.id)}">
               ${factionImg(l) ? `<img class="lthumb" src="${esc(factionImg(l))}" alt="">` : icon(ROLE_ICON)}
-              <span class="name">${esc(l.name)}</span>
+              <span class="lmain"><span class="name">${esc(l.name)}</span>${l.disposition ? dispChip(l.disposition, "sm") : ""}</span>
               ${c ? `<span class="pts${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"}</span>
                 <span class="dot ${c.errors.length ? "err" : "ok"}" title="${c.errors.length ? esc(c.errors.length + " issue(s)") : "Valid"}">${c.errors.length ? "!" : "✓"}</span>` : ""}
               <span class="time">${esc(ago(l.updated))}</span>
@@ -579,7 +579,11 @@
   const dispName = (d) => title(d);
   // Force Disposition chip in Games Workshop's color (Colors setting can override per device)
   const dispSlug = (d) => String(d || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
-  const dispChip = (d) => `<span class="dispc" data-disp="${esc(dispSlug(d))}">${esc(dispName(d))}</span>`;
+  const dispChip = (d, cls) => `<span class="dispc${cls ? " " + cls : ""}" data-disp="${esc(dispSlug(d))}">${esc(dispName(d))}</span>`;
+  // the list's chosen Force Disposition colors its container (CSS var --dc via [data-disp]); nothing when none is chosen
+  const dispAttr = (l) => (l && l.disposition ? ` data-disp="${esc(dispSlug(l.disposition))}"` : "");
+  // a detachment's offered dispositions; the list's chosen one is highlighted
+  const fdChips = (fd, l) => (fd || []).map((x) => dispChip(x, l && l.disposition ? (l.disposition === x ? "chosen" : "other") : "")).join(" ");
 
   function renderEditor(id) {
     const l = findList(id);
@@ -590,7 +594,7 @@
     const sub = subOf(l);
     const panel = S.ui.panel;
     keepScroll(() => {
-      $("#main").innerHTML = `<div class="editor">
+      $("#main").innerHTML = `<div class="editor${l.disposition ? " has-disp" : ""}"${dispAttr(l)} data-testid="editor">
         <div class="titlebar">
           ${factionImg(l) ? `<img class="lthumb" src="${esc(factionImg(l))}" alt="">` : icon(ROLE_ICON)}
           <span class="lname" data-action="rename-cur" title="Rename">${esc(l.name)}</span>
@@ -678,11 +682,11 @@
     const sel = S.ui.panel || {};
     const cfg = `<div class="card${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && (c.dispositions || []).length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
       <div class="cfgrow${sel.type === "size" ? " selrow" : ""}" data-action="open-panel" data-panel="size"><span class="n"><b>Battle Size:</b> ${esc(size ? size.name : "?")}</span>${size ? pts(size.points) : ""}</div>
-      <div class="cfgrow${sel.type === "dets" ? " selrow" : ""}" data-action="open-panel" data-panel="dets" data-testid="cfg-dets"><span class="n">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}<b>Detachment:</b> ${dets.length ? dets.map((d) => esc(d.n) + (d.src === "gs" ? `<span class="tag gs">GrimSlate</span>` : "")).join(", ") : `<span class="err">None selected</span>`}</span>
+      <div class="cfgrow detsrow${sel.type === "dets" ? " selrow" : ""}" data-action="open-panel" data-panel="dets" data-testid="cfg-dets"><span class="n">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}<b>Detachment:</b> ${dets.length ? dets.map((d) => esc(d.n) + (d.src === "gs" ? `<span class="tag gs">GrimSlate</span>` : "")).join(", ") : `<span class="err">None selected</span>`}</span>
         <span class="dpchip${dpOver ? " over" : ""}" data-testid="dp">${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} DP</span></div>
       ${dets.map((d) => `<details class="coll cfgdet" data-testid="cfg-det" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ""} <span class="muted">· ${d.st.length} stratagem${d.st.length === 1 ? "" : "s"} · ${d.enh.length} enhancement${d.enh.length === 1 ? "" : "s"}</span></summary>
         <div class="cb">${d.rule ? `<div class="rules"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
-      <div class="cfgrow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? dispChip(l.disposition) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
+      <div class="cfgrow disprow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp" data-testid="cfg-disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? dispChip(l.disposition) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
       <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends"></label>
       <label class="cfgrow" title="Off: attached Leaders/Support units appear inside their bodyguard unit's card"><span class="n"><b>Attached characters in their own category</b></span><input type="checkbox" ${l.leadersOwnCat ? "checked" : ""} data-change="leaders-own" data-testid="leaders-own"></label>
       <div class="cfgnote">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
@@ -715,7 +719,7 @@
     const miss = missing.length ? `<div class="card"><div class="sect-h">Not in current data</div>${missing.map((r) => `<div class="urow" data-uid="${esc(r.uid)}"><div class="line"><span class="n err">${esc(r.name)}</span>
       <button class="ibtn danger" data-action="del-entry" data-uid="${esc(r.uid)}" title="Remove">${icon("trash")}</button></div></div>`).join("")}</div>` : "";
     return `<div class="fbanner"${banner ? ` style="background-image:linear-gradient(90deg,rgba(0,0,0,.78),rgba(0,0,0,.25)),url('${esc(banner)}')"` : ""}>
-        <div><div class="fbt">${esc(sub ? sub.name : F ? F.f.name : l.faction)}</div><div class="fbs">${esc(size ? size.name : "")} · ${c.entries.length} unit${c.entries.length === 1 ? "" : "s"}</div></div>
+        <div><div class="fbt">${esc(sub ? sub.name : F ? F.f.name : l.faction)}</div><div class="fbs">${esc(size ? size.name : "")} · ${c.entries.length} unit${c.entries.length === 1 ? "" : "s"}</div>${l.disposition ? `<div class="fbdisp" data-testid="banner-disp">${dispChip(l.disposition)}</div>` : ""}</div>
         <span class="pts big${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"} pts</span></div>
       ${cfg}${roles}${miss}
       ${!l.entries.length ? `<div class="empty">Add units from the catalog${isPhone() ? " tab" : " on the left"}.</div>` : ""}`;
@@ -976,7 +980,7 @@
   function detBlock(d, o) {
     o = o || {};
     return `<div class="detfocus${o.preview ? " preview" : ""}" data-testid="det-block" data-det="${esc(d.n)}"><h4>${esc(d.n)} <span class="dpchip">${d.dp} DP</span>${o.preview ? ` <span class="tag">not selected</span>` : ""}</h4>
-        ${d.fd && d.fd.length ? `<div class="muted fdline">Force Disposition: ${d.fd.map(dispChip).join(" ")}</div>` : ""}
+        ${d.fd && d.fd.length ? `<div class="muted fdline">Force Disposition: ${fdChips(d.fd, CUR)}</div>` : ""}
         ${d.sup ? `<div class="muted">${esc([].concat(d.sup).join("; "))}</div>` : ""}
         ${d.gs_dp !== undefined && d.gs_dp !== d.dp ? `<div class="warn">GrimSlate lists ${esc(d.gs_dp)} DP (MFM value used)</div>` : ""}
         ${d.rule ? `<details class="coll"${o.open ? " open" : ""}><summary>Detachment rule: ${esc(d.rule[0])}</summary><div class="cb rules" data-testid="det-rule">${esc(clean(d.rule[1]))}</div></details>` : `<div class="muted">No detachment rule text available.</div>`}
@@ -992,7 +996,7 @@
     const over = c.dpLimit != null && c.dp > c.dpLimit && !(size.single3dp && l.dets.length === 1 && c.dp === 3);
     const row = (d) => `<div class="detrow${focus && focus.n === d.n ? " focus" : ""}"><label><input type="checkbox" ${selected.has(d.n) ? "checked" : ""} value="${esc(d.n)}" data-change="det">
         <span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>${d.src === "gs" ? `<span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}
-        ${d.chg ? `<span class="tag">updated</span>` : ""}${(d.rs || []).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}${metaChip(l, d.n)}</label>
+        ${d.chg ? `<span class="tag">updated</span>` : ""}${(d.rs || []).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}${d.fd && d.fd.length ? `<span class="fdchips" data-testid="det-fd">${fdChips(d.fd, l)}</span>` : ""}${metaChip(l, d.n)}</label>
         <button class="ibtn" data-action="focus-det" data-det="${esc(d.n)}" title="View rules">${icon("eye")}</button></div>`;
     // every selected detachment gets its own block (rule, enhancements, stratagems); an unselected detachment
     // opened with the eye button is shown as a preview after them

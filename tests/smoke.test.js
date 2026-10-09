@@ -1311,7 +1311,7 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   const css = read("css/app.css");
   assert.match(css, /var\(--c-det, #39ff14\)/);
   assert.match(css, /html\[data-c-strat\] \.strat \.sh \.n/);
-  for (const k of ["take-and-hold", "disruption", "purge-the-foe", "priority-assets", "reconnaissance"]) assert.match(css, new RegExp(`\\.dispc\\[data-disp=${k}\\] \\{ --dc: var\\(--c-disp-${k}, #[0-9a-f]{6}\\)`));
+  for (const k of ["take-and-hold", "disruption", "purge-the-foe", "priority-assets", "reconnaissance"]) assert.match(css, new RegExp(`\\[data-disp=${k}\\] \\{ --dc: var\\(--c-disp-${k}, #[0-9a-f]{6}\\)`));
   // open the Colors screen from the header: every category has a row with a picker
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const rows = [...d.querySelectorAll("#modal [data-testid=color-row]")].map((r) => r.dataset.ck);
@@ -1349,5 +1349,32 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   await go(w, "#/list/" + l.id);
   await until(() => d.querySelector(".editor"));
   const chip = [...d.querySelectorAll(".cfgrow .dispc")][0];
-  assert.ok(chip && chip.dataset.disp === fd.toLowerCase().replace(/[^a-z]+/g, "-"), "disposition chip in the Configuration card");
+  const slug = fd.toLowerCase().replace(/[^a-z]+/g, "-");
+  assert.ok(chip && chip.dataset.disp === slug, "disposition chip in the Configuration card");
+  // the chosen disposition colors the whole builder: editor accent, banner label, colored config row
+  const ed = d.querySelector("[data-testid=editor]");
+  assert.ok(ed.classList.contains("has-disp") && ed.dataset.disp === slug);
+  assert.equal(d.querySelector("[data-testid=banner-disp] .dispc").dataset.disp, slug);
+  assert.ok(d.querySelector("[data-testid=cfg-disp]").classList.contains("disprow"));
+  assert.match(css, /\.editor\.has-disp \.fbanner \{[^}]*var\(--dc\)/);
+  assert.match(css, /\.lrow\.has-disp \{[^}]*var\(--dc\)/);
+  // Detachment panel: offered dispositions as chips, the chosen one highlighted
+  click(w, d.querySelector("[data-action=open-panel][data-panel=dets]"));
+  const fdRow = [...d.querySelectorAll(".detrow")].find((r) => /Gladius Task Force/.test(r.textContent)).querySelector("[data-testid=det-fd]");
+  assert.ok(fdRow.querySelector(`.dispc.chosen[data-disp="${slug}"]`), "chosen disposition highlighted in the Detachment panel");
+  // a user override reaches the builder through the same variable
+  w.MusterColors.set("disp-" + slug, "#ff00aa");
+  assert.equal(root.style.getPropertyValue("--c-disp-" + slug), "#ff00aa");
+  w.MusterColors.resetAll();
+  // Lists page: colored edge + chip on the list's row; lists without a disposition stay plain
+  const l2 = C.newList({ name: "Plain", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); w.Muster.S.lists.push(l2);
+  await go(w, "#/lists");
+  await until(() => d.querySelector(".lists-page"));
+  const row = d.querySelector(`.lrow[data-id="${l.id}"]`);
+  assert.ok(row.classList.contains("has-disp") && row.dataset.disp === slug);
+  assert.equal(row.querySelector(".dispc").dataset.disp, slug);
+  const plain = d.querySelector(`.lrow[data-id="${l2.id}"]`);
+  assert.ok(!plain.classList.contains("has-disp") && !plain.querySelector(".dispc"));
+  // text export names the disposition
+  for (const f of ["gw", "wtc", "wtc-full", "simple"]) assert.match(C.exportText(l, w.Muster.S.idx, w.Muster.S.meta, f), new RegExp("FORCE DISPOSITION: " + fd, "i"), f);
 });

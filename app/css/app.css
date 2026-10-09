@@ -725,11 +725,11 @@ html[data-c-enh] .detfocus details.coll.enh-coll > summary { color: var(--c-enh)
 /* Force Dispositions: Games Workshop's 11th edition colors (sampled from the Force Disposition icons on Warhammer Community) */
 .dispc { display: inline-block; padding: 0 7px; border-radius: 4px; font-weight: 700; font-size: .92em; line-height: 1.6; white-space: nowrap; vertical-align: baseline;
   background: var(--dc, transparent); color: var(--dcf, currentColor); }
-.dispc[data-disp=take-and-hold] { --dc: var(--c-disp-take-and-hold, #196819); --dcf: var(--c-disp-take-and-hold-fg, #fff); }
-.dispc[data-disp=disruption] { --dc: var(--c-disp-disruption, #02486a); --dcf: var(--c-disp-disruption-fg, #fff); }
-.dispc[data-disp=purge-the-foe] { --dc: var(--c-disp-purge-the-foe, #761b1a); --dcf: var(--c-disp-purge-the-foe-fg, #fff); }
-.dispc[data-disp=priority-assets] { --dc: var(--c-disp-priority-assets, #907703); --dcf: var(--c-disp-priority-assets-fg, #fff); }
-.dispc[data-disp=reconnaissance] { --dc: var(--c-disp-reconnaissance, #056863); --dcf: var(--c-disp-reconnaissance-fg, #fff); }
+[data-disp=take-and-hold] { --dc: var(--c-disp-take-and-hold, #196819); --dcf: var(--c-disp-take-and-hold-fg, #fff); }
+[data-disp=disruption] { --dc: var(--c-disp-disruption, #02486a); --dcf: var(--c-disp-disruption-fg, #fff); }
+[data-disp=purge-the-foe] { --dc: var(--c-disp-purge-the-foe, #761b1a); --dcf: var(--c-disp-purge-the-foe-fg, #fff); }
+[data-disp=priority-assets] { --dc: var(--c-disp-priority-assets, #907703); --dcf: var(--c-disp-priority-assets-fg, #fff); }
+[data-disp=reconnaissance] { --dc: var(--c-disp-reconnaissance, #056863); --dcf: var(--c-disp-reconnaissance-fg, #fff); }
 html[data-theme="dark"] .dispc { box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
 .fdline .dispc { margin-left: 2px; }
 .mtable tr.open td .dispc { font-weight: 700; }
@@ -766,3 +766,27 @@ html[data-theme="dark"] .dispc { box-shadow: inset 0 0 0 1px rgba(255,255,255,.1
 }
 details.cfgdet > summary { display: block; }
 details.cfgdet > summary::before { margin-right: 6px; }
+
+/* The list's chosen Force Disposition colors the list everywhere (James, Oct 8). Uses the same --c-disp-* variables. */
+.dispc.sm { font-size: 11px; line-height: 17px; padding: 0 6px; }
+.dispc.chosen { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--dc); }
+.dispc.chosen::before { content: "✓ "; }
+.dispc.other { opacity: .55; }
+html[data-theme="dark"] .dispc.chosen { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--dc), 0 0 0 5px rgba(255,255,255,.5); }
+.fdchips { display: inline-flex; gap: 6px; flex-wrap: wrap; margin-left: 2px; }
+.fdchips .dispc { font-size: 11px; line-height: 17px; padding: 0 6px; }
+.fdline .dispc.chosen { margin: 0 4px; }
+/* builder: banner label + accent strips, titlebar underline, colored config rows */
+.fbdisp { margin-top: 5px; }
+.fbdisp .dispc { font-size: 13px; padding: 1px 9px; text-transform: uppercase; letter-spacing: .04em; box-shadow: 0 0 0 1px rgba(255,255,255,.35); }
+.editor.has-disp .fbanner { border-left: 6px solid var(--dc); box-shadow: inset 0 -4px 0 var(--dc); }
+.editor.has-disp .titlebar { box-shadow: inset 0 -3px 0 var(--dc); }
+.editor.has-disp .cfgrow.detsrow,
+.editor.has-disp details.cfgdet { border-left: 4px solid var(--dc); }
+.editor.has-disp .cfgrow.disprow { border-left: 4px solid var(--dc); background: color-mix(in srgb, var(--dc) 22%, var(--row)); }
+.editor.has-disp .cfgrow.disprow:hover { background: color-mix(in srgb, var(--dc) 32%, var(--row)); }
+.editor.has-disp .cfgrow.disprow .dispc { font-size: 13px; padding: 1px 9px; }
+/* Lists page: colored left edge + chip under the list name */
+.lrow.has-disp { border-left: 5px solid var(--dc); }
+.lrow .lmain { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.lrow .lmain .name { max-width: 100%; }
