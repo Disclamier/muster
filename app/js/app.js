@@ -1013,7 +1013,7 @@
       `<div class="pbody scroll" data-sk="panel">
         ${errs.length ? `<div class="grp errgrp"><div class="gb">${errs.map((x) => `<div class="${c.errors.includes(x) ? "err" : "warn"}">${esc(x.msg)}</div>`).join("")}</div></div>` : ""}
         ${opts.length ? `<div class="grp"><div class="gh">Unit size${r.copy > 1 ? ` <span class="muted">(${r.copy}${["th", "st", "nd", "rd"][r.copy % 10 > 3 || [11, 12, 13].includes(r.copy % 100) ? 0 : r.copy % 10]} copy)</span>` : ""}</div><div class="gb">
-          ${opts.map((o) => `<label class="opt"><input type="radio" name="models" value="${esc(o.models)}" ${o.models === (opts.find((x) => x.models === e.models) ? e.models : opts[0].models) ? "checked" : ""} data-change="models"><span class="on">${esc(o.label)}</span>${pts(o.points)}</label>`).join("")}</div></div>` : ""}
+          ${opts.map((o) => `<label class="opt"><input type="radio" name="models" value="${esc(JSON.stringify([o.models, o.label]))}" ${o === (C.pickModelOption(opts, e) || opts[0]) ? "checked" : ""} data-change="models"><span class="on">${esc(o.label)}</span>${pts(o.points)}</label>`).join("")}</div></div>` : ""}
         ${adds.length ? `<div class="grp"><div class="gh">Add-ons</div><div class="gb">${adds.map((a) => `<label class="opt"><input type="checkbox" value="${esc(a.label)}" ${(e.addons || []).includes(a.label) ? "checked" : ""} data-change="addon"><span class="on">${esc(a.label.replace(/^\+\s*/, ""))}</span>${pts(a.points)}</label>`).join("")}</div></div>` : ""}
         ${r.lo ? loadoutTree(u, r) : ""}
         ${(u.w || []).some((w, i) => !linked.has(i)) ? `<div class="grp"><div class="gh">Wargear costs (MFM)</div><div class="gb">${u.w.map((w, i) => linked.has(i) ? "" : `<div class="opt"><span class="on">${esc(w[0])}</span>${pts(w[1])}
@@ -1028,7 +1028,7 @@
   }
   /* New Recruit-style options tree: model types with counts, fixed weapons, weapon choices per slot */
   function loadoutTree(u, r) {
-    const M = C.loModel(u), lo = r.lo, N = C.loN(M, (C.modelOptions(u, r.copy).find((o) => o.models === r.entry.models) || C.modelOptions(u, r.copy)[0] || { models: 1 }).models);
+    const M = C.loModel(u), lo = r.lo, N = C.loN(M, (C.pickModelOption(C.modelOptions(u, r.copy), r.entry) || C.modelOptions(u, r.copy)[0] || { models: 1 }).models);
     const priceOf = (o) => o.w !== null && o.w !== undefined && u.w && u.w[o.w] ? ` ${pts(u.w[o.w][1] * (o.wn || 1))}` : "";   // e.g. "2 ectoplasma cannons" = 2 x the MFM per-item cost
     const slotHtml = (s, key, k) => {
       if (!k) return "";
@@ -1652,7 +1652,7 @@
     const uid = S.ui.panel && S.ui.panel.uid; if (!uid) return;
     mutate((l) => {
       const c = C.calcList(l, S.idx); const r = c.entries.find((x) => x.uid === uid); if (!r || !r.lo) return;
-      const N = C.loN(C.loModel(r.unit), (C.modelOptions(r.unit, r.copy).find((o) => o.models === r.entry.models) || C.modelOptions(r.unit, r.copy)[0] || { models: 1 }).models);
+      const N = C.loN(C.loModel(r.unit), (C.pickModelOption(C.modelOptions(r.unit, r.copy), r.entry) || C.modelOptions(r.unit, r.copy)[0] || { models: 1 }).models);
       const res = fn(JSON.parse(JSON.stringify(r.lo)), r, r.unit, N);
       if (res === null) delete r.entry.lo; else r.entry.lo = res;
     });
@@ -1699,7 +1699,7 @@
       if (l.disposition && !fds.includes(l.disposition)) delete l.disposition;
       if (!l.disposition && fds.length === 1) l.disposition = fds[0];
     }),
-    "models": (t) => { const uid = S.ui.panel.uid; mutate((l) => { l.entries.find((x) => x.uid === uid).models = t.value === "null" ? null : +t.value; }); },
+    "models": (t) => { const uid = S.ui.panel.uid, [m, ml] = JSON.parse(t.value); mutate((l) => { const e = l.entries.find((x) => x.uid === uid); e.models = m; e.ml = ml; }); },
     "addon": (t) => { const uid = S.ui.panel.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); e.addons = (e.addons || []).filter((a) => a !== t.value); if (t.checked) e.addons.push(t.value); }); },
     "warlord": (t) => { const uid = S.ui.panel.uid; mutate((l) => { for (const e of l.entries) e.warlord = t.checked ? e.uid === uid : (e.uid === uid ? false : e.warlord); }); },
     "enh": (t) => { const uid = S.ui.panel.uid; S.ui.enhOpen = null; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (!t.value) e.enh = null; else { const [det, name] = t.value.split("||"); e.enh = { det, name }; } }); },

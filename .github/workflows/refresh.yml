@@ -55,8 +55,8 @@ jobs:
             data/winrates.json
           key: scraped-${{ github.run_id }}
           restore-keys: scraped-
-      - name: Install image tooling (faction artwork)
-        run: pip install pillow
+      - name: Install image tooling (faction artwork) + points-audit deps
+        run: pip install pillow websocket-client beautifulsoup4 lxml
       # Fails safe: on any scrape/build problem refresh.sh exits non-zero WITHOUT touching app/data, this step is
       # allowed to fail, and the tests + Pages publish below run on the previously published data.
       - name: Refresh data (keeps previous data if a scrape fails)
@@ -69,6 +69,30 @@ jobs:
           node-version: "20"
       - name: Tests (a failure stops here - nothing committed, site not redeployed)
         run: cd tests && npm ci && npm test
+      # POINTS GUARD. Re-reads the live Munitorum Field Manual a second, independent way (headless Chrome renders every
+      # faction page with Legends shown; audit/mfm_parse.py parses the DOM - no code shared with scraper/) and prices
+      # every unit size, add-on, wargear line, loadout option (x copies), enhancement and detachment DP through the
+      # app's own core.js. Any mismatch (or an MFM page that can't be read) fails this step, so nothing below runs:
+      # no data commit, no Pages publish - the live site keeps its last verified data and the failed run (with
+      # ::error annotations + the job summary) is the alarm. Runs on pushes too, so code changes can't break points.
+      - name: Points audit vs live Munitorum Field Manual (blocks publishing on any mismatch)
+        run: |
+          set -o pipefail
+          python3 audit/mfm_dump.py audit/out/dom
+          python3 audit/mfm_parse.py audit/out/dom > audit/out/mfm_audit.json
+          node audit/check_points.js audit/out/mfm_audit.json --json audit/out/result.json --verbose | tee audit/out/report.txt
+      - name: Points audit report
+        if: always()
+        run: |
+          [ -f audit/out/report.txt ] || exit 0
+          { echo '### MFM points audit'; echo '```'; grep -v '^  spot:\|^  info:' audit/out/report.txt | head -200; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mfm-points-audit
+          path: audit/out/
+          if-no-files-found: ignore
+          retention-days: 14
       - name: Commit refreshed data
         if: github.event_name != 'push'
         run: |

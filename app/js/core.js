@@ -180,6 +180,12 @@
     return t[2].filter((r) => !(r[0] === null && String(r[2] || "").trim().startsWith("+")))
       .map((r) => ({ models: r[0], points: r[1], label: r[2] || (r[0] === 1 ? "1 model" : `${r[0]} models`) }));
   }
+  /* the size option an entry picked: by model count, and by label when two sizes share a count
+     (e.g. Wolf Guard Headtakers "6 Wolf Guard Headtakers" vs "3 Wolf Guard Headtakers, 3 Hunting Wolves") */
+  function pickModelOption(opts, e) {
+    const same = opts.filter((o) => o.models === (e ? e.models : undefined));
+    return (e && e.ml != null && same.find((o) => o.label === e.ml)) || same[0] || null;
+  }
   function addonOptions(unit, copy) {
     const t = tierFor(unit, copy || 1);
     if (!t) return [];
@@ -430,7 +436,7 @@
       copies[u.n] = (copies[u.n] || 0) + 1;
       row.copy = copies[u.n];
       const opts = modelOptions(u, row.copy);
-      let opt = opts.find((o) => o.models === e.models) || null;
+      let opt = pickModelOption(opts, e);
       if (!opt && opts.length) {
         opt = opts[0];
         if (e.models != null) warn(`${u.n}: ${e.models} models is no longer a valid size; using ${opt.label}`, e.uid);
@@ -1063,13 +1069,13 @@
     return { n: l.name, f: l.faction, s: l.sub, z: l.size, d: l.dets, p: l.disposition || undefined,
       e: l.entries.map((e) => [e.unit, e.models, e.wargear && Object.keys(e.wargear).length ? e.wargear : 0, e.addons && e.addons.length ? e.addons : 0,
         e.enh ? [e.enh.det, e.enh.name] : 0, e.warlord ? 1 : 0, e.note || 0, e.lo || 0,
-        e.attach ? l.entries.findIndex((x) => x.uid === e.attach) : -1]) };
+        e.attach ? l.entries.findIndex((x) => x.uid === e.attach) : -1].concat(e.ml != null ? [e.ml] : [])) };
   }
   function listFromShareable(o) {
     const l = newList({ name: o.n, faction: o.f, sub: o.s, size: o.z });
     l.dets = o.d || []; if (o.p) l.disposition = o.p;
     l.entries = (o.e || []).map((a) => ({ uid: uid(), unit: a[0], models: a[1], wargear: a[2] || {}, addons: a[3] || [],
-      enh: a[4] ? { det: a[4][0], name: a[4][1] } : null, warlord: !!a[5], ...(a[6] ? { note: a[6] } : {}), ...(a[7] ? { lo: a[7] } : {}) }));
+      enh: a[4] ? { det: a[4][0], name: a[4][1] } : null, warlord: !!a[5], ...(a[6] ? { note: a[6] } : {}), ...(a[7] ? { lo: a[7] } : {}), ...(a[9] != null ? { ml: a[9] } : {}) }));
     (o.e || []).forEach((a, i) => { if (a[8] != null && a[8] >= 0 && l.entries[a[8]]) l.entries[i].attach = l.entries[a[8]].uid; });
     return l;
   }
@@ -1198,7 +1204,7 @@
     return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
   }
 
-  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, addonOptions, defaultModels,
+  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

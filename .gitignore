@@ -13,3 +13,5 @@ __pycache__/
 *.tmp
 *.new
 .DS_Store
+# --- MFM points audit output (audit/mfm_dump.py + mfm_parse.py + check_points.js)
+audit/out/

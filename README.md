@@ -53,6 +53,20 @@ and detachment unit restrictions; units are matched by name. Report: `data/codex
 
 Individual steps: `python3 scraper/fetch_mfm.py` (~45–70 s), `fetch_grimslate.py` (~3 min), `fetch_winrates.py` (~50 s), `fetch_images.py`, `build_data.py`.
 
+### Points guard (independent MFM audit)
+
+    make audit            # needs Chrome + pip install websocket-client beautifulsoup4 lxml
+
+The Munitorum Field Manual is the only points source (units, sizes, wargear, enhancements, detachment DP - Space Marines
+and chapters included). `audit/` re-checks that, sharing no code with `scraper/`:
+`mfm_dump.py` renders every live faction page in headless Chrome (Legends shown), `mfm_parse.py` reads the DOM, and
+`check_points.js` prices everything through the app's own `core.js` (every size of every cost tier incl. 1st-to-Nth
+copies, add-ons, each MFM wargear line, every loadout option that grants a priced weapon x the copies its text names,
+enhancements, DP, Legends flags, units missing on either side, plus 3 random end-to-end unit totals per faction).
+The daily workflow runs it after the tests; any mismatch fails the run before the data commit and the Pages publish.
+Known, reported-only: Imperial Agents' second price list "Every model has the Imperium keyword" (allied Agents) is not
+used because Muster has no allied-Agents mode; GrimSlate-only detachments (not in the MFM) are flagged in the app.
+
 ## In the app: loadouts
 Unit options panel shows a New Recruit-style tree from GrimSlate compositions: each model type with its count
 (upgrade models such as "Intercessor w/ Grenade Launcher" trade with their base model, min/max incl. size-dependent

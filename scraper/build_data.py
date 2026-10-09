@@ -332,10 +332,25 @@ def merge(mfm, gs):
         codex_override.apply(mf["id"], units, dets, f_ds, f_rules,
                              {x["n"]: [{"name": w[0]} for w in x.get("w") or []] for x in units},
                              stats, merge.codex_report, role_from_keywords)
+        for x in units:
+            unique_slot_names(x.get("lo"))
         units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))
         ds_out[mf["id"]] = {"rules": f_rules, "units": f_ds}
         out_factions.append({"id": mf["id"], "name": mf["name"], "url": mf["url"], "units": units, "dets": dets})
     return out_factions, stats, unmatched_dets
+
+
+def unique_slot_names(lo):
+    """Selections are stored per "<model>|<slot name>", so two slots with the same name on one model (Black Templars
+    Gladiator Valiant: two fixed "Multi-melta" slots) would share one key. Later duplicates become "Name (2)"."""
+    if not lo:
+        return
+    for slots in [m[4] for m in lo.get("m") or []] + [lo.get("u") or []]:
+        seen = Counter()
+        for sl in slots:
+            seen[sl[0]] += 1
+            if seen[sl[0]] > 1:
+                sl[0] = f"{sl[0]} ({seen[sl[0]]})"
 
 
 def compact_ds(gu, frn):

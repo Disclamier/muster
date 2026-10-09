@@ -973,7 +973,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v27/);
+  assert.match(read("sw.js"), /muster-shell-v28/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1892,4 +1892,26 @@ test("loadout picker: an option with 2 of a per-item priced weapon shows and add
   assert.match(opt("2 ectoplasma cannons").textContent, /10 pts/);
   assert.match(opt("Ectoplasma cannon and claws").textContent, /5 pts/);
   assert.match(d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"] .pts`).textContent, new RegExp(`${base + 10} pts`));
+});
+
+test("unit sizes that share a model count are separately selectable (Space Wolves Wolf Guard Headtakers, MFM audit)", async () => {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore;
+  const u = POINTS.factions.find((f) => f.id === "space-wolves").units.find((x) => x.n === "Wolf Guard Headtakers");
+  const l = C.newList({ name: "SW", faction: "space-wolves", sub: "space-wolves", size: "strikeforce" });
+  l.entries.push(C.newEntry(u)); w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => d.querySelector(".editor"));
+  const row = () => d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"]`);
+  click(w, row());
+  const radios = () => [...d.querySelectorAll(".panel input[data-change=models]")];
+  const six = radios().find((r) => r.closest("label").textContent.includes("6 Wolf Guard Headtakers") && !r.closest("label").textContent.includes("Hunting"));
+  assert.ok(six, "the 6 Headtakers size is offered");
+  change(w, six, true);
+  const want = u.t[0][2].find((r) => r[2] === "6 Wolf Guard Headtakers")[1];
+  assert.equal(l.entries[0].ml, "6 Wolf Guard Headtakers");
+  assert.match(row().querySelector(".pts").textContent, new RegExp(`${want} pts`));
+  const checked = radios().find((r) => r.checked);
+  assert.match(checked.closest("label").textContent, /^6 Wolf Guard Headtakers/);
 });
