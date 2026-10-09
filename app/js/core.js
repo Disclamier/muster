@@ -229,12 +229,12 @@
   const _lom = new WeakMap();
   function loModel(u) {
     if (!u || !u.lo || !u.lo.m || !u.lo.m.length) return null;
-    if (_lom.has(u)) return _lom.get(u);
+    if (_lom.has(u.lo)) return _lom.get(u.lo);   // keyed on the data itself: refreshed data -> recomputed model
     const slot = (s) => ({ name: s[0], opts: s[1].map((o) => ({ name: o[0], max: o[1], text: o[2], w: o[3], mas: o[4], wn: o[5] || 1 })),
       defaults: s[2] || [], minT: s[3], maxT: s[4], optional: !!s[5] });
     const M = { types: u.lo.m.map((m) => ({ name: m[0], min: m[1] || 0, max: m[2], fixed: m[3] || [], slots: (m[4] || []).map(slot),
       up: m[5] || null, mas: m[6] || null, addOn: !!m[7] })), unit: (u.lo.u || []).map(slot), mn: u.lo.mn, mx: u.lo.mx };
-    _lom.set(u, M); return M;
+    _lom.set(u.lo, M); return M;
   }
   const hasLoadout = (u) => !!loModel(u);
   function atSize(base, mas, N) {

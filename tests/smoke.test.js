@@ -989,7 +989,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v29/);
+  assert.match(read("sw.js"), /muster-shell-v30/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1930,4 +1930,123 @@ test("unit sizes that share a model count are separately selectable (Space Wolve
   assert.match(row().querySelector(".pts").textContent, new RegExp(`${want} pts`));
   const checked = radios().find((r) => r.checked);
   assert.match(checked.closest("label").textContent, /^6 Wolf Guard Headtakers/);
+});
+
+// catalog hide/minimize (side-by-side layout on PC + tablets; phones keep the Catalog/Roster tabs)
+async function catApp(opts) {
+  const lists = JSON.stringify([{ id: "c1", name: "Cat", faction: "world-eaters", sub: "world-eaters", size: "strikeforce", dets: ["Berzerker Warband"], entries: [], app: "muster", schema: 1 }]);
+  const a = makeApp({ ...opts, storage: { "muster.lists": lists, ...(opts.storage || {}) } });
+  await until(() => a.d.querySelector(".lists-page"));
+  await go(a.w, "#/list/c1"); await until(() => a.d.querySelector(".editor"));
+  return a;
+}
+test("catalog hide: PC hides to a rail without re-rendering (search + scroll kept), remembered per device, rail restores; draggable windows still work", async () => {
+  const { w, d } = await catApp({});
+  const cols = d.querySelector("[data-testid=cols]"), cat = d.querySelector("#catcol");
+  const btn = d.querySelector("[data-testid=cat-hide]"); assert.ok(btn, "hide button in the catalog header");
+  assert.ok(btn.closest(".fhead"), "button sits in the catalog header");
+  assert.equal(btn.getAttribute("aria-expanded"), "true");
+  assert.ok(!cols.classList.contains("cat-hidden"));
+  // type a search and scroll the catalog first
+  const q = d.querySelector("[data-input=cat-search]"); q.value = "berz"; q.dispatchEvent(new w.Event("input", { bubbles: true }));
+  await tick(300);
+  const body = d.querySelector("#catbody"); body.scrollTop = 40; const sk = body.scrollTop;
+  const q2 = d.querySelector("[data-input=cat-search]");
+  click(w, btn);
+  assert.ok(d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"));
+  assert.equal(d.querySelector("#catcol"), cat, "catalog column not destroyed");
+  assert.equal(d.querySelector("#catbody"), body, "catalog body not re-rendered");
+  assert.equal(d.querySelector("[data-input=cat-search]"), q2); assert.equal(q2.value, "berz");
+  assert.equal(body.scrollTop, sk);
+  assert.equal(w.localStorage.getItem("muster.catHidden"), "1");
+  assert.equal(w.Muster.S.ui.catHidden, true);
+  const rail = d.querySelector("[data-testid=cat-rail]"); assert.ok(rail); assert.match(rail.textContent, /Catalog/);
+  assert.equal(rail.getAttribute("data-action"), "cat-show");
+  // a full editor re-render keeps it hidden; draggable datasheet window still floats + drags
+  const C = w.MusterCore, WE = POINTS.factions.find((f) => f.id === "world-eaters");
+  const l = w.Muster.S.lists[0]; l.entries.push(C.newEntry(WE.units.find((u) => u.n === "Khorne Berzerkers"))); w.Muster.route();
+  await until(() => d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+  assert.ok(d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"), "stays hidden across renders");
+  assert.equal(d.querySelector("[data-input=cat-search]").value, "berz");
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+  const m = d.querySelector("#modal .modal"); assert.ok(m.classList.contains("float"), "PC: floating window");
+  const bar = m.querySelector(".mtitle");
+  const P = (type, x, y) => bar.dispatchEvent(new w.MouseEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0 }));
+  P("pointerdown", 10, 10); P("pointermove", 210, 160); P("pointerup", 210, 160);
+  assert.ok(parseFloat(m.style.left) > 0 && parseFloat(m.style.top) > 0, "drag still works");
+  click(w, m.querySelector("[data-action=close-modal]"));
+  // fresh load on this device starts hidden
+  const b = await catApp({ storage: { "muster.catHidden": "1" } });
+  assert.ok(b.d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"), "remembered per device");
+  // rail click brings it back
+  click(b.w, b.d.querySelector("[data-testid=cat-rail]"));
+  assert.ok(!b.d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"));
+  assert.equal(b.w.localStorage.getItem("muster.catHidden"), "0");
+  const c = await catApp({ storage: { "muster.catHidden": "0" } });
+  assert.ok(!c.d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"));
+});
+test("catalog hide: tablets (touch, side-by-side) hide + show; 44px touch targets in CSS", async () => {
+  const { w, d } = await catApp({ tablet: true });
+  const btn = d.querySelector("[data-testid=cat-hide]"); assert.ok(btn);
+  click(w, btn);
+  assert.ok(d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"));
+  assert.equal(w.localStorage.getItem("muster.catHidden"), "1");
+  click(w, d.querySelector("[data-testid=cat-rail]"));
+  assert.ok(!d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"));
+  assert.equal(w.localStorage.getItem("muster.catHidden"), "0");
+  const css = read("css/app.css");
+  assert.match(css, /pointer: coarse\)[^{]*\{[^}]*--railw:\s*44px/);
+  assert.match(css, /\.cat-hide[^{]*\{[^}]*min-width:\s*44px/);
+  assert.match(css, /\.cols\s*\{[^}]*transition:\s*grid-template-columns/);
+});
+test("catalog hide: phones have no hide control (Catalog/Roster tabs instead), even with a stored hidden state", async () => {
+  const { w, d } = await catApp({ phone: true, storage: { "muster.catHidden": "1" } });
+  assert.equal(d.querySelector("[data-testid=cat-hide]"), null);
+  assert.equal(d.querySelector("[data-testid=cat-rail]"), null);
+  assert.ok(!d.querySelector("[data-testid=cols]").classList.contains("cat-hidden"));
+  click(w, d.querySelector('[data-action=tab][data-tab="catalog"]'));
+  assert.equal(d.querySelector(".cols").getAttribute("data-tab"), "catalog");
+});
+
+// unit panel Loadout: hidden for fixed gear, a collapsible dropdown (remembered per device) when there are choices
+test("loadout section: fixed-gear units have none; optioned units get a collapsible dropdown with a picks summary, open state remembered", async () => {
+  const { w, d, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khârn the Betrayer", "Khorne Berzerkers"]);
+  await until(() => rowOf(1));
+  click(w, rowOf(0));
+  assert.match(d.querySelector(".panel").textContent, /Khârn the Betrayer/);
+  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null, "fixed gear: no Loadout section");
+  assert.ok(!/\bLoadout\b/.test([...d.querySelectorAll(".panel .gh, .panel summary")].map((x) => x.textContent).join("|")));
+  click(w, rowOf(1));
+  const lo = d.querySelector(".panel [data-testid=loadout]"); assert.ok(lo, "optioned unit has a Loadout section");
+  assert.equal(lo.tagName, "DETAILS"); assert.ok(lo.classList.contains("lo-dd"));
+  assert.ok(!lo.open, "collapsed by default");
+  assert.match(lo.querySelector("summary").textContent, /Loadout/);
+  assert.match(lo.querySelector("[data-testid=lo-picks]").textContent, /Bolt pistol/, "summary of the current picks");
+  // expand: remembered per device and across re-renders
+  lo.open = true; lo.dispatchEvent(new w.Event("toggle"));
+  assert.equal(w.localStorage.getItem("muster.loOpen"), "1");
+  click(w, d.querySelector(".panel [data-testid=loadout] input[data-opt='Plasma pistol']"));
+  const lo2 = d.querySelector(".panel [data-testid=loadout]"); assert.ok(lo2.open, "stays open after a pick");
+  assert.match(lo2.querySelector("[data-testid=lo-picks]").textContent, /Plasma pistol/);
+  assert.equal(l.entries[1].lo.p["Khorne Berzerker Champion|Pistol"]["Plasma pistol"], 1);
+  lo2.open = false; lo2.dispatchEvent(new w.Event("toggle"));
+  assert.equal(w.localStorage.getItem("muster.loOpen"), "0");
+});
+test("loadout section is data-driven: a data refresh adding wargear options to a fixed unit shows the dropdown; removing them hides it", async () => {
+  const { w, d, rowOf } = await weEditor([], ["Khârn the Betrayer"]);
+  const u = w.MusterCore.findUnit(w.Muster.S.idx.factions["world-eaters"], "Khârn the Betrayer"), orig = u.lo;
+  await until(() => rowOf(0)); click(w, rowOf(0));
+  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null);
+  // same unit, refreshed data now carries a pistol choice
+  u.lo = { ...orig, m: [[orig.m[0][0], 1, 1, ["Gorechild"], [["Pistol", [["Plasma pistol", null, null, null, null], ["Bolt pistol", null, null, null, null]], ["Plasma pistol"], 1, null, 0]], null, null, 0]] };
+  w.Muster.route();
+  const lo = await until(() => d.querySelector(".panel [data-testid=loadout]"));
+  assert.match(lo.querySelector("[data-testid=lo-picks]").textContent, /Plasma pistol/);
+  // a single forced option is not a choice either
+  u.lo = { ...orig, m: [[orig.m[0][0], 1, 1, ["Gorechild"], [["Pistol", [["Plasma pistol", null, null, null, null]], ["Plasma pistol"], 1, null, 0]], null, null, 0]] };
+  w.Muster.route(); await tick(5);
+  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null);
+  u.lo = orig; w.Muster.route(); await tick(5);
+  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null, "options removed again -> no section");
+  assert.match(d.querySelector(".panel").textContent, /Khârn the Betrayer/);
 });

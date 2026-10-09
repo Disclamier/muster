@@ -4,7 +4,7 @@
    - Faction artwork: precached from assets/factions/index.json, cache-first.
    - Accounts/sync (Supabase /auth/v1/, /rest/v1/) are never cached: they are cross-origin and/or non-GET, and are
      ignored explicitly below as well, so the browser talks to Supabase directly every time. */
-const SHELL = "muster-shell-v29", DATA = "muster-data-v1", ART = "muster-art-v1";
+const SHELL = "muster-shell-v30", DATA = "muster-data-v1", ART = "muster-art-v1";
 const SHELL_FILES = ["./", "index.html", "css/app.css", "js/config.js", "js/core.js", "js/sync.js", "js/app.js", "manifest.webmanifest",
   "icons/icon-192.png", "icons/icon-512.png", "icons/maskable-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png"];
 

@@ -15,6 +15,10 @@
       metaRtt: false, metaTab: "overview", metaHome: "factions", metaQ: "", metaDispOpen: null, metaListDet: "" },
   };
   try { S.ui.collapsed = JSON.parse(localStorage.getItem(LS_COLL) || "{}"); } catch (e) { S.ui.collapsed = {}; }
+  // side-by-side layout (PC + tablets): the unit catalog column can be minimized to a slim rail; per device
+  const LS_CATHIDE = "muster.catHidden", LS_CATW = "muster.catW", LS_LOOPEN = "muster.loOpen";
+  try { S.ui.loOpen = localStorage.getItem(LS_LOOPEN) === "1"; } catch (e) { S.ui.loOpen = false; }
+  try { S.ui.catHidden = localStorage.getItem(LS_CATHIDE) === "1"; S.ui.catW = +localStorage.getItem(LS_CATW) || 0; } catch (e) { S.ui.catHidden = false; S.ui.catW = 0; }
   try { S.ui.metaRange = localStorage.getItem(LS_WRRANGE) || "weekend"; S.ui.metaRtt = localStorage.getItem(LS_WRRTT) === "1";
     S.ui.metaTab = localStorage.getItem(LS_WRTAB) || "overview"; S.ui.metaHome = localStorage.getItem(LS_WRHOME) || "factions"; } catch (e) { /* ignore */ }
 
@@ -683,16 +687,31 @@
           <button class="act" data-action="list-menu" title="List options">${icon("kebab")}<span class="lbl">Options</span></button>
         </div>
         <div class="mtabs"><button class="${S.ui.tab === "catalog" ? "on" : ""}" data-action="tab" data-tab="catalog">Catalog</button><button class="${S.ui.tab === "roster" ? "on" : ""}" data-action="tab" data-tab="roster">Roster (${l.entries.length})</button></div>
-        <div class="cols${panel ? " with-panel" : ""}" data-tab="${esc(S.ui.tab)}">
-          <section class="col catalog">${F ? renderCatalog(l, F, c) : `<div class="empty">Faction not in data.</div>`}</section>
+        <div class="cols${panel ? " with-panel" : ""}${S.ui.catHidden && !isPhone() ? " cat-hidden" : ""}" data-tab="${esc(S.ui.tab)}"${S.ui.catW ? ` style="--catw:${S.ui.catW}px"` : ""} data-testid="cols">
+          <section class="col catalog" id="catcol">${F ? renderCatalog(l, F, c) : `<div class="empty">Faction not in data.</div>`}${isPhone() ? "" : catRail()}</section>
           <section class="col roster"><div class="scroll" data-sk="roster">${renderRoster(l, F, c, sub)}</div></section>
           ${panel ? `<section class="col panel">${renderPanel(l, F, c)}</section>` : ""}
         </div></div>`;
     });
   }
 
+  /* slim rail shown in place of the minimized catalog (side-by-side layout only) */
+  const SEARCH_SVG = `<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2.2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+  const catRail = () => `<button class="catrail" data-action="cat-show" data-testid="cat-rail" aria-controls="catcol" aria-expanded="false" title="Show the unit catalog" aria-label="Show the unit catalog"><span class="chev" aria-hidden="true">»</span><span class="vlabel">Catalog</span>${SEARCH_SVG}</button>`;
+  function setCatHidden(hide) {
+    const cols = $(".editor .cols"); if (!cols || isPhone()) return;
+    if (hide) {   // keep the catalog's content at its current width while hidden, so its scroll position and search survive
+      const col = cols.querySelector(".col.catalog"), wNow = col ? Math.round(col.getBoundingClientRect().width) : 0;
+      if (wNow > 120) { S.ui.catW = wNow; cols.style.setProperty("--catw", wNow + "px"); try { localStorage.setItem(LS_CATW, String(wNow)); } catch (e) { /* ignore */ } }
+    }
+    S.ui.catHidden = !!hide;
+    try { localStorage.setItem(LS_CATHIDE, hide ? "1" : "0"); } catch (e) { /* ignore */ }
+    cols.classList.toggle("cat-hidden", !!hide);
+    const focus = cols.querySelector(hide ? "[data-testid=cat-rail]" : "[data-testid=cat-hide]");
+    if (focus && typeof focus.focus === "function") focus.focus({ preventScroll: true });
+  }
   function renderCatalog(l, F, c) {
-    return `<div class="fhead"><div class="fname">${esc(F.f.name)}</div>${subOf(l) && subOf(l).name !== F.f.name ? `<div class="sub">${esc(subOf(l).name)}</div>` : ""}</div>
+    return `<div class="fhead"><div class="fhead-t"><div class="fname">${esc(F.f.name)}</div>${subOf(l) && subOf(l).name !== F.f.name ? `<div class="sub">${esc(subOf(l).name)}</div>` : ""}</div>${isPhone() ? "" : `<button class="ibtn cat-hide" data-action="cat-hide" data-testid="cat-hide" aria-controls="catcol" aria-expanded="true" title="Hide the unit catalog" aria-label="Hide the unit catalog">«</button>`}</div>
       <div class="scroll" data-sk="catalog" id="catbody">${renderCatalogBody(l, F, c)}</div>
       <div class="legend" title="Changes compared with the previous Munitorum Field Manual"><span><span class="chg-up">▲</span> points up</span><span><span class="chg-down">▼</span> points down</span><span><span class="chg-mixed">◆</span> mixed</span><span>in MFM ${esc((S.meta && S.meta.mfm_version) || "")} · n/N = taken / allowed</span></div>
       <div class="catsearch"><input type="search" placeholder="Search units, keywords, costs…" value="${esc(S.ui.q)}" data-input="cat-search" aria-label="Search units"></div>`;
@@ -1087,8 +1106,28 @@
         <div class="mtb">${t.fixed.length ? `<div class="fixed">${esc(t.fixed.join(", "))}</div>` : ""}${t.slots.map((sl) => slotHtml(sl, key(sl), k)).join("")}</div></div>`;
     }).join("");
     const unitSlots = M.unit.map((sl) => slotHtml(sl, `*|${sl.name}`, 1)).join("");
-    return `<div class="grp loadout"><div class="gh">Loadout <span class="muted" title="Unit composition and wargear choices from GrimSlate; points from the Munitorum Field Manual">(GrimSlate)</span></div><div class="gb">${types}${unitSlots ? `<div class="mt"><div class="mth"><span class="n">Unit options</span></div><div class="mtb">${unitSlots}</div></div>` : ""}
-      <button class="btn secondary small" data-action="lo-reset">Reset to default loadout</button></div></div>`;
+    // nothing the player can change (fixed gear, fixed model count): no Loadout section at all
+    if (!loEditable(u, N)) return "";
+    const sum = loSummary(M, lo);
+    return `<details class="grp coll loadout lo-dd" data-testid="loadout"${S.ui.loOpen ? " open" : ""}><summary data-testid="lo-summary"><span class="lo-t">Loadout</span>${sum ? `<span class="lo-sum muted" data-testid="lo-picks" title="${esc(sum)}">${esc(sum)}</span>` : ""}<span class="muted lo-src" title="Unit composition and wargear choices from GrimSlate; points from the Munitorum Field Manual">(GrimSlate)</span></summary><div class="gb">${types}${unitSlots ? `<div class="mt"><div class="mth"><span class="n">Unit options</span></div><div class="mtb">${unitSlots}</div></div>` : ""}
+      <button class="btn secondary small" data-action="lo-reset">Reset to default loadout</button></div></details>`;
+  }
+  /* does the unit have anything to choose? model counts per type, or a wargear slot with alternatives / optional picks */
+  function loEditable(u, N) {
+    const M = C.loModel(u); if (!M) return false;
+    const choice = (s) => { const [a, b] = C.slotRange(s, 1); return s.opts.length > 1 || a < b; };
+    const plain = M.types.filter((x) => !x.up && !x.addOn).length;
+    return M.types.some((t) => (C.typeMax(t, N) > t.min && (t.up || t.addOn || plain > 1)) || t.slots.some(choice)) || M.unit.some(choice);
+  }
+  /* short header summary of the current wargear picks, e.g. "Plasma pistol, 2× Khornate eviscerator" */
+  function loSummary(M, lo) {
+    const tot = new Map();
+    const add = (s, picks) => { if (!picks || (s.opts.length < 2 && !(C.slotRange(s, 1)[0] < C.slotRange(s, 1)[1]))) return;
+      for (const [n, v] of Object.entries(picks)) if (v > 0) tot.set(n, (tot.get(n) || 0) + v); };
+    M.types.forEach((t) => { const k = lo.c[t.name] || 0; if (k && (t.up || t.addOn)) tot.set(t.name.replace(/^.*?\s(w\/\s)/, "$1"), k);
+      if (k) t.slots.forEach((sl) => add(sl, lo.p[`${t.name}|${sl.name}`])); });
+    M.unit.forEach((sl) => add(sl, lo.p[`*|${sl.name}`]));
+    return [...tot].map(([n, v]) => (v > 1 ? `${v}× ${n}` : n)).join(", ");
   }
   function previewPanel(l, F, c, name) {
     const u = F.units[name]; if (!u) return phead("Unit not found");
@@ -1648,6 +1687,8 @@
     "wg": (t) => { const uid = S.ui.panel.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); e.wargear = e.wargear || {};
       const v = Math.max(0, (e.wargear[t.dataset.w] || 0) + +t.dataset.d); if (v) e.wargear[t.dataset.w] = v; else delete e.wargear[t.dataset.w]; }); },
     "export": () => openExport(),
+    "cat-hide": (t, ev) => { if (ev) ev.stopPropagation(); setCatHidden(true); },
+    "cat-show": (t, ev) => { if (ev) ev.stopPropagation(); setCatHidden(false); },
     "toggle-vpop": (t) => { const w = t.closest(".dotwrap"); w.classList.toggle("open"); },
     "chg-info": (t, ev) => { ev.stopPropagation(); const F = C.getFaction(S.idx, CUR); const u = F && F.units[t.dataset.unit]; if (u) toast(chgText(u), 3500); },
     "lo-count": (t) => withLo((lo, r, u, N) => C.setModelCount(u, lo, t.dataset.type, (lo.c[t.dataset.type] || 0) + +t.dataset.d, N)),
@@ -1786,6 +1827,9 @@
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cfg-dd")) return;
     if (d.open) { S.ui.cfgOpen = d.dataset.dd; $$("details.cfg-dd[open]").forEach((x) => { if (x !== d) x.open = false; }); }
     else if (S.ui.cfgOpen === d.dataset.dd) S.ui.cfgOpen = null; }, true);
+  // unit panel Loadout dropdown: open/closed remembered per device
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("lo-dd")) return;
+    S.ui.loOpen = d.open; try { localStorage.setItem(LS_LOOPEN, d.open ? "1" : "0"); } catch (e) { /* private mode */ } }, true);
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("enh-dd")) return;
     if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
     const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);

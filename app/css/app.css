@@ -960,3 +960,40 @@ details.ust .txt { font-size: 12px; white-space: pre-line; padding-bottom: 6px; 
 html[data-c-strat] details.ust > summary .n,
 html[data-c-strat] details.ustrats > summary { color: var(--c-strat); }
 html[data-c-strat] details.ust { border-left: 3px solid var(--c-strat); padding-left: 7px; }
+
+/* Minimize the unit catalog (side-by-side layout: PC + tablets). The column shrinks to a slim rail; its content keeps
+   its width (--catw) and stays in the DOM, so search text and scroll position survive. Phones keep the tabs. */
+.cols { --railw: 34px; transition: grid-template-columns .22s ease; }
+.cols.cat-hidden { grid-template-columns: minmax(var(--railw), var(--railw)) 1fr; }
+.cols.cat-hidden.with-panel { grid-template-columns: minmax(var(--railw), var(--railw)) 1fr minmax(300px, 27%); }
+.col.catalog { position: relative; }
+.fhead { display: flex; align-items: flex-start; gap: 4px; }
+.fhead .fhead-t { flex: 1; min-width: 0; }
+.cat-hide { flex: none; align-items: center; justify-content: center; font-size: 18px; line-height: 1; font-weight: 700; min-width: 30px; min-height: 30px; border-radius: 4px; color: var(--gray); }
+.cat-hide:hover, .cat-hide:focus-visible { color: var(--text); background: var(--row-hover); }
+.catrail { display: none; }
+.cols.cat-hidden .col.catalog > :not(.catrail) { width: var(--catw, 300px); min-width: var(--catw, 300px); visibility: hidden; pointer-events: none; }
+.cols.cat-hidden .col.catalog > .catrail { display: flex; position: absolute; inset: 0; z-index: 2; flex-direction: column; align-items: center; gap: 12px;
+  padding: 10px 0; border: 0; border-radius: 3px; background: var(--surface); color: var(--text); cursor: pointer; font: inherit; }
+.catrail:hover, .catrail:focus-visible { background: var(--row-hover); }
+.catrail .chev { font-size: 18px; font-weight: 700; line-height: 1; }
+.catrail .vlabel { writing-mode: vertical-rl; transform: rotate(180deg); font-weight: 700; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; }
+.catrail .i { width: 18px; height: 18px; opacity: .8; }
+@media (pointer: coarse) {
+  .cols { --railw: 44px; }
+  .cat-hide { min-width: 44px; min-height: 44px; }
+}
+@media (prefers-reduced-motion: reduce) { .cols { transition: none; } }
+@media (max-width: 760px) {
+  .cat-hide, .catrail { display: none !important; }
+  .cols.cat-hidden, .cols.cat-hidden.with-panel { grid-template-columns: 1fr; }
+  .cols.cat-hidden .col.catalog > :not(.catrail) { width: auto; min-width: 0; visibility: visible; pointer-events: auto; }
+}
+
+/* unit panel: Loadout as a collapsible dropdown (only shown when the unit has choices) */
+details.lo-dd > summary { min-height: 30px; gap: 8px; min-width: 0; }
+details.lo-dd > summary .lo-t { flex: none; }
+details.lo-dd > summary .lo-sum { flex: 1 1 auto; min-width: 0; font-weight: 400; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+details.lo-dd > summary .lo-src { flex: none; margin-left: auto; font-weight: 400; font-size: 11px; }
+details.lo-dd > .gb { padding: 4px 6px; }
+@media (pointer: coarse) { details.lo-dd > summary { min-height: 44px; } }
