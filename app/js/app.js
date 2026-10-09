@@ -1447,7 +1447,7 @@
   function colorPreview(c) {
     const v = `--c-${c.k}`;
     if (c.disp) return `<span class="cprev disp"><span class="pl"><span class="dispc" data-disp="${esc(c.k.slice(5))}">${esc(c.label)}</span></span><span class="pd"><span class="dispc" data-disp="${esc(c.k.slice(5))}">${esc(c.label)}</span></span></span>`;
-    if (c.k === "attach") return `<span class="cprev"><span class="pl"><span class="att-prev" style="border-color:var(${v}, ${c.def})">Leader + Unit</span></span><span class="pd"><span class="att-prev" style="border-color:var(${v}, ${c.def})">Leader + Unit</span></span></span>`;
+    if (c.k === "attach") return `<span class="cprev"><span class="pl"><span class="att-prev" style="border-color:var(${v}, ${c.def});color:#111">Leader + Unit</span></span><span class="pd"><span class="att-prev" style="border-color:var(${v}, ${c.def});color:#e8e8e8">Leader + Unit</span></span></span>`;
     if (c.k === "aura") return `<span class="cprev"><span class="pl"><span class="aura-badge" style="background:var(${v}, #8a5cd1);color:var(${v}-fg, #fff)">Aura</span></span><span class="pd"><span class="aura-badge" style="background:var(${v}, #7a4fc4);color:var(${v}-fg, #fff)">Aura</span></span></span>`;
     return `<span class="cprev"><span class="pl" style="color:var(${v}, ${c.def || "#000"})">${esc(SAMPLE[c.k] || c.label)}</span><span class="pd" style="color:var(${v}, ${c.def || "#e8e8e8"})">${esc(SAMPLE[c.k] || c.label)}</span></span>`;
   }

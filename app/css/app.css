@@ -866,4 +866,3 @@ details.cset .cs-t small { margin: 0; }
 
 /* Colors preview for "Attached units" */
 .att-prev { display: inline-block; padding: 1px 7px; border: 2px solid; border-radius: 5px; font-size: 12px; font-weight: 700; }
-.cprev .pl .att-prev { color: #111; } .cprev .pd .att-prev { color: #e8e8e8; }
