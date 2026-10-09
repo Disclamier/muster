@@ -23,7 +23,10 @@ function makeApp(opts) {
     url: "http://localhost:8765/", runScripts: "dangerously", pretendToBeVisual: true,
     beforeParse(w) {
       if (opts.storage) for (const [k, v] of Object.entries(opts.storage)) w.localStorage.setItem(k, v);
-      w.matchMedia = (q) => ({ matches: !!(opts.phone && /max-width/.test(q)), media: q, addEventListener() {}, removeEventListener() {} });
+      // viewport emulation: desktop PC (default, mouse), phone (narrow, touch) or touch tablet (wide, touch)
+      const touch = !!(opts.phone || opts.tablet);
+      const mq = (q) => /max-width/.test(q) ? !!opts.phone : /hover: hover/.test(q) ? !touch : /hover: none|pointer: coarse/.test(q) ? touch : false;
+      w.matchMedia = (q) => ({ matches: mq(q), media: q, addEventListener() {}, removeEventListener() {} });
       w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder;
       w.scrollTo = () => {};
       w.navigator.clipboard = { writeText: async (t) => { server.clipboard = t; } };
@@ -960,7 +963,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v21/);
+  assert.match(read("sw.js"), /muster-shell-v22/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1522,4 +1525,75 @@ test("Colors accordion: rows start collapsed, open one at a time, collapsed row 
   assert.ok(!sum("strat").classList.contains("custom"));
   const css = read("css/app.css");
   assert.match(css, /details\.cset\.custom \.cs-hint \{ display: inline-block; \}/);
+});
+
+test("desktop: Colors and datasheet windows open together, click brings to front, Esc closes the topmost; phones one sheet at a time", async () => {
+  for (const phone of [false, true]) {
+    const { w, d } = makeApp({ phone });
+    await until(() => d.querySelector(".lists-page"));
+    const C = w.MusterCore; const SM = POINTS.factions.find((f) => f.id === "space-marines");
+    const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
+    l.entries.push(C.newEntry(SM.units.find((u) => u.n === "Roboute Guilliman")));
+    w.Muster.S.lists.push(l);
+    await go(w, "#/list/" + l.id);
+    await until(() => d.querySelector(".editor"));
+    await until(() => w.Muster.S.ds); w.Muster.route();
+    click(w, d.querySelector("#hdr [data-action=colors]"));
+    click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+    if (phone) {
+      assert.equal(d.querySelectorAll("#modal > .modal-wrap").length, 1, "phone: the datasheet sheet replaced Colors");
+      assert.ok(d.querySelector("#modal .modal.sheet [data-testid=datasheet]"));
+      continue;
+    }
+    const wraps = () => [...d.querySelectorAll("#modal > .floatwrap")];
+    const cw = () => d.querySelector('#modal > .floatwrap[data-fk="colors"]'), dw = () => d.querySelector('#modal > .floatwrap[data-fk="ds"]');
+    assert.equal(wraps().length, 2, "both windows open");
+    assert.ok(cw().querySelector("[data-testid=colors]") && dw().querySelector("[data-testid=datasheet]"));
+    assert.ok(+dw().style.zIndex > +cw().style.zIndex, "newest on top");
+    // default spots: Colors right of the datasheet
+    assert.ok(parseFloat(cw().querySelector(".modal").style.left) >= parseFloat(dw().querySelector(".modal").style.left));
+    // clicking Colors brings it to front
+    cw().querySelector(".modal").dispatchEvent(new w.MouseEvent("pointerdown", { bubbles: true, button: 0 }));
+    assert.ok(+cw().style.zIndex > +dw().style.zIndex);
+    // changing a color while the datasheet is open: CSS var applies live, datasheet stays open
+    click(w, cw().querySelector('[data-action=color-pick][data-k=aura][data-v="#ff5cf0"]'));
+    assert.equal(d.documentElement.style.getPropertyValue("--c-aura"), "#ff5cf0");
+    assert.ok(dw() && dw().querySelector("[data-testid=ab-aura] .ab-card.aura"), "aura cards visible in the open datasheet");
+    // opening another datasheet replaces only the datasheet window
+    click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+    assert.equal(wraps().length, 2);
+    assert.ok(+dw().style.zIndex > +cw().style.zIndex, "reopened datasheet on top");
+    // Esc closes the topmost (datasheet), then Colors
+    const esc = () => d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    esc(); assert.ok(!dw() && cw(), "Esc closed the datasheet first");
+    click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+    // X / Done on one window leaves the other open
+    click(w, cw().querySelector(".mfoot [data-action=close-modal]"));
+    assert.ok(!cw() && dw());
+    esc(); assert.equal(d.querySelector("#modal").innerHTML, "");
+  }
+});
+
+test("touch tablet (wide, no mouse): Colors and datasheet open as full-screen sheets, one at a time; colors still change", async () => {
+  const { w, d } = makeApp({ tablet: true });
+  await until(() => d.querySelector(".lists-page"));
+  assert.ok(!w.matchMedia("(max-width: 760px)").matches, "tablet is wider than a phone");
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const m = d.querySelector("#modal .modal");
+  assert.ok(m.classList.contains("sheet") && !m.classList.contains("float"), "Colors is a sheet on tablets");
+  assert.equal(d.querySelector("#modal > .modal-wrap").dataset.action, "modal-bg");
+  click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
+  assert.equal(d.documentElement.style.getPropertyValue("--c-strat"), "#ff9f1c");
+  const C = w.MusterCore; const SM = POINTS.factions.find((f) => f.id === "space-marines");
+  const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
+  l.entries.push(C.newEntry(SM.units.find((u) => u.n === "Intercessor Squad")));
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => d.querySelector(".editor"));
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+  assert.equal(d.querySelectorAll("#modal > .modal-wrap").length, 1, "one sheet at a time");
+  assert.ok(d.querySelector("#modal .modal.sheet [data-testid=datasheet]") && !d.querySelector("#modal .floatwrap"));
+  const css = read("css/app.css");
+  assert.match(css, /@media \(min-width: 761px\) and \(hover: none\), \(min-width: 761px\) and \(pointer: coarse\) \{\s*\.modal-wrap\.sheetwrap/);
 });

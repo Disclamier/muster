@@ -119,7 +119,7 @@
     const curId = CUR && CUR.id;
     if (curId && res.removed.includes(curId) && h.startsWith("#/list/")) { CUR = null; toast("This list was deleted on another device", 3000); location.hash = "#/lists"; return; }
     const typing = document.activeElement && /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName) && document.activeElement.closest("#main");
-    if ($("#modal").innerHTML || typing) return;
+    if (dialogOpen() || typing) return;
     if (!h.startsWith("#/list/") && !h.startsWith("#/meta") && !h.startsWith("#/share/")) route();
     else if (curId && res.replaced.includes(curId) && h.startsWith("#/list/")) route();
   }
@@ -511,17 +511,40 @@
   function modal(titleText, body, opts) {
     const m = $("#modal");
     const fl = opts && opts.float, fk = fl === true ? "colors" : fl;   // float: true (Colors) or a window key, e.g. "ds"
-    m.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}${fl ? " floatwrap" : ""}"${fl ? "" : ` data-action="modal-bg"`}><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}${fl ? ` float float-${fk}` : ""}" role="dialog" aria-label="${esc(titleText)}">
+    // desktop floating windows (Colors, datasheet) live side by side in #modal, one per key; a normal dialog replaces
+    // only the other normal dialogs; on phones every dialog/sheet replaces everything (one at a time, as before)
+    if (fl) { const old = floatWrap(fk); if (old) old.remove(); }
+    else if (!isPC()) m.innerHTML = "";
+    else $$(":scope > .modal-wrap:not(.floatwrap)", m).forEach((x) => x.remove());
+    const box = document.createElement("div");
+    box.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}${fl ? " floatwrap" : ""}"${fl ? ` data-fk="${esc(fk)}"` : ` data-action="modal-bg"`}><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}${fl ? ` float float-${fk}` : ""}" role="dialog" aria-label="${esc(titleText)}">
       <div class="mtitle"><span>${esc(titleText)}</span><button class="ibtn" data-action="close-modal" title="Close">${icon("x")}</button></div>
       <div class="mbody">${body}</div></div></div>`;
-    const f = $(".modal input[autofocus], .modal textarea[autofocus]", m); if (f) setTimeout(() => f.focus(), 0);
-    if (fl) makeDraggable($(".modal", m), fk);
-    return $(".modal", m);
+    const wrap = box.firstElementChild; m.appendChild(wrap);
+    const el = $(".modal", wrap);
+    const f = $("input[autofocus], textarea[autofocus]", el); if (f) setTimeout(() => f.focus(), 0);
+    if (fl) { toFront(wrap); makeDraggable(el, fk); }
+    return el;
+  }
+  const floatWrap = (k) => $(`#modal > .floatwrap[data-fk="${k}"]`);
+  // the clicked / newest floating window goes on top (z 50, 51, ...); normal dialogs sit above all floats (CSS)
+  function toFront(wrap) {
+    const ws = $$("#modal > .floatwrap").filter((x) => x !== wrap).sort((a, b) => (+a.style.zIndex || 0) - (+b.style.zIndex || 0));
+    ws.forEach((x, i) => { x.style.zIndex = String(50 + i); }); if (wrap) wrap.style.zIndex = String(50 + ws.length);
+  }
+  const topFloat = () => $$("#modal > .floatwrap").sort((a, b) => (+b.style.zIndex || 0) - (+a.style.zIndex || 0))[0] || null;
+  function closeFloat(wrap) { if (wrap) wrap.remove(); }
+  // default spots that don't overlap much: Colors on the right, datasheet to its left
+  function floatDefault(key, r) {
+    const W = window.innerWidth, H = window.innerHeight, y = Math.max(48, (H - r.height) / 2);
+    if (key === "colors") return { x: W - r.width - 16, y: 56 };
+    if (key === "ds") return { x: Math.max(8, W - 480 - 32 - r.width), y: 56 };
+    return { x: (W - r.width) / 2, y };
   }
   // desktop floating windows (Colors, datasheets): no dim, the page behind stays usable; drag by the title bar,
   // kept inside the viewport and below the header; each window remembers its own position
   const FLOAT_POS = {};
-  const floatOpts = (key) => (isPhone() ? { wide: true, sheet: true } : { wide: true, float: key });
+  const floatOpts = (key) => (isPC() ? { wide: true, float: key } : { wide: true, sheet: true });
   function clampFloat(el, x, y) {
     const r = el.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
     const hb = $("#hdr"), top = hb ? hb.getBoundingClientRect().bottom : 0;   // never over the header (Refresh, Colors stay reachable)
@@ -534,7 +557,9 @@
     el.style.position = "fixed";
     const r = el.getBoundingClientRect();
     const p0 = FLOAT_POS[key];
-    FLOAT_POS[key] = clampFloat(el, p0 ? p0.x : (window.innerWidth - r.width) / 2, p0 ? p0.y : Math.max(48, (window.innerHeight - r.height) / 2));
+    const d0 = p0 || floatDefault(key, r);
+    FLOAT_POS[key] = clampFloat(el, d0.x, d0.y);
+    el.addEventListener("pointerdown", () => toFront(el.parentElement), true);
     let d = null;
     bar.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0 || ev.target.closest("button")) return;
@@ -546,9 +571,11 @@
     const end = () => { d = null; el.classList.remove("dragging"); };
     bar.addEventListener("pointerup", end); bar.addEventListener("pointercancel", end);
   }
-  window.addEventListener("resize", () => { const el = $("#modal .modal.float"); if (!el) return; const k = [...el.classList].find((c) => c.startsWith("float-")).slice(6);
-    if (FLOAT_POS[k]) FLOAT_POS[k] = clampFloat(el, FLOAT_POS[k].x, FLOAT_POS[k].y); });
-  function closeModal() { $("#modal").innerHTML = ""; }
+  window.addEventListener("resize", () => { $$("#modal > .floatwrap").forEach((w) => { const k = w.dataset.fk, el = $(".modal", w);
+    if (el && FLOAT_POS[k]) FLOAT_POS[k] = clampFloat(el, FLOAT_POS[k].x, FLOAT_POS[k].y); }); });
+  // closes normal dialogs/sheets; desktop floating windows stay open until their own X / Done / Esc
+  function closeModal() { $$("#modal > .modal-wrap:not(.floatwrap)").forEach((x) => x.remove()); }
+  const dialogOpen = () => !!$("#modal > .modal-wrap:not(.floatwrap)");
   function confirmModal(text, okLabel, onOk) {
     const m = modal("Please confirm", `<p>${text}</p><div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button>
       <button class="btn danger" data-ok>${esc(okLabel || "OK")}</button></div>`);
@@ -602,6 +629,10 @@
     saveLists(); renderEditor(CUR.id);
   }
   const isPhone = () => typeof matchMedia === "function" && matchMedia("(max-width: 760px)").matches;
+  // PC = wide screen with a mouse/trackpad. Only PCs get floating, draggable windows (Colors, datasheet, both at once);
+  // phones and touch tablets (e.g. iPad) keep full-screen sheets, one at a time
+  const PC_MQ = "(min-width: 761px) and (hover: hover) and (pointer: fine)";
+  const isPC = () => typeof matchMedia === "function" && matchMedia(PC_MQ).matches;
   function keepScroll(fn) {
     const pos = {}; $$("[data-sk]").forEach((e) => { pos[e.getAttribute("data-sk")] = e.scrollTop; });
     fn();
@@ -1450,7 +1481,7 @@
       <div class="cs-h">Force Dispositions</div>
       <p class="muted cs-intro">Defaults are the colors Games Workshop uses on the 11th edition Force Disposition icons.</p>
       ${disp.map(colorRow).join("")}
-      <div class="mfoot"><button class="btn secondary" data-action="color-reset-all" data-testid="color-reset-all">Reset all</button><button class="btn" data-action="close-modal">Done</button></div></div>`, isPhone() ? { sheet: true } : { float: true });
+      <div class="mfoot"><button class="btn secondary" data-action="color-reset-all" data-testid="color-reset-all">Reset all</button><button class="btn" data-action="close-modal">Done</button></div></div>`, isPC() ? { float: true } : { sheet: true });
   }
   function refreshColorRow(k) {
     const row = $(`.cset[data-ck="${k}"]`); const c = MC.cat(k); if (!row || !c) return;
@@ -1476,7 +1507,7 @@
   }
   const actions = {
     "new-list": () => { if (!guestBlocked(1)) openCreate(); },
-    "close-modal": () => closeModal(),
+    "close-modal": (t) => { const fw = t.closest(".floatwrap"); if (fw) closeFloat(fw); else closeModal(); },
     "modal-bg": (t, ev) => { if (ev.target === t) closeModal(); },
     "pick-group": (t) => { NEW.group = S.data.groups[+t.dataset.i].name; renderCreate(); },
     "pick-sub": (t) => { NEW.sub = t.dataset.id; renderCreate(); },
@@ -1680,7 +1711,7 @@
     if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
     const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
-    if (ev.key === "Escape") { if ($("#modal").innerHTML) closeModal(); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
+    if (ev.key === "Escape") { if (dialogOpen()) closeModal(); else if (topFloat()) closeFloat(topFloat()); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
   window.Muster = { S, SY, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();

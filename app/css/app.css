@@ -846,3 +846,14 @@ details.cset .cs-t small { margin: 0; }
   .cs-dot { width: 26px; height: 26px; }
   .cs-lbl { font-size: 15.5px; }
 }
+
+/* Desktop: Colors + datasheet windows can be open together; normal dialogs stay above them */
+#modal > .modal-wrap:not(.floatwrap) { z-index: 58; }
+
+/* Touch tablets (no mouse): full-screen sheets like phones (only PCs get floating windows) */
+@media (min-width: 761px) and (hover: none), (min-width: 761px) and (pointer: coarse) {
+  .modal-wrap.sheetwrap { padding: 0; align-items: stretch; }
+  .modal.sheet { width: 100vw; max-width: none; height: 100%; max-height: none; border-radius: 0; }
+  .modal.sheet .colors { max-width: 720px; margin: 0 auto; }
+  details.cset > summary.cs-sum { min-height: 48px; box-sizing: border-box; }
+}
