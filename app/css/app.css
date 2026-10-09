@@ -674,19 +674,95 @@ html[data-theme="dark"] .metatabs button.on { border-color: var(--green); }
   .guest-foot .btn { min-height: 42px; flex: 1 1 calc(50% - 6px); justify-content: center; }
 }
 
-/* Detachment names + rules: bright green so they stand out (James, Oct 8) */
+/* ---------------------------------------------------------------- Colors setting (per device, James, Oct 8)
+   Each category is a CSS custom property on <html> (set by window.MusterColors in index.html before first paint).
+   html[data-c-<key>] is only present when a player picked a color, so untouched categories keep today's look. */
+
+/* Detachments: names, rule titles + rule text. Default = the approved bright green #39ff14 */
 .detfocus > h4,
 details.cfgdet > summary,
 .stgrp-h,
-.detfocus details.coll > summary { color: #39ff14; }
+.detrow .dn,
+.detfocus details.coll > summary { color: var(--c-det, #39ff14); }
 .detfocus > h4 .dpchip { color: var(--text); }
 details.cfgdet > summary .muted { color: var(--gray); }
 .detfocus .rules,
 details.cfgdet .rules,
 .stgrp .rules,
-.rules.small { color: #39ff14; }
+.rules.small { color: var(--c-det, #39ff14); }
 html[data-theme] details.cfgdet > summary,
 html[data-theme] details.cfgdet > summary b,
 html[data-theme] .detfocus details.coll > summary,
-html[data-theme] .detfocus > h4 { color: #39ff14; }
+html[data-theme] .detfocus > h4 { color: var(--c-det, #39ff14); }
 html[data-theme] details.cfgdet > summary .muted { color: var(--gray); }
+.detrow .dn { font-weight: 600; }
+
+/* Stratagems: names + a colored edge on every stratagem card (Configuration, Detachment panel, unit Stratagems) */
+html[data-c-strat] .strat .sh .n,
+html[data-c-strat] .detfocus details.coll.st-coll > summary,
+html[data-c-strat] details.coll[data-testid=unit-strats] > summary { color: var(--c-strat); }
+html[data-c-strat] .strat { border-left: 3px solid var(--c-strat); padding-left: 7px; }
+
+/* Unit catalog: unit names where you pick units */
+html[data-c-cat] .crow .cname { color: var(--c-cat); }
+
+/* Abilities (datasheet): names + colored edge (Damaged keeps red, Leader keeps green) */
+html[data-c-abil] .ab-card:not(.aura) .ab-n,
+html[data-c-abil] .ab-card.core .ab-chip { color: var(--c-abil); }
+html[data-c-abil] .ab-card:not(.aura):not(.dmg):not(.lead) { border-left-color: var(--c-abil); }
+
+/* Auras (datasheet): edge, tint, name and the AURA tag */
+html[data-c-aura] .ab-card.aura { border-left-color: var(--c-aura); background: color-mix(in srgb, var(--c-aura) 12%, var(--sect)); }
+html[data-c-aura] .ab-card.aura .ab-n { color: var(--c-aura); }
+html[data-c-aura] .aura-badge { background: var(--c-aura); color: var(--c-aura-fg); }
+
+/* Enhancements: names in the unit dropdown and the detachment blocks */
+html[data-c-enh] details.enh-dd .enh-val:not(.none) .enh-vn,
+html[data-c-enh] details.enh-dd .enh-list .opt:not(.enh-none) > .on,
+html[data-c-enh] .detfocus .enh-n,
+html[data-c-enh] .detfocus details.coll.enh-coll > summary { color: var(--c-enh); }
+
+/* Force Dispositions: Games Workshop's 11th edition colors (sampled from the Force Disposition icons on Warhammer Community) */
+.dispc { display: inline-block; padding: 0 7px; border-radius: 4px; font-weight: 700; font-size: .92em; line-height: 1.6; white-space: nowrap; vertical-align: baseline;
+  background: var(--dc, transparent); color: var(--dcf, currentColor); }
+.dispc[data-disp=take-and-hold] { --dc: var(--c-disp-take-and-hold, #196819); --dcf: var(--c-disp-take-and-hold-fg, #fff); }
+.dispc[data-disp=disruption] { --dc: var(--c-disp-disruption, #02486a); --dcf: var(--c-disp-disruption-fg, #fff); }
+.dispc[data-disp=purge-the-foe] { --dc: var(--c-disp-purge-the-foe, #761b1a); --dcf: var(--c-disp-purge-the-foe-fg, #fff); }
+.dispc[data-disp=priority-assets] { --dc: var(--c-disp-priority-assets, #907703); --dcf: var(--c-disp-priority-assets-fg, #fff); }
+.dispc[data-disp=reconnaissance] { --dc: var(--c-disp-reconnaissance, #056863); --dcf: var(--c-disp-reconnaissance-fg, #fff); }
+html[data-theme="dark"] .dispc { box-shadow: inset 0 0 0 1px rgba(255,255,255,.18); }
+.fdline .dispc { margin-left: 2px; }
+.mtable tr.open td .dispc { font-weight: 700; }
+
+/* the Colors screen */
+.colors .cs-intro { margin: 2px 0 8px; font-size: 12.5px; }
+.colors .cs-h { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--gray); margin: 14px 0 2px; border-top: 1px solid var(--border); padding-top: 10px; }
+.cset { border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin: 0 0 8px; background: var(--surface); }
+.cs-top { display: flex; align-items: flex-start; gap: 8px; }
+.cs-t { flex: 1; min-width: 0; }
+.cs-t b { font-size: 14.5px; }
+.cs-t small { display: block; color: var(--gray); font-size: 11.5px; margin-top: 1px; }
+.cs-reset { visibility: hidden; flex: none; }
+.cset.custom .cs-reset { visibility: visible; }
+.cs-ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.cprev { display: inline-flex; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; font-weight: 700; font-size: 13px; }
+.cprev > span { padding: 5px 9px; white-space: nowrap; display: inline-flex; align-items: center; }
+.cprev .pl { background: #fff; } .cprev .pd { background: #0d0d0d; }
+.cs-sw { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cs-sw .sw { width: 26px; height: 26px; border-radius: 50%; border: 2px solid var(--border); padding: 0; cursor: pointer; box-shadow: inset 0 0 0 2px var(--surface); }
+.cs-sw .sw.on { border-color: var(--text); box-shadow: inset 0 0 0 2px var(--surface), 0 0 0 2px var(--blue); }
+.cs-pick { display: inline-flex; width: 30px; height: 30px; border-radius: 50%; padding: 3px; cursor: pointer; box-sizing: border-box;
+  background: conic-gradient(#ff4d6d, #ffd60a, #39ff14, #00e5ff, #4d8dff, #b388ff, #ff5cf0, #ff4d6d); }
+.cs-pick input[type=color] { width: 100%; height: 100%; border: 2px solid var(--surface); padding: 0; background: none; cursor: pointer; border-radius: 50%; overflow: hidden; -webkit-appearance: none; appearance: none; }
+.cs-pick input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.cs-pick input[type=color]::-webkit-color-swatch { border: 0; border-radius: 50%; }
+.cs-pick input[type=color]::-moz-color-swatch { border: 0; border-radius: 50%; }
+@media (max-width: 760px) {
+  .cset { padding: 9px 10px; }
+  .cs-sw .sw { width: 30px; height: 30px; }
+  .cs-pick { width: 32px; height: 32px; }
+  .cs-sw { gap: 5px; }
+  .cs-reset { min-height: 34px; }
+}
+details.cfgdet > summary { display: block; }
+details.cfgdet > summary::before { margin-right: 6px; }

@@ -577,6 +577,9 @@
   }
   const collKey = (k) => S.ui.collapsed[k] ? " collapsed" : "";
   const dispName = (d) => title(d);
+  // Force Disposition chip in Games Workshop's color (Colors setting can override per device)
+  const dispSlug = (d) => String(d || "").toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
+  const dispChip = (d) => `<span class="dispc" data-disp="${esc(dispSlug(d))}">${esc(dispName(d))}</span>`;
 
   function renderEditor(id) {
     const l = findList(id);
@@ -679,7 +682,7 @@
         <span class="dpchip${dpOver ? " over" : ""}" data-testid="dp">${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} DP</span></div>
       ${dets.map((d) => `<details class="coll cfgdet" data-testid="cfg-det" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ""} <span class="muted">· ${d.st.length} stratagem${d.st.length === 1 ? "" : "s"} · ${d.enh.length} enhancement${d.enh.length === 1 ? "" : "s"}</span></summary>
         <div class="cb">${d.rule ? `<div class="rules"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
-      <div class="cfgrow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? esc(dispName(l.disposition)) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
+      <div class="cfgrow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? dispChip(l.disposition) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
       <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends"></label>
       <label class="cfgrow" title="Off: attached Leaders/Support units appear inside their bodyguard unit's card"><span class="n"><b>Attached characters in their own category</b></span><input type="checkbox" ${l.leadersOwnCat ? "checked" : ""} data-change="leaders-own" data-testid="leaders-own"></label>
       <div class="cfgnote">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
@@ -973,12 +976,12 @@
   function detBlock(d, o) {
     o = o || {};
     return `<div class="detfocus${o.preview ? " preview" : ""}" data-testid="det-block" data-det="${esc(d.n)}"><h4>${esc(d.n)} <span class="dpchip">${d.dp} DP</span>${o.preview ? ` <span class="tag">not selected</span>` : ""}</h4>
-        ${d.fd && d.fd.length ? `<div class="muted">Force Disposition: ${esc(d.fd.map(dispName).join(", "))}</div>` : ""}
+        ${d.fd && d.fd.length ? `<div class="muted fdline">Force Disposition: ${d.fd.map(dispChip).join(" ")}</div>` : ""}
         ${d.sup ? `<div class="muted">${esc([].concat(d.sup).join("; "))}</div>` : ""}
         ${d.gs_dp !== undefined && d.gs_dp !== d.dp ? `<div class="warn">GrimSlate lists ${esc(d.gs_dp)} DP (MFM value used)</div>` : ""}
         ${d.rule ? `<details class="coll"${o.open ? " open" : ""}><summary>Detachment rule: ${esc(d.rule[0])}</summary><div class="cb rules" data-testid="det-rule">${esc(clean(d.rule[1]))}</div></details>` : `<div class="muted">No detachment rule text available.</div>`}
-        ${o.noEnh ? "" : `<details class="coll"${o.open ? " open" : ""}><summary>Enhancements (${d.enh.length})</summary><div class="cb">${d.enh.length ? d.enh.map((e) => `<div class="opt"><span class="on"><b>${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("") : `<span class="muted">None listed.</span>`}</div></details>`}
-        <details class="coll"${o.open ? " open" : ""}><summary>Stratagems (${d.st.length})</summary><div class="cb" data-testid="det-strats">${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details></div>`;
+        ${o.noEnh ? "" : `<details class="coll enh-coll"${o.open ? " open" : ""}><summary>Enhancements (${d.enh.length})</summary><div class="cb">${d.enh.length ? d.enh.map((e) => `<div class="opt"><span class="on"><b class="enh-n">${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("") : `<span class="muted">None listed.</span>`}</div></details>`}
+        <details class="coll st-coll"${o.open ? " open" : ""}><summary>Stratagems (${d.st.length})</summary><div class="cb" data-testid="det-strats">${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details></div>`;
   }
   function detsPanel(l, F, c) {
     const all = F.f.dets.filter((d) => d.dp !== null && d.dp !== undefined);
@@ -988,7 +991,7 @@
     const size = c.size;
     const over = c.dpLimit != null && c.dp > c.dpLimit && !(size.single3dp && l.dets.length === 1 && c.dp === 3);
     const row = (d) => `<div class="detrow${focus && focus.n === d.n ? " focus" : ""}"><label><input type="checkbox" ${selected.has(d.n) ? "checked" : ""} value="${esc(d.n)}" data-change="det">
-        <span>${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>${d.src === "gs" ? `<span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}
+        <span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>${d.src === "gs" ? `<span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}
         ${d.chg ? `<span class="tag">updated</span>` : ""}${(d.rs || []).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}${metaChip(l, d.n)}</label>
         <button class="ibtn" data-action="focus-det" data-det="${esc(d.n)}" title="View rules">${icon("eye")}</button></div>`;
     // every selected detachment gets its own block (rule, enhancements, stratagems); an unselected detachment
@@ -1012,7 +1015,7 @@
   function dispPanel(l, c) {
     const ds = c.dispositions || [];
     return phead("Force Disposition") + `<div class="pbody scroll">${ds.length ? `<label class="opt"><input type="radio" name="disp" value="" ${!l.disposition ? "checked" : ""} data-change="disp"><span class="on">None</span></label>` +
-      ds.map((d) => `<label class="opt"><input type="radio" name="disp" value="${esc(d)}" ${l.disposition === d ? "checked" : ""} data-change="disp"><span class="on">${esc(dispName(d))}</span></label>`).join("")
+      ds.map((d) => `<label class="opt"><input type="radio" name="disp" value="${esc(d)}" ${l.disposition === d ? "checked" : ""} data-change="disp"><span class="on">${dispChip(d)}</span></label>`).join("")
       : `<span class="muted">Select a detachment first; each detachment lists the Force Dispositions it offers.</span>`}</div>`;
   }
   function errorsPanel(l, c) {
@@ -1219,7 +1222,7 @@
       const vs = (name) => V.disposition_matchups.filter((m) => m.name === name && m.games > 0).sort((a, b) => (b.win_rate || 0) - (a.win_rate || 0));
       body = V.dispositions.length ? `<p class="muted small">Tap a disposition to see its win rate against each other disposition.</p>
       <div class="tablewrap"><table class="mtable" data-testid="disp-table"><tr><th class="l">Disposition</th><th>Win Rate</th><th>Games</th><th>Field</th></tr>
-        ${V.dispositions.slice().sort((a, b) => (b.win_rate || 0) - (a.win_rate || 0)).map((d) => `<tr class="click${open === d.name ? " open" : ""}" data-action="meta-disp" data-name="${esc(d.name)}"><td class="l"><span class="caret">${open === d.name ? "▾" : "▸"}</span>${esc(d.name)}</td><td>${wrCell(d.win_rate)}</td><td>${esc(fmtN(d.games))}</td><td>${tot ? esc((Math.round((d.players || 0) / tot * 1000) / 10).toFixed(1)) + "%" : "—"}</td></tr>
+        ${V.dispositions.slice().sort((a, b) => (b.win_rate || 0) - (a.win_rate || 0)).map((d) => `<tr class="click${open === d.name ? " open" : ""}" data-action="meta-disp" data-name="${esc(d.name)}"><td class="l"><span class="caret">${open === d.name ? "▾" : "▸"}</span>${dispChip(d.name)}</td><td>${wrCell(d.win_rate)}</td><td>${esc(fmtN(d.games))}</td><td>${tot ? esc((Math.round((d.players || 0) / tot * 1000) / 10).toFixed(1)) + "%" : "—"}</td></tr>
           ${open === d.name ? `<tr class="sub"><td colspan="4"><table class="mtable inner" data-testid="disp-vs"><tr><th class="l">Vs</th><th>Win Rate</th><th>Avg Diff</th><th>Go 1st WR</th><th>Go 1st Diff</th><th>Games</th></tr>
             ${vs(d.name).map((m) => `<tr><td class="l">${esc(m.opponent)}</td><td>${wrCell(m.win_rate)}</td><td>${esc(signed(m.avg_diff))}</td><td>${wrCell(m.go_first && m.go_first.win_rate, m.go_first && m.go_first.games, 10)}</td><td>${(m.go_first && m.go_first.games || 0) < 10 && !S.ui.showSmall ? "—" : esc(signed(m.go_first && m.go_first.avg_diff))}</td><td>${esc(fmtN(m.games))}</td></tr>`).join("") || `<tr><td colspan="6" class="muted l">No games.</td></tr>`}</table></td></tr>` : ""}`).join("")}</table></div>
       <p class="muted small">Win rates are compiled over qualifying events ${esc(V.range === "weekend" ? "this weekend" : V.range === "4weeks" ? "in the trailing 4 weeks" : (V.label || "").charAt(0).toLowerCase() + (V.label || "").slice(1))}${V.rtt ? ", incl. RTTs" : ""}. Mirror matches are excluded. Avg Diff is the mean victory-point margin from the row's side. The Go 1st columns repeat both over just the games the row's disposition had the first turn in (10+ games needed).</p>`
@@ -1320,7 +1323,7 @@
     } else if (tab === "dispositions") {
       const ent = Object.entries(f.dispositions || {}).sort((a, b) => b[1] - a[1]); const tot = ent.reduce((a, e) => a + e[1], 0);
       body = ent.length ? `<p class="muted small">How ${esc(f.name)} players build across dispositions, ${esc(when)}.</p>
-      <div class="dbars" data-testid="fac-disp">${ent.map(([k, v]) => `<div class="dbar"><div class="dl"><span>${esc(k)}</span><span><b>${esc(v)}</b> · ${esc((Math.round(v / Math.max(1, tot) * 1000) / 10).toFixed(1))}%</span></div><div class="db"><span style="width:${(v / Math.max(1, tot) * 100).toFixed(1)}%"></span></div></div>`).join("")}</div>` : `<div class="empty">No disposition data.</div>`;
+      <div class="dbars" data-testid="fac-disp">${ent.map(([k, v]) => `<div class="dbar"><div class="dl"><span>${dispChip(k)}</span><span><b>${esc(v)}</b> · ${esc((Math.round(v / Math.max(1, tot) * 1000) / 10).toFixed(1))}%</span></div><div class="db"><span style="width:${(v / Math.max(1, tot) * 100).toFixed(1)}%"></span></div></div>`).join("")}</div>` : `<div class="empty">No disposition data.</div>`;
     } else {
       const L = S.metaLists && S.metaLists[slug];
       if (!L) { body = `<div class="empty">Loading lists…</div>`; loadMetaLists(slug).then(() => { if (location.hash.startsWith(`#/meta/${slug}`) && S.ui.metaTab === "lists") route(); }); }
@@ -1361,7 +1364,46 @@
       <tr><td>Win rates</td><td>${W ? `listhammer.info, ${esc((W.date_range || {}).label || "")} ${esc((W.date_range || {}).dates || "")}, fetched ${esc(localTime(W.fetched_at))}` : "not loaded"}</td></tr>
       <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} ${SY && SY.session() ? `(synced to your account)` : isGuest() ? `of ${GUEST_MAX} (guest mode – stored only on this device)` : "(stored only on this device)"}</td></tr>
       ${SY && SY.session() ? `<tr><td>Account</td><td>${esc(SY.user().email || "")} · ${esc(SYNC_TXT[(S.sync || SY.info()).status] || "")} <a href="#" data-action="account">Manage / sign out</a></td></tr>` : ""}</table>
-      <div class="mfoot wrap">${S.report ? `<button class="btn secondary" data-action="show-report">Show last points-update report</button>` : ""}<button class="btn secondary" data-action="check-update">Check for points updates</button><button class="btn" data-action="close-modal">Close</button></div>`);
+      <div class="mfoot wrap">${S.report ? `<button class="btn secondary" data-action="show-report">Show last points-update report</button>` : ""}<button class="btn secondary" data-action="colors">Colors</button><button class="btn secondary" data-action="check-update">Check for points updates</button><button class="btn" data-action="close-modal">Close</button></div>`);
+  }
+  /* ------------------------------------------------------------------ Colors setting (per device) */
+  const MC = window.MusterColors;
+  const SW_TEXT = ["#39ff14", "#ffd60a", "#ff9f1c", "#ff4d6d", "#ff5cf0", "#b388ff", "#4d8dff", "#00e5ff"];
+  const SW_DISP = ["#1e8a2e", "#0b5fa5", "#b3261e", "#c9a100", "#0b8a80", "#6a3fb5", "#c25e00", "#3c4043"];
+  const SAMPLE = { det: "Gladius Task Force", strat: "Armour of Contempt", cat: "Intercessor Squad", abil: "Deep Strike", aura: "Aura", enh: "Artificer Armour" };
+  const isDark = () => document.documentElement.getAttribute("data-theme") === "dark";
+  // what the picker shows when a category is still on its default
+  const colorDefault = (c) => c.def || (c.k === "aura" ? "#8a5cd1" : isDark() ? "#e8e8e8" : "#000000");
+  function colorPreview(c) {
+    const v = `--c-${c.k}`;
+    if (c.disp) return `<span class="cprev disp"><span class="pl"><span class="dispc" data-disp="${esc(c.k.slice(5))}">${esc(c.label)}</span></span><span class="pd"><span class="dispc" data-disp="${esc(c.k.slice(5))}">${esc(c.label)}</span></span></span>`;
+    if (c.k === "aura") return `<span class="cprev"><span class="pl"><span class="aura-badge" style="background:var(${v}, #8a5cd1);color:var(${v}-fg, #fff)">Aura</span></span><span class="pd"><span class="aura-badge" style="background:var(${v}, #7a4fc4);color:var(${v}-fg, #fff)">Aura</span></span></span>`;
+    return `<span class="cprev"><span class="pl" style="color:var(${v}, ${c.def || "#000"})">${esc(SAMPLE[c.k] || c.label)}</span><span class="pd" style="color:var(${v}, ${c.def || "#e8e8e8"})">${esc(SAMPLE[c.k] || c.label)}</span></span>`;
+  }
+  function colorRow(c) {
+    const cur = MC.get(c.k), val = cur || colorDefault(c);
+    return `<div class="cset${cur ? " custom" : ""}" data-ck="${esc(c.k)}" data-testid="color-row">
+      <div class="cs-top"><div class="cs-t"><b>${esc(c.label)}</b>${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</div>
+        <button class="btn secondary sm cs-reset" data-action="color-reset" data-k="${esc(c.k)}" title="Back to the default color">Reset</button></div>
+      <div class="cs-ctl">${colorPreview(c)}</div>
+      <div class="cs-ctl"><span class="cs-sw">${(c.disp ? SW_DISP : SW_TEXT).map((x) => `<button class="sw${cur === x ? " on" : ""}" data-action="color-pick" data-k="${esc(c.k)}" data-v="${x}" style="background:${x}" title="${x}" aria-label="${esc(c.label)}: ${x}"></button>`).join("")}
+        <label class="cs-pick" title="Custom color: pick any color"><input type="color" value="${esc(val)}" data-input="color" data-k="${esc(c.k)}" aria-label="${esc(c.label)}: custom color"></label></span></div></div>`;
+  }
+  function openColors() {
+    const txt = MC.CATS.filter((c) => !c.disp), disp = MC.CATS.filter((c) => c.disp);
+    modal("Colors", `<div class="colors" data-testid="colors">
+      <p class="muted cs-intro">Pick a color for each part of the list builder. Changes show right away and are saved on this device. Each preview shows light mode on the left and dark mode on the right.</p>
+      ${txt.map(colorRow).join("")}
+      <div class="cs-h">Force Dispositions</div>
+      <p class="muted cs-intro">Defaults are the colors Games Workshop uses on the 11th edition Force Disposition icons.</p>
+      ${disp.map(colorRow).join("")}
+      <div class="mfoot"><button class="btn secondary" data-action="color-reset-all" data-testid="color-reset-all">Reset all</button><button class="btn" data-action="close-modal">Done</button></div></div>`, { sheet: isPhone() });
+  }
+  function refreshColorRow(k) {
+    const row = $(`.cset[data-ck="${k}"]`); const c = MC.cat(k); if (!row || !c) return;
+    const cur = MC.get(k); row.classList.toggle("custom", !!cur);
+    $$(".sw", row).forEach((b) => b.classList.toggle("on", b.dataset.v === cur));
+    const inp = $("input[type=color]", row); if (inp && document.activeElement !== inp) inp.value = cur || colorDefault(c);
   }
   function toggleTheme() {
     const cur = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
@@ -1401,6 +1443,10 @@
     "export-all": () => download(`muster-lists-${new Date().toISOString().slice(0, 10)}.json`, C.exportLists(S.lists), "application/json"),
     "toggle-theme": () => toggleTheme(),
     "about": () => about(),
+    "colors": () => openColors(),
+    "color-pick": (t) => { MC.set(t.dataset.k, t.dataset.v); refreshColorRow(t.dataset.k); },
+    "color-reset": (t) => { MC.set(t.dataset.k, null); refreshColorRow(t.dataset.k); },
+    "color-reset-all": () => { MC.resetAll(); MC.CATS.forEach((c) => refreshColorRow(c.k)); toast("All colors back to their defaults"); },
     "account": () => accountModal(),
     "sync-now": async () => { closeModal(); const ok = await SY.syncNow({ pull: true }); toast(ok ? "Lists synced" : `Sync failed – ${SYNC_TXT[(S.sync || {}).status] || "will retry"}`); },
     "sign-out": () => signOut(),
@@ -1544,6 +1590,7 @@
     "cat-search": (t) => { S.ui.q = t.value; const F = C.getFaction(S.idx, CUR); const body = $("#catbody"); if (body && F) body.innerHTML = renderCatalogBody(CUR, F, C.calcList(CUR, S.idx)); },
     "list-search": (t) => { S.ui.listQ = t.value; const pos = t.selectionStart; renderLists(); const n = $("[data-input=list-search]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
     "new-name": (t) => { NEW.name = t.value; },
+    "color": (t) => { MC.set(t.dataset.k, t.value); refreshColorRow(t.dataset.k); },
     "meta-q": (t) => { S.ui.metaQ = t.value; const pos = t.selectionStart; renderMeta(null); const n = $("[data-input=meta-q]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
   };
   document.addEventListener("click", (ev) => {
@@ -1555,7 +1602,7 @@
     if (t.tagName === "BUTTON" || t.tagName === "A") ev.preventDefault();
     a(t, ev);
   });
-  const AUTH_OK = new Set(["guest-start", "auth-mode", "toggle-theme", "about", "close-modal", "modal-bg", "check-update", "reload-page", "show-report", "dismiss-report"]);
+  const AUTH_OK = new Set(["guest-start", "auth-mode", "toggle-theme", "about", "colors", "color-pick", "color-reset", "color-reset-all", "close-modal", "modal-bg", "check-update", "reload-page", "show-report", "dismiss-report"]);
   document.addEventListener("submit", (ev) => { const f = ev.target.closest("[data-form=auth]"); if (!f) return; ev.preventDefault(); submitAuth(f); });
   let SW = null;
   document.addEventListener("touchstart", (ev) => { const row = ev.target.closest && ev.target.closest(".roster .urow"); if (!row || !ev.touches || !ev.touches[0]) { SW = null; return; } SW = { row, x: ev.touches[0].clientX, y: ev.touches[0].clientY }; }, { passive: true });

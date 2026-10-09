@@ -960,7 +960,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v16/);
+  assert.match(read("sw.js"), /muster-shell-v17/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1299,4 +1299,55 @@ test("codex override in the UI: Space Marines datasheet popup (codex source, ext
   assert.match(txt, /Codex Discipline/);
   assert.match(txt, /Armour of Contempt/);
   assert.match(txt, /Responsive Tactics/);
+});
+
+test("Colors setting: save a color, apply it as a CSS variable before paint, reset one and reset all", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const root = d.documentElement, MC = w.MusterColors;
+  // defaults: nothing stored, nothing set; detachments fall back to the approved green in CSS
+  assert.equal(w.localStorage.getItem("muster.colors"), null);
+  assert.equal(root.style.getPropertyValue("--c-strat"), "");
+  const css = read("css/app.css");
+  assert.match(css, /var\(--c-det, #39ff14\)/);
+  assert.match(css, /html\[data-c-strat\] \.strat \.sh \.n/);
+  for (const k of ["take-and-hold", "disruption", "purge-the-foe", "priority-assets", "reconnaissance"]) assert.match(css, new RegExp(`\\.dispc\\[data-disp=${k}\\] \\{ --dc: var\\(--c-disp-${k}, #[0-9a-f]{6}\\)`));
+  // open the Colors screen from the header: every category has a row with a picker
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const rows = [...d.querySelectorAll("#modal [data-testid=color-row]")].map((r) => r.dataset.ck);
+  assert.deepEqual(rows, ["det", "strat", "cat", "abil", "aura", "enh", "disp-take-and-hold", "disp-disruption", "disp-purge-the-foe", "disp-priority-assets", "disp-reconnaissance"]);
+  // pick a swatch -> saved + applied right away
+  click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
+  assert.equal(JSON.parse(w.localStorage.getItem("muster.colors")).strat, "#ff9f1c");
+  assert.equal(root.style.getPropertyValue("--c-strat"), "#ff9f1c");
+  assert.ok(root.hasAttribute("data-c-strat"));
+  assert.ok(d.querySelector('#modal .cset[data-ck=strat]').classList.contains("custom"));
+  // the native picker works too (input event), and a light disposition color gets dark text
+  const pick = d.querySelector('#modal input[type=color][data-k="disp-priority-assets"]');
+  pick.value = "#ffee88"; pick.dispatchEvent(new w.Event("input", { bubbles: true }));
+  assert.equal(root.style.getPropertyValue("--c-disp-priority-assets"), "#ffee88");
+  assert.equal(root.style.getPropertyValue("--c-disp-priority-assets-fg"), "#000");
+  // a fresh page load applies saved colors before the app scripts run (no flash)
+  const b = makeApp({ storage: { "muster.colors": JSON.stringify({ cat: "#00e5ff", det: "#ff0000", bogus: "#123456", enh: "red" }) } });
+  assert.equal(b.d.documentElement.style.getPropertyValue("--c-cat"), "#00e5ff");
+  assert.equal(b.d.documentElement.style.getPropertyValue("--c-det"), "#ff0000");
+  assert.equal(b.d.documentElement.style.getPropertyValue("--c-enh"), "", "invalid values are ignored");
+  // per-row reset and Reset all
+  click(w, d.querySelector("#modal [data-action=color-reset][data-k=strat]"));
+  assert.equal(root.style.getPropertyValue("--c-strat"), "");
+  assert.ok(!root.hasAttribute("data-c-strat"));
+  assert.equal(JSON.parse(w.localStorage.getItem("muster.colors")).strat, undefined);
+  click(w, d.querySelector("#modal [data-action=color-reset-all]"));
+  assert.equal(w.localStorage.getItem("muster.colors"), null);
+  assert.equal(root.style.getPropertyValue("--c-disp-priority-assets"), "");
+  // dispositions render as colored chips in the builder
+  const C = w.MusterCore; const SM = POINTS.factions.find((f) => f.id === "space-marines");
+  const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
+  const fd = SM.dets.find((x) => x.n === "Gladius Task Force").fd[0]; l.disposition = fd;
+  l.entries.push(C.newEntry(SM.units.find((u) => u.n === "Intercessor Squad")));
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => d.querySelector(".editor"));
+  const chip = [...d.querySelectorAll(".cfgrow .dispc")][0];
+  assert.ok(chip && chip.dataset.disp === fd.toLowerCase().replace(/[^a-z]+/g, "-"), "disposition chip in the Configuration card");
 });
