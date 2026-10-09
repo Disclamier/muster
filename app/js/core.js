@@ -1439,7 +1439,170 @@
     return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
   }
 
-  return { rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  /* ---------------------------------------------------------------- points left / over */
+  function pointsLeft(total, limit) {
+    if (limit == null || !isFinite(limit)) return null;
+    const d = limit - total;
+    return d >= 0 ? { left: d, over: 0, text: `${d} pts left`, cls: "left" } : { left: 0, over: -d, text: `${-d} pts over`, cls: "over" };
+  }
+
+  /* ---------------------------------------------------------------- enhancement stat modifiers
+     Reads an enhancement's rules text for characteristic changes to the bearer (or its unit) and its weapons:
+     'Add 1 to the Attacks and Strength characteristics of the bearer's melee weapons', 'Improve the Armour
+     Penetration characteristic ... by 1', 'The bearer has a Save characteristic of 2+', 'This model's melee attacks
+     have +1 S and AP', 'This unit has +2" M', '5+ invulnerable save'. Hit/Wound roll modifiers are not
+     characteristics and are ignored; effects on enemy/other friendly units and on attacks made against the bearer
+     are ignored. Mods in a sentence with a condition (while/if/each time/once per battle/until/'instead'/'Or:')
+     are marked cond (with the sentence as the condition). Display only: points and exports never change. */
+  const EM_STAT = { attacks: "A", strength: "S", damage: "D", "armour penetration": "AP", "weapon skill": "WS", "ballistic skill": "BS", range: "RANGE",
+    toughness: "T", wounds: "W", move: "M", movement: "M", leadership: "LD", "objective control": "OC", save: "SV" };
+  const EM_ABBR = { A: "A", S: "S", D: "D", AP: "AP", WS: "WS", BS: "BS", T: "T", W: "W", M: "M", OC: "OC", LD: "LD", SV: "SV" };
+  const EM_WEAPON = new Set(["A", "S", "D", "AP", "WS", "BS", "RANGE"]);
+  const EM_LONG = "attacks|strength|damage|armour penetration|weapon skill|ballistic skill|range|toughness|wounds|movement|move|leadership|objective control|save";
+  const EM_SHORT = "A|S|AP|D|WS|BS|T|W|M|OC|Ld|Sv";
+  const EM_COND = /\b(while|if|each time|once per|until|at the start|at the end|when|in your|in the declare|on a critical|that targets?|for every|for each|select one|instead|or:|discard|spend|roll one)\b/i;
+  const EM_SKIP = /\b(enemy|friendly|allocated to|targets? (?:the bearer|this unit|this model|your unit)|saving throw|ignore any or all|transport|attacking model)\b/i;
+  function emSentences(text) {
+    const out = [];
+    let head = "", gate = "", other = false;
+    for (const raw of String(text || "").replace(/\*\*/g, "").split("\n")) {
+      const line = raw.trim(); if (!line) continue;
+      // sentences; '... of 6+ and, once per battle, ...' starts a separate (conditional) clause
+      const parts = line.split(/(?<=\.)\s+(?=[A-Z(])|\s+and,\s+(?=once per|each time|until|at the start)/);
+      for (const p of parts) {
+        // lines of a 'This unit has:' / 'melee attacks have:' list inherit the header's subject
+        if (head && !/model only|unit only/i.test(p) && (p.length < 80 || /^(?:\+|-|\d+\+|or:|\[|have\b|has\b|can\b)/i.test(p))) out.push({ s: p, ctx: head + " " + p, gate, other });
+        else { head = /:\s*$/.test(p) ? p : ""; out.push({ s: p, ctx: p, gate, other }); }
+        // once-per / use-this-ability / choose-one texts: everything after is conditional
+        if (/\(once per|once per (?:battle|turn|phase|battle round)\b|use this (?:ability|enhancement)|select one of the abilities/i.test(p)) gate = p;
+        // effects on another unit the bearer selects ('select one friendly KROOT unit ... that unit has +1 Ld')
+        if (/\bselect one (?:friendly )?(?:[A-Z][A-Z'’/ -]*\s)?(?:unit|model)s?\b/.test(p) && !/select one of (?:this|the bearer)/i.test(p)) other = true;
+      }
+    }
+    return out;
+  }
+  function emWeaponFilter(ctx) {
+    const f = {};
+    if (/\bmelee\b/i.test(ctx) && !/\branged\b/i.test(ctx)) f.kind = "m";
+    else if (/\branged\b/i.test(ctx) && !/\bmelee\b/i.test(ctx)) f.kind = "r";
+    if (/excluding \[?psychic\]?/i.test(ctx)) f.exkw = "PSYCHIC";
+    else if (/\bpsychic weapons?\b|\[psychic\] (?:weapons|attacks)/i.test(ctx)) f.kw = "PSYCHIC";
+    if (/excluding extra attacks/i.test(ctx)) f.exkw = "EXTRA ATTACKS";
+    if (/\btorrent\b/i.test(ctx)) f.kw = "TORRENT";
+    if (/\bpistols?\b/i.test(ctx)) f.kw = "PISTOL";
+    const nm = ctx.match(/(?:bearer's|model's|this model's) ((?:[A-Z][\w'’-]*\s+){0,3}[A-Z][\w'’-]*) weapons?\b/);
+    if (nm && !/^(?:Psychic|Torrent|Pistol|Melee|Ranged)$/i.test(nm[1])) f.name = nm[1];
+    return f;
+  }
+  function emScope(ctx, stat) {
+    ctx = ctx.replace(/(?:^|:\s*)(?:or:\s*)?(?:if|while|when)\b[^,]*,\s*/gi, " ");      // 'If this unit made a charge move, ...'
+    if (/models? in (?:that|the bearer's|this|its) unit|equipped by models|\bthis unit\b|bearer's unit (?:have|has)\b/i.test(ctx)) return "unit";
+    return "model";
+  }
+  function enhStatMods(text) {
+    const mods = [];
+    const pick = (String(text || "").match(/select one of this model's ((?:[A-Z][\w'’-]*\s+){0,3}[A-Z][\w'’-]*) weapons/) || [])[1];
+    const push = (m, sen, at) => {
+      // condition: a conditional phrase before the change (same sentence or list header), 'instead', or a gate
+      const pre = sen.ctx.slice(0, sen.ctx.length - sen.s.length + (at || 0));
+      const cond = EM_COND.test(pre) || /\binstead\b|\bfor every\b/i.test(sen.s) || !!sen.gate;
+      m.cond = cond ? ((sen.gate && sen.gate !== sen.s ? sen.gate + " … " : "") + sen.s.replace(/^or:\s*/i, "")) : null;
+      if (m.stat === "RANGE" && /abilit/i.test(sen.s) && !/weapon/i.test(sen.s)) return;
+      if (/\bselect one\b/i.test(sen.ctx)) m.pick = true;
+      if (EM_WEAPON.has(m.stat)) { m.filter = emWeaponFilter(sen.ctx); if (pick && !m.filter.name && /that weapon/i.test(sen.ctx)) { m.filter.name = pick; m.pick = true; } }
+      m.scope = emScope(sen.ctx, m.stat);
+      if (m.stat === "INV" && /against (ranged|melee) attacks/i.test(sen.s)) m.cond = sen.s;
+      if (!mods.some((x) => x.stat === m.stat && x.v === m.v && x.op === m.op && x.cond === m.cond)) mods.push(m);
+    };
+    for (const sen of emSentences(text)) {
+      const s = sen.s;
+      if (sen.other || /\bthe selected (?:[A-Z]+ )?(?:unit|model)\b/i.test(s) || EM_SKIP.test(s) || /\bhit roll|wound roll|advance roll|charge roll\b/i.test(s) && !/characteristic|\+\d+\s*(?:A|S|AP|D)\b/.test(s)) continue;
+      if (/\bfollowing weapon\b/i.test(sen.ctx)) continue;
+      let m;
+      // 'Add 3 to the Strength and add 1 to the Attacks characteristics' / 'Add 2" to the Move characteristic'
+      const reAdd = new RegExp(`\\b(add|subtract)\\s+(\\d+)"?\\s+to\\s+(?:the\\s+)?(?:bearer's\\s+)?((?:${EM_LONG})(?:(?:,\\s*|\\s+and\\s+)(?:${EM_LONG}))*)`, "gi");
+      while ((m = reAdd.exec(s))) {
+        const n = (+m[2]) * (m[1].toLowerCase() === "subtract" ? -1 : 1);
+        for (const w of m[3].toLowerCase().split(/,\s*|\s+and\s+/)) push({ stat: EM_STAT[w], op: "add", v: n }, sen, m.index);
+      }
+      const reImp = new RegExp(`\\b(improve|worsen|increase)\\s+(?:the\\s+)?(?:bearer's\\s+)?((?:${EM_LONG})(?:(?:,\\s*|\\s+and\\s+)(?:${EM_LONG}))*)\\s+characteristics?\\b[^.;]*?\\bby\\s+(\\d+)`, "gi");
+      while ((m = reImp.exec(s))) {
+        const n = (+m[3]) * (m[1].toLowerCase() === "worsen" ? -1 : 1);
+        for (const w of m[2].toLowerCase().split(/,\s*|\s+and\s+/)) push({ stat: EM_STAT[w], op: "add", v: n }, sen, m.index);
+      }
+      const reSet = new RegExp(`\\b(${EM_LONG}) characteristic of (\\d+"?\\+?)`, "gi");
+      while ((m = reSet.exec(s))) push({ stat: EM_STAT[m[1].toLowerCase()], op: "set", v: m[2] }, sen, m.index);
+      const reInv = /\b(\d)\+ (?:invulnerable save|InSv)\b/gi;
+      while ((m = reInv.exec(s))) push({ stat: "INV", op: "set", v: m[1] + "+" }, sen, m.index);
+      const reSv = /(?:^|\s)(\d)\+ Sv\b/g;
+      while ((m = reSv.exec(s))) push({ stat: "SV", op: "set", v: m[1] + "+" }, sen, m.index);
+      // new style: '+1 S and AP', '+1 A, S, AP and D', '+2" M', '+2W', '+1A', '+1 Ld and OC'
+      const reNew = new RegExp(`(?:^|[\\s:(/])([+-]\\d+)"?\\s*((?:${EM_SHORT})(?:(?:,\\s*|\\s+and\\s+)(?:${EM_SHORT}))*)(?![\\w"])`, "g");
+      while ((m = reNew.exec(s))) {
+        const n = +m[1];
+        for (const w of m[2].split(/,\s*|\s+and\s+/)) push({ stat: EM_ABBR[w.toUpperCase()], op: "add", v: n }, sen, m.index);
+      }
+    }
+    // a conditional 'instead' / 'Or:' variant of an unconditional mod is an alternative, not cumulative
+    for (const x of mods) { const b = mods.find((y) => !y.cond && y.stat === x.stat); if (x.cond && b) { x.alt = true; x.scope = b.scope; } }
+    return mods.filter((x) => x.stat);
+  }
+  /* apply one mod to a characteristic value string ("3+", "6\"", "-1", "D6+1", "2") -> new string, or null */
+  function applyStatMod(stat, val, mod) {
+    const v = String(val == null ? "" : val).trim();
+    if (mod.op === "set" && (!v || v === "-")) return ["INV", "SV", "LD", "OC", "W", "T", "M"].includes(stat) ? String(mod.v) : null;
+    if (!v || v === "-" || /^n\/?a$/i.test(v)) return null;
+    if (mod.op === "set") {
+      if (stat === "INV" || stat === "SV" || stat === "LD") { const a = parseInt(v), b = parseInt(mod.v); return isNaN(a) || b < a ? String(mod.v) : null; }
+      return String(mod.v);
+    }
+    const n = mod.v;
+    if (["SV", "LD", "WS", "BS", "INV"].includes(stat)) {           // X+ : improving lowers the number (not below 2+)
+      const a = parseInt(v); if (isNaN(a)) return null;
+      return Math.min(6, Math.max(2, a - n)) + "+";
+    }
+    if (stat === "AP") { const a = parseInt(v); if (isNaN(a)) return null; const r = Math.min(0, a - n); return r === 0 ? "0" : String(r); }
+    if (stat === "M" || stat === "RANGE") { const a = v.match(/^(\d+)("?)(.*)$/); if (!a) return null; return (Math.max(0, +a[1] + n)) + (a[2] || '"') + a[3]; }
+    if (/^\d+$/.test(v)) return String(Math.max(stat === "OC" ? 0 : 1, +v + n));
+    const d = v.match(/^(\d*D\d+)(?:\s*\+\s*(\d+))?$/i);              // D3, D6+1, 2D6
+    if (d) { const k = (+(d[2] || 0)) + n; return k > 0 ? `${d[1]}+${k}` : k === 0 ? d[1] : null; }
+    return null;
+  }
+  function entryStatMods(F, r) {
+    const out = [];
+    const of = (x, unitOnly) => {
+      const en = x && x.entry && x.entry.enh; if (!en || !F) return;
+      const d = F.dets[en.det]; const e = d && d.enh.find((y) => y[0] === en.name); if (!e || !e[2]) return;
+      for (const m of enhStatMods(e[2])) if (!unitOnly || m.scope === "unit") out.push(Object.assign({ enh: e[0], via: unitOnly ? x.name || (x.unit && x.unit.n) : null }, m));
+    };
+    of(r, false);
+    for (const x of (r && r.attached) || []) of(x, true);
+    return out;
+  }
+  /* value of one characteristic after the mods that touch it: {v, base, cond, mods} or null (no change) */
+  function statWithMods(stat, val, mods) {
+    const touch = mods.filter((m) => m.stat === stat);
+    if (!touch.length) return null;
+    const un = touch.filter((m) => !m.cond);
+    const use = un.length ? un : touch.filter((m, i) => !m.alt && touch.findIndex((y) => y.stat === m.stat) === i);
+    let v = String(val == null ? "" : val), changed = false;
+    for (const m of use) { const n = applyStatMod(stat, v, m); if (n != null && n !== v) { v = n; changed = true; } }
+    if (!changed) return null;
+    return { v, base: val, cond: !un.length, mods: touch };
+  }
+  function weaponMatches(mod, kind, name, kws) {
+    const f = mod.filter || {};
+    const K = (kws || []).map((k) => String(k).toUpperCase());
+    if (f.kind && f.kind !== kind) return false;
+    if (f.kw && !K.some((k) => k.includes(f.kw))) return false;
+    if (f.exkw && K.some((k) => k.includes(f.exkw))) return false;
+    if (f.name && !norm(name).includes(norm(f.name).replace(/s$/, ""))) return false;
+    if ((mod.stat === "BS" && kind === "m") || (mod.stat === "WS" && kind === "r")) return false;
+    if (mod.stat === "RANGE" && kind === "m") return false;
+    return true;
+  }
+
+  return { pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

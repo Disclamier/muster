@@ -557,7 +557,7 @@
             return `<div class="lrow${l.disposition ? " has-disp" : ""}"${dispAttr(l)} data-action="open-list" data-id="${esc(l.id)}">
               ${factionImg(l) ? `<img class="lthumb" src="${esc(factionImg(l))}" alt="">` : icon(ROLE_ICON)}
               <span class="lmain"><span class="name">${esc(l.name)}</span>${l.disposition ? dispChip(l.disposition, "sm") : ""}</span>
-              ${c ? `<span class="pts${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"}</span>
+              ${c ? `<span class="pts${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"}</span>${ptsLeftHtml(c.total, size, true)}
                 <span class="dot ${c.errors.length ? "err" : "ok"}" title="${c.errors.length ? esc(c.errors.length + " issue(s)") : "Valid"}">${c.errors.length ? "!" : "✓"}</span>` : ""}
               <span class="time">${esc(ago(l.updated))}</span>
               <button class="ibtn" data-action="rename-list" data-id="${esc(l.id)}" title="Rename">${icon("pencil")}</button>
@@ -725,7 +725,7 @@
           <span class="lname" data-action="rename-cur" title="Rename">${esc(l.name)}</span>
           <button class="ibtn" data-action="rename-cur" title="Rename">${icon("pencil")}</button>
           <span class="grow"></span>
-          <span class="pts big${c.size && c.total > c.size.points ? " over" : ""}" data-testid="total">${c.total} / ${c.size ? c.size.points : "?"} pts</span>
+          <span class="pts big${c.size && c.total > c.size.points ? " over" : ""}" data-testid="total">${c.total} / ${c.size ? c.size.points : "?"} pts</span>${ptsLeftHtml(c.total, c.size)}
           <span class="dotwrap"><button class="dot ${c.errors.length ? "err" : c.warnings.length ? "warn" : "ok"}" data-action="toggle-vpop" aria-label="${c.errors.length ? c.errors.length + " validation error(s)" : c.warnings.length ? c.warnings.length + " warning(s)" : "Valid list"}" data-testid="valid-dot">${c.errors.length || c.warnings.length ? "!" : "✓"}</button>
             <div class="vpop" data-testid="vpop"><div class="vh">${c.errors.length ? `${c.errors.length} error${c.errors.length === 1 ? "" : "s"} – the list is not valid yet` : c.warnings.length ? "No errors – the list is valid, but check the warnings" : "Valid list – no issues found"}</div>
               ${c.errors.length ? `<ul>${c.errors.map((x) => `<li class="err">${esc(x.msg)}</li>`).join("")}</ul>` : ""}
@@ -890,7 +890,7 @@
       <button class="ibtn danger" data-action="del-entry" data-uid="${esc(r.uid)}" title="Remove">${icon("trash")}</button></div></div>`).join("")}</div>` : "";
     return `<div class="fbanner"${banner ? ` style="background-image:linear-gradient(90deg,rgba(0,0,0,.78),rgba(0,0,0,.25)),url('${esc(banner)}')"` : ""}>
         <div><div class="fbt">${esc(sub ? sub.name : F ? F.f.name : l.faction)}</div><div class="fbs">${esc(size ? size.name : "")} · ${c.entries.length} unit${c.entries.length === 1 ? "" : "s"}</div>${l.disposition ? `<div class="fbdisp" data-testid="banner-disp">${dispChip(l.disposition)}</div>` : ""}</div>
-        <span class="pts big${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"} pts</span></div>
+        <span class="fbpts"><span class="pts big${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"} pts</span>${ptsLeftHtml(c.total, size)}</span></div>
       ${cfg}${roles}${miss}${cfgMore}
       ${!l.entries.length ? `<div class="empty">Add units from the catalog${isPhone() ? " tab" : " on the left"}.</div>` : ""}`;
   }
@@ -952,6 +952,29 @@
     const picks = new Set(); for (const v of Object.values((lo && lo.p) || {})) for (const [k, n] of Object.entries(v)) if (n > 0) for (const part of String(k).split(" + ")) picks.add(C.norm(part));
     return { w, picks };
   }
+  /* "115 pts left" (green) / "35 pts over" (red) next to the total */
+  function ptsLeftHtml(total, size, small) {
+    const x = size ? C.pointsLeft(total, size.points) : null;
+    return x ? `<span class="pleft ${x.cls}${small ? " sm" : ""}" data-testid="pts-left" title="${esc(x.over ? `${x.over} points over the ${size.points} pts limit` : `${x.left} of ${size.points} pts still available`)}">${x.over || x.left}<span class="pl-u"> pts</span> ${x.over ? "over" : "left"}</span>` : "";
+  }
+  /* a characteristic cell, highlighted (cyan box) when the unit's enhancement changes it; dashed when conditional */
+  const STAT_LBL = { M: "Move", T: "Toughness", SV: "Save", W: "Wounds", LD: "Leadership", OC: "OC", INV: "Invulnerable save", RANGE: "Range", A: "Attacks", WS: "WS", BS: "BS", S: "Strength", AP: "AP", D: "Damage" };
+  function statCell(stat, val, mods, extra) {
+    const x = mods && mods.length ? C.statWithMods(stat, val, mods) : null;
+    if (!x) return `<td${extra || ""}>${esc(val || "-")}</td>`;
+    const desc = (m) => (m.op === "set" ? `${m.v}` : `${m.v > 0 ? "+" : ""}${m.v}`);
+    const lines = [`${STAT_LBL[stat] || stat}: ${x.base || "-"} → ${x.v}`];
+    for (const m of x.mods) lines.push(`${m.enh}${m.via ? ` (from ${m.via})` : ""}: ${desc(m)}${m.pick ? " (one selected weapon)" : ""}${m.cond ? ` – conditional: ${m.cond}` : ""}`);
+    const tip = lines.join("\n");
+    const first = x.mods.find((m) => (x.cond ? m.cond && !m.alt : !m.cond)) || x.mods[0];
+    return `<td${extra || ""}><span class="emod${x.cond ? " cond" : ""}" data-testid="emod" data-stat="${esc(stat)}" data-base="${esc(x.base || "-")}" title="${esc(tip)}" data-action="emod-tip" data-tip="${esc(tip)}">${esc(x.v)}<small class="emd">${esc(first.op === "set" ? "★" : desc(first))}</small></span></td>`;
+  }
+  /* legend under the profile: which enhancement changed what; conditional changes listed with their condition */
+  function emodNote(mods) {
+    const names = [...new Set(mods.map((m) => m.enh + (m.via ? ` (${m.via})` : "")))];
+    const cond = [...new Set(mods.filter((m) => m.cond).map((m) => m.cond))];
+    return `<div class="ds-emod-note" data-testid="emod-note"><span class="emod-key"></span> Changed by enhancement: <b>${esc(names.join(", "))}</b>${cond.length ? ` · <span class="emod-key cond"></span> dashed = only ${cond.length === 1 ? "when" : "when (see below)"}:<ul>${cond.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}</div>`;
+  }
   function datasheetHtml(F, u, r, o) {
     o = o || {};
     const ds = dsOf(F, u);
@@ -962,8 +985,13 @@
     let html = "";
     if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "No datasheet available for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
     else {
+      const smods = r ? C.entryStatMods(F, r) : [];
+      const umods = smods.filter((m) => m.scope === "unit");            // other model types in the unit: unit-wide mods only
+      const srow = (name, x, inv, mm, tid) => `<tr${tid || ""}><td class="nm">${esc(name)}</td>${statCell("M", x.M, mm)}${statCell("T", x.T, mm)}${statCell("SV", x.SV || x.Sv, mm)}${statCell("W", x.W, mm)}${statCell("LD", x.LD || x.Ld, mm)}${statCell("OC", x.OC, mm)}${statCell("INV", inv, mm, ' data-testid="ds-inv"')}</tr>`;
       if (!filt) html += `<table class="ds-t ds-unit" data-testid="ds-stats"><tr><th class="nm">Unit</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>
-        <tr><td class="nm">${esc(u.n)}</td><td>${esc(st.M || "-")}</td><td>${esc(st.T || "-")}</td><td>${esc(st.SV || st.Sv || "-")}</td><td>${esc(st.W || "-")}</td><td>${esc(st.LD || st.Ld || "-")}</td><td>${esc(st.OC || "-")}</td><td data-testid="ds-inv">${esc(ds.inv || "-")}</td></tr>${(ds.sx || []).map((x) => `<tr data-testid="ds-sx"><td class="nm">${esc(x[0])}</td><td>${esc(x[1].M || "-")}</td><td>${esc(x[1].T || "-")}</td><td>${esc(x[1].SV || "-")}</td><td>${esc(x[1].W || "-")}</td><td>${esc(x[1].LD || "-")}</td><td>${esc(x[1].OC || "-")}</td><td>${esc(x[2] || "-")}</td></tr>`).join("")}</table>${ds.src === "codex" ? `<div class="ds-src muted" data-testid="ds-codex">Source: Codex: Space Marines (11th edition)</div>` : ""}`;
+        ${srow(u.n, st, ds.inv, smods)}${(ds.sx || []).map((x) => srow(x[0], x[1], x[2], umods, ' data-testid="ds-sx"')).join("")}</table>${smods.length ? emodNote(smods) : ""}${ds.src === "codex" ? `<div class="ds-src muted" data-testid="ds-codex">Source: Codex: Space Marines (11th edition)</div>` : ""}`;
+      const wmods = (r ? C.entryStatMods(F, r) : []).filter((m) => ["RANGE", "A", "WS", "BS", "S", "AP", "D"].includes(m.stat));
+      if (filt && wmods.length) html += emodNote(wmods);
       const wtab = (kind, label, skill) => {
         let ws = ds.wp.filter((w) => w[1] === kind && matchItem(w[0]));
         if (!ws.length) return "";
@@ -972,7 +1000,7 @@
         return `<table class="ds-t ds-w" data-testid="ds-${kind === "r" ? "ranged" : "melee"}"><tr><th class="nm">${label}</th><th>Range</th><th>A</th><th>${skill}</th><th>S</th><th>AP</th><th>D</th><th class="kw">Keywords</th></tr>
           ${ws.map((w) => { const n = cnt(w); const cls = n === null ? "" : n > 0 ? "eq" : "uneq";
             return w[2].map((p, i) => `<tr class="${cls}"${i === 0 ? ` data-weapon="${esc(w[0])}"` : ""}><td class="nm">${i === 0 ? `${n ? `<span class="eqn" title="Equipped">${n}×</span> ` : ""}${esc(w[0])}` : ""}${p[0] ? `<span class="pn">${i === 0 ? " – " : "↳ "}${esc(p[0])}</span>` : ""}</td>
-              <td>${esc(p[1] || "-")}</td><td>${esc(p[2] || "-")}</td><td>${esc(p[3] || "-")}</td><td>${esc(p[4] || "-")}</td><td>${esc(p[5] || "-")}</td><td>${esc(p[6] || "-")}</td>
+              ${(() => { const wm = wmods.filter((m) => C.weaponMatches(m, kind, w[0] + " " + (p[0] || ""), p[7])); return statCell("RANGE", p[1], wm) + statCell("A", p[2], wm) + statCell(kind === "r" ? "BS" : "WS", p[3], wm) + statCell("S", p[4], wm) + statCell("AP", p[5], wm) + statCell("D", p[6], wm); })()}
               <td class="kw">${(p[7] || []).map((k) => `<span class="kwc"${kwTip(k)}>${esc(k)}</span>`).join(", ") || "-"}</td></tr>`).join(""); }).join("")}</table>`;
       };
       html += wtab("r", "Ranged Weapons", "BS") + wtab("m", "Melee Weapons", "WS");
@@ -1849,6 +1877,7 @@
     "cat-hide": (t, ev) => { if (ev) ev.stopPropagation(); setCatHidden(true); },
     "cat-show": (t, ev) => { if (ev) ev.stopPropagation(); setCatHidden(false); },
     "toggle-vpop": (t) => { const w = t.closest(".dotwrap"); w.classList.toggle("open"); },
+    "emod-tip": (t, ev) => { ev.stopPropagation(); toast(t.dataset.tip, 5000); },
     "chg-info": (t, ev) => { ev.stopPropagation(); const F = C.getFaction(S.idx, CUR); const u = F && F.units[t.dataset.unit]; if (u) toast(chgText(u), 3500); },
     "lo-count": (t) => withLo((lo, r, u, N) => C.setModelCount(u, lo, t.dataset.type, (lo.c[t.dataset.type] || 0) + +t.dataset.d, N)),
     "lo-inc": (t) => withLo((lo, r, u, N) => loInc(u, lo, t.dataset.key, t.dataset.opt, +t.dataset.d, N)),

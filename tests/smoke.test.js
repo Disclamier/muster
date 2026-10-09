@@ -994,7 +994,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v35/);
+  assert.match(read("sw.js"), /muster-shell-v36/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2360,4 +2360,73 @@ test("stats regression: stale cached negative / failed check is retried (no sign
   click(c.w, c.d.querySelector("#acct")); await tick(30); click(c.w, c.d.querySelector("[data-action=close-modal]")); click(c.w, c.d.querySelector("#acct"));
   await until(() => c.d.querySelector("[data-testid=owner-err]"));
   assert.ok(c.d.querySelector("#statsnav").hidden);  await tick(150);
+});
+
+test("points left / over: list header, banner and lists page; updates live", async () => {
+  for (const view of [{}, { phone: true }, { tablet: true }]) {
+    const { w, d } = makeApp(view);
+    await until(() => d.querySelector(".lists-page"));
+    const C = w.MusterCore; const F = w.Muster.S.idx.factions["adeptus-custodes"];
+    const l = C.newList({ name: "Left", faction: "adeptus-custodes", sub: "adeptus-custodes", size: "incursion" });
+    w.Muster.S.lists.push(l); await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor"));
+    const lim = w.Muster.S.idx.sizes.incursion.points;
+    const left = () => [...d.querySelectorAll("[data-testid=pts-left]")].map((e) => e.textContent);
+    assert.ok(left().length >= 1 && left().every((t) => t === `${lim} pts left`), left().join());
+    assert.ok(d.querySelector("[data-testid=pts-left]").classList.contains("left"));
+    // add units until over the limit: text and colour flip to "N pts over"
+    const sc = F.units["Shield-Captain"]; while (C.calcList(l, w.Muster.S.idx).total <= lim) l.entries.push(C.newEntry(sc));
+    w.Muster.route(); await tick(5);
+    const tot = C.calcList(l, w.Muster.S.idx).total;
+    const el = d.querySelector("[data-testid=pts-left]");
+    assert.equal(el.textContent, `${tot - lim} pts over`); assert.ok(el.classList.contains("over"));
+    await go(w, "#/"); await until(() => d.querySelector(".lists-page"));
+    assert.ok([...d.querySelectorAll("[data-testid=pts-left]")].some((e) => e.textContent === `${tot - lim} pts over`), "lists page row");
+  }
+});
+
+test("enhancement stat changes are highlighted in the unit panel and datasheet (solid; dashed when conditional; leader's unit-wide mods on the bodyguard)", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, S = w.Muster.S;
+  const mk = (fid, det, units) => {
+    const F = S.idx.factions[fid];
+    const l = C.newList({ name: fid, faction: fid, sub: fid, size: "strikeforce" }); l.dets = [det];
+    for (const [n, en] of units) { const e = C.newEntry(F.units[n]); if (en) e.enh = { det, name: en }; l.entries.push(e); }
+    S.lists.push(l); return l;
+  };
+  // Shield-Captain with Admonimortis: melee S +3, AP +1, D +1 (unconditional)
+  const l1 = mk("adeptus-custodes", "Lions of the Emperor", [["Shield-Captain", "Admonimortis"]]);
+  await go(w, "#/list/" + l1.id); await until(() => d.querySelector(".editor"));
+  click(w, d.querySelector(`[data-action=select-entry][data-uid="${l1.entries[0].uid}"]`));
+  const panel = await until(() => d.querySelector(".panel [data-testid=profiles]"));
+  const spear = panel.querySelector('[data-testid=ds-melee] tr[data-weapon="Guardian Spear"]');
+  const em = [...spear.querySelectorAll("[data-testid=emod]")].map((e) => `${e.dataset.stat}:${e.dataset.base}->${e.firstChild.textContent}`);
+  assert.deepEqual(em, ["S:7->10", "AP:-2->-3", "D:2->3"]);
+  assert.ok(![...spear.querySelectorAll(".emod")].some((e) => e.classList.contains("cond")));
+  assert.match(spear.querySelector("[data-testid=emod]").title, /Admonimortis: \+3/);
+  assert.equal(panel.querySelector('[data-testid=ds-ranged] tr[data-weapon="Guardian Spear"] [data-testid=emod]'), null, "ranged profile untouched");
+  assert.match(panel.querySelector("[data-testid=emod-note]").textContent, /Admonimortis/);
+  // datasheet window (PC) shows the same
+  click(w, d.querySelector(`.urow [data-action=ds-pop][data-uid="${l1.entries[0].uid}"]`) || d.querySelector(`[data-action=ds-pop][data-uid="${l1.entries[0].uid}"]`));
+  const win = await until(() => d.querySelector(".modal [data-testid=datasheet]"));
+  assert.equal(win.querySelectorAll('[data-testid=ds-melee] tr[data-weapon="Guardian Spear"] [data-testid=emod]').length, 3);
+  click(w, d.querySelector("[data-action=close-modal]"));
+  // conditional: Grey Knights Mandulian Reliquary (+3 OC while not Battle-shocked) -> dashed
+  const l2 = mk("grey-knights", "Warpbane Task Force", [["Brother-Captain", "Mandulian Reliquary"]]);
+  await go(w, "#/list/" + l2.id); await until(() => d.querySelector(".editor"));
+  click(w, d.querySelector(`[data-action=select-entry][data-uid="${l2.entries[0].uid}"]`));
+  const oc = await until(() => d.querySelector('.panel [data-testid=ds-stats] [data-testid=emod][data-stat="OC"]'));
+  assert.ok(oc.classList.contains("cond")); assert.match(oc.title, /conditional: .*not Battle-shocked/);
+  assert.match(d.querySelector(".panel [data-testid=emod-note]").textContent, /not Battle-shocked/);
+  // leader's unit-wide mod on its bodyguard: Succubus (Hyperstimm Trafficker, 'This unit has +1 T') leading Wyches
+  const l3 = mk("drukhari", "Exhibition of Slaughter", [["Succubus", "Hyperstimm Trafficker"], ["Wyches", null]]);
+  l3.entries[0].attach = l3.entries[1].uid;
+  await go(w, "#/list/" + l3.id); await until(() => d.querySelector(".editor"));
+  click(w, d.querySelector(`[data-action=select-entry][data-uid="${l3.entries[1].uid}"]`));
+  const body = await until(() => d.querySelector(".panel [data-testid=ds-bodyguard]"));
+  const t = body.querySelector('[data-testid=ds-stats] [data-testid=emod][data-stat="T"]');
+  assert.ok(t, "bodyguard T highlighted"); assert.equal(t.firstChild.textContent, "4"); assert.match(t.title, /from Succubus/);
+  assert.equal(d.querySelector('.panel [data-testid=ds-joined] [data-testid=ds-stats] [data-testid=emod][data-stat="T"]').firstChild.textContent, "4");
+  // no enhancement -> no highlight; exports unchanged (display only)
+  assert.equal(C.calcList(l3, S.idx).total, C.calcList(Object.assign({}, l3, { entries: l3.entries }), S.idx).total);
 });
