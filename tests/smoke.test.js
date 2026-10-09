@@ -94,8 +94,8 @@ test("build a list end-to-end: create, detachment, units, warlord, enhancement, 
   // catalog groups by role with constraint counts
   const roles = [...d.querySelectorAll(".catalog .sect-h")].map((e) => e.textContent.replace(/\(\d+\)/, "").trim());
   assert.ok(roles.includes("Epic Hero") && roles.includes("Battleline"), roles.join());
-  // detachment panel
-  click(w, d.querySelector("[data-testid=cfg-dets]"));
+  // detachment panel (from the Detachment dropdown's "Rules, enhancements & stratagems…" button)
+  click(w, d.querySelector("[data-testid=det-details]"));
   const detBoxes = [...d.querySelectorAll(".panel input[data-change=det]")];
   assert.ok(detBoxes.length > 3);
   assert.match(d.querySelector(".panel").textContent, /Detachment Points?/);
@@ -312,11 +312,10 @@ test("review fixes: config '!' markers, validation popover, change arrows + lege
   // pick a detachment with a Force Disposition choice -> disposition row gets the marker until chosen
   const F = POINTS.factions.find((f) => f.id === "space-marines");
   const det = F.dets.find((x) => x.src === "mfm" && (x.fd || []).length && x.enh.some((e) => !e[3]));
-  click(w, detRow);
-  change(w, [...d.querySelectorAll(".panel input[data-change=det]")].find((b) => b.value === det.n), true);
+  change(w, [...d.querySelectorAll("[data-testid=det-dd] input[data-change=det]")].find((b) => b.value === det.n), true);
   assert.ok(!d.querySelector("[data-testid=cfg-dets] .need"));
   const list = w.Muster.S.lists[0];
-  if (!list.disposition) assert.ok([...d.querySelectorAll(".cfgrow")].find((r) => /Force Disposition/.test(r.textContent)).querySelector(".need"));
+  if (!list.disposition) assert.ok(d.querySelector("[data-testid=cfg-disp] .need"));
   // Redemptor (non-character): no Enhancement section; Captain: has one
   click(w, d.querySelector('.catalog .add[data-unit="Redemptor Dreadnought"]'));
   assert.ok(d.querySelector(".panel"), "unit panel opened");
@@ -643,7 +642,7 @@ test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath sh
   w.Muster.S.lists.push(l);
   await go(w, "#/list/" + l.id);
   // select both via the Detachment panel
-  click(w, d.querySelector("[data-testid=cfg-dets]"));
+  click(w, d.querySelector("[data-testid=det-details]"));
   for (const n of [BW.n, VW.n]) change(w, [...d.querySelectorAll(".panel input[data-change=det]")].find((b) => b.value === n), true);
   assert.deepEqual([...l.dets], [BW.n, VW.n]);
   assert.match(d.querySelector("[data-testid=dp]").textContent, /3 \/ 3 DP/);
@@ -735,8 +734,7 @@ test("detachment-restricted units: World Eaters Bloodletters need Khorne Daemonk
   assert.equal(l.entries.length, 1);
   assert.ok(!C.calcList(l, w.Muster.S.idx).errors.some((x) => /Bloodletters/.test(x.msg)));
   // remove the detachment -> error on the unit, still shown in the catalog
-  click(w, d.querySelector("[data-testid=cfg-dets]"));
-  change(w, [...d.querySelectorAll(".panel input[data-change=det]")].find((b) => b.value === "Khorne Daemonkin"), false);
+  change(w, [...d.querySelectorAll("[data-testid=det-dd] input[data-change=det]")].find((b) => b.value === "Khorne Daemonkin"), false);
   const errs = C.calcList(l, w.Muster.S.idx).errors.map((x) => x.msg);
   assert.ok(errs.includes("Bloodletters: only available with the Khorne Daemonkin detachment"), errs.join("; "));
   assert.ok(d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"] .dot.err`));
@@ -975,7 +973,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v25/);
+  assert.match(read("sw.js"), /muster-shell-v26/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1815,4 +1813,60 @@ test("Refresh button: visible on PC, phones and touch tablets (portrait + landsc
     assert.ok(b && !b.hidden && w.getComputedStyle(b).display !== "none", JSON.stringify(o));
     w.close();
   }
+});
+
+test("compact Configuration: Battle Size / Detachment / Force Disposition / Options dropdowns in order, then units; rules card after the units", async () => {
+  const { w, d, l } = await weEditor([], ["Khorne Berzerkers", "Lord on Juggernaut"]);
+  await until(() => d.querySelector(".editor"));
+  const WEf = WE(); const BW = WEf.dets.find((x) => x.n === "Berzerker Warband"), VW = WEf.dets.find((x) => x.n === "Vessels of Wrath");
+  const card = d.querySelector(".roster .cfgcard");
+  assert.deepEqual([...card.querySelectorAll(":scope > .sect-body > details.cfg-dd")].map((x) => x.dataset.dd), ["size", "det", "disp", "opts"]);
+  assert.ok([...card.querySelectorAll("details.cfg-dd")].every((x) => !x.open), "all collapsed");
+  assert.equal(card.querySelectorAll("[data-action=open-panel]").length, 1, "only the detachment details link opens a panel");
+  assert.ok(!card.querySelector("[data-testid=cfg-det]"), "no rules expander between the config and the units");
+  assert.equal(d.querySelector("[data-testid=cfg-more]"), null, "no rules card before a detachment is picked");
+  // no detachment: red ! in the Detachment row
+  assert.ok(d.querySelector("[data-testid=cfg-dets] .need"));
+  // open the Detachment dropdown (stays open while ticking several), DP budget shown
+  const dd = () => d.querySelector("[data-testid=det-dd]");
+  dd().open = true; dd().dispatchEvent(new w.Event("toggle"));
+  const tick = (n, on) => change(w, [...dd().querySelectorAll("input[data-change=det]")].find((b) => b.value === n), on);
+  tick(BW.n, true); assert.ok(dd().open, "still open after ticking");
+  tick(VW.n, true);
+  assert.deepEqual([...l.dets], [BW.n, VW.n]);
+  assert.match(d.querySelector("[data-testid=dp]").textContent, /3 \/ 3 DP/);
+  assert.match(dd().querySelector("[data-testid=dp-used]").textContent, /3 \/ 3 DP used/);
+  assert.equal(dd().querySelectorAll("[data-testid=det-opt].sel").length, 2);
+  assert.deepEqual([...d.querySelectorAll("[data-testid=cfg-dets] .dn")].map((x) => x.textContent), [BW.n, VW.n]);
+  // Esc closes it
+  dd().querySelector("input").dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  assert.ok(!dd().open);
+  // Force Disposition dropdown: GW chips, warning until picked, picking closes it and colors the builder
+  const fds = [...new Set([BW, VW].flatMap((x) => x.fd || []))];
+  if (fds.length > 1) {
+    delete l.disposition; w.Muster.route(); await until(() => d.querySelector("[data-testid=cfg-disp]"));
+    assert.ok(d.querySelector("[data-testid=cfg-disp] .need.warn"));
+    const pd = d.querySelector("[data-testid=disp-dd]"); pd.open = true; pd.dispatchEvent(new w.Event("toggle"));
+    const opt = [...pd.querySelectorAll("[data-testid=disp-opt] input")].find((x) => x.value === fds[1]);
+    assert.ok(opt.parentElement.querySelector(".dispc"));
+    change(w, opt, true);
+    assert.equal(l.disposition, fds[1]);
+    assert.ok(!d.querySelector("[data-testid=disp-dd]").open, "closed after picking");
+    assert.ok(d.querySelector("[data-testid=cfg-disp] .dispc") && !d.querySelector("[data-testid=cfg-disp] .need"));
+  }
+  // Options dropdown holds the two checkboxes + totals, collapsed by default
+  const od = d.querySelector("[data-testid=opts-dd]");
+  assert.ok(!od.open && od.querySelector("[data-testid=legends]") && od.querySelector("[data-testid=leaders-own]") && od.querySelector("[data-testid=cfg-note]"));
+  change(w, od.querySelector("[data-testid=legends]"), true);
+  assert.equal(l.showLegends, true);
+  assert.match(d.querySelector("[data-testid=cfg-opts]").textContent, /Legends/);
+  // rules & stratagems after the units, one collapsed row per detachment
+  const more = d.querySelector("[data-testid=cfg-more]");
+  const cards = [...d.querySelectorAll(".roster > .card, .roster .card")];
+  assert.ok(cards.indexOf(more) > cards.findIndex((c) => c.querySelector(".urow")), "after the unit cards");
+  assert.deepEqual([...more.querySelectorAll("[data-testid=cfg-det]")].map((x) => x.dataset.det), [BW.n, VW.n]);
+  assert.ok([...more.querySelectorAll("[data-testid=cfg-det]")].every((x) => !x.open));
+  // detachment details link still opens the full panel
+  click(w, d.querySelector("[data-testid=det-details]"));
+  assert.equal(d.querySelectorAll(".panel [data-testid=det-block]").length, 2);
 });

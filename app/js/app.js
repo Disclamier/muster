@@ -753,16 +753,42 @@
     const dpOver = c.dpLimit != null && c.dp > c.dpLimit && !(size.single3dp && dets.length === 1 && c.dp === 3);
     const errsFor = (uid) => c.errors.filter((x) => x.uid === uid).concat(c.warnings.filter((x) => x.uid === uid));
     const sel = S.ui.panel || {};
-    const cfg = `<div class="card${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && (c.dispositions || []).length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
-      <div class="cfgrow${sel.type === "size" ? " selrow" : ""}" data-action="open-panel" data-panel="size"><span class="n"><b>Battle Size:</b> ${esc(size ? size.name : "?")}</span>${size ? pts(size.points) : ""}</div>
-      <div class="cfgrow detsrow${sel.type === "dets" ? " selrow" : ""}" data-action="open-panel" data-panel="dets" data-testid="cfg-dets"><span class="n">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}<b>Detachment:</b> ${dets.length ? dets.map((d) => `<span class="dn">${esc(d.n)}</span>` + (d.src === "gs" ? `<span class="tag gs">GrimSlate</span>` : "")).join(", ") : `<span class="err">None selected</span>`}</span>
-        <span class="dpchip${dpOver ? " over" : ""}" data-testid="dp">${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} DP</span></div>
+    // Configuration (compact, New Recruit-style): Battle Size / Detachment / Force Disposition, each a dropdown in its
+    // own row, then straight into the units. Detachment rules + list options live in a card after the units.
+    const ddOpen = (k) => (S.ui.cfgOpen === k ? " open" : "");
+    const caret = `<span class="caret" aria-hidden="true"></span>`;
+    const dpTxt = `${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} DP`;
+    const allDets = F ? F.f.dets.filter((d) => d.dp !== null && d.dp !== undefined) : [];
+    const selDet = new Set(l.dets || []);
+    const detOpt = (d) => `<label class="opt${selDet.has(d.n) ? " sel" : ""}" data-testid="det-opt" data-det="${esc(d.n)}"><input type="checkbox" value="${esc(d.n)}" ${selDet.has(d.n) ? "checked" : ""} data-change="det">
+        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.src === "gs" ? ` <span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, l)}</span>` : ""}${metaChip(l, d.n)}</span></label>`;
+    const mfmDets = allDets.filter((d) => d.src !== "gs"), gsDets = allDets.filter((d) => d.src === "gs");
+    const ds = c.dispositions || [];
+    const cfg = `<div class="card cfgcard${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && ds.length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
+      <details class="cfg-dd" data-dd="size" data-testid="size-dd"${ddOpen("size")}><summary class="cfgrow" data-testid="cfg-size"><span class="dd-l">Battle Size</span><span class="dd-v"><span class="dd-vn">${esc(size ? size.name : "?")}</span>${size ? pts(size.points) : ""}${caret}</span></summary>
+        <div class="dd-list" role="radiogroup" aria-label="Battle Size">${(S.data.battle_sizes || []).map((b) => `<label class="opt${c.size && c.size.id === b.id ? " sel" : ""}"><input type="radio" name="size" value="${esc(b.id)}" ${c.size && c.size.id === b.id ? "checked" : ""} data-change="size"><span class="on"><b>${esc(b.name)}</b>${b.dp != null ? `<span class="desc">${b.dp} DP · ${b.enh} enhancements${b.single3dp ? " · or a single 3 DP detachment" : ""}</span>` : ""}</span>${pts(b.points)}</label>`).join("")}</div></details>
+      <details class="cfg-dd det-dd" data-dd="det" data-testid="det-dd"${ddOpen("det")}><summary class="cfgrow detsrow" data-testid="cfg-dets"><span class="dd-l">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}Detachment</span><span class="dd-v">${dets.length ? `<span class="dd-vn">${dets.map((d) => `<span class="dn">${esc(d.n)}</span>`).join(", ")}</span>` : `<span class="dd-vn err">None selected</span>`}<span class="dpchip${dpOver ? " over" : ""}" data-testid="dp">${dpTxt}</span>${caret}</span></summary>
+        <div class="dd-list">
+          <div class="dd-hint muted">Tick one or more · <span class="${dpOver ? "err" : ""}" data-testid="dp-used">${dpTxt} used</span>${size && size.single3dp ? ` · ${esc(size.name)}: up to ${size.dp} DP, or a single 3 DP detachment` : ""}</div>
+          ${mfmDets.map(detOpt).join("") || `<span class="muted">No detachments in the MFM.</span>`}
+          ${gsDets.length ? `<div class="dd-sub muted">Not in current MFM (GrimSlate)</div>${gsDets.map(detOpt).join("")}` : ""}
+          <button class="dd-more" data-action="open-panel" data-panel="dets" data-testid="det-details">Rules, enhancements &amp; stratagems…</button>
+        </div></details>
+      <details class="cfg-dd disp-dd" data-dd="disp" data-testid="disp-dd"${ddOpen("disp")}><summary class="cfgrow disprow" data-testid="cfg-disp"><span class="dd-l">${!l.disposition && ds.length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}Force Disposition</span><span class="dd-v">${l.disposition ? dispChip(l.disposition) : `<span class="dd-vn muted">${ds.length ? "Select…" : "—"}</span>`}${caret}</span></summary>
+        <div class="dd-list" role="radiogroup" aria-label="Force Disposition">${ds.length ? `<label class="opt${!l.disposition ? " sel" : ""}"><input type="radio" name="disp" value="" ${!l.disposition ? "checked" : ""} data-change="disp"><span class="on muted">None</span></label>` +
+          ds.map((d) => `<label class="opt${l.disposition === d ? " sel" : ""}" data-testid="disp-opt"><input type="radio" name="disp" value="${esc(d)}" ${l.disposition === d ? "checked" : ""} data-change="disp"><span class="on">${dispChip(d)}</span></label>`).join("")
+          : `<span class="muted">Select a detachment first; each detachment lists the Force Dispositions it offers.</span>`}</div></details>
+      <details class="cfg-dd opts-dd" data-dd="opts" data-testid="opts-dd"${ddOpen("opts")}><summary class="cfgrow" data-testid="cfg-opts"><span class="dd-l">Options</span><span class="dd-v"><span class="dd-vn muted">${[l.showLegends ? "Legends" : "", l.leadersOwnCat ? "Characters separate" : ""].filter(Boolean).join(" · ") || "Default"}</span>${caret}</span></summary>
+        <div class="dd-list">
+          <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends" data-testid="legends"></label>
+          <label class="cfgrow" title="Off: attached Leaders/Support units appear inside their bodyguard unit's card"><span class="n"><b>Attached characters in their own category</b></span><input type="checkbox" ${l.leadersOwnCat ? "checked" : ""} data-change="leaders-own" data-testid="leaders-own"></label>
+          <div class="cfgnote" data-testid="cfg-note">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
+        </div></details>
+    </div></div>`;
+    // after the units: detachment rules & stratagems, one collapsed row per detachment
+    const cfgMore = !dets.length ? "" : `<div class="card cfgmore${collKey("cfgx")}" data-testid="cfg-more"><div class="sect-h" data-action="toggle-sect" data-key="cfgx">${icon("text")} Detachment rules &amp; stratagems<span class="tri"></span></div><div class="sect-body">
       ${dets.map((d) => `<details class="coll cfgdet" data-testid="cfg-det" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ""} <span class="muted">· ${d.st.length} stratagem${d.st.length === 1 ? "" : "s"} · ${d.enh.length} enhancement${d.enh.length === 1 ? "" : "s"}</span></summary>
         <div class="cb">${d.rule ? `<div class="rules"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
-      <div class="cfgrow disprow${sel.type === "disp" ? " selrow" : ""}" data-action="open-panel" data-panel="disp" data-testid="cfg-disp"><span class="n">${!l.disposition && (c.dispositions || []).length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}<b>Force Disposition:</b> ${l.disposition ? dispChip(l.disposition) : `<span class="muted">${(c.dispositions || []).length ? "Select…" : "—"}</span>`}</span></div>
-      <label class="cfgrow"><span class="n"><b>Show Legends</b></span><input type="checkbox" ${l.showLegends ? "checked" : ""} data-change="legends"></label>
-      <label class="cfgrow" title="Off: attached Leaders/Support units appear inside their bodyguard unit's card"><span class="n"><b>Attached characters in their own category</b></span><input type="checkbox" ${l.leadersOwnCat ? "checked" : ""} data-change="leaders-own" data-testid="leaders-own"></label>
-      <div class="cfgnote">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
     </div></div>`;
     const rowHtml = (r, nested) => {
       const errs = errsFor(r.uid); const bits = entrySummary(r);
@@ -794,7 +820,7 @@
     return `<div class="fbanner"${banner ? ` style="background-image:linear-gradient(90deg,rgba(0,0,0,.78),rgba(0,0,0,.25)),url('${esc(banner)}')"` : ""}>
         <div><div class="fbt">${esc(sub ? sub.name : F ? F.f.name : l.faction)}</div><div class="fbs">${esc(size ? size.name : "")} · ${c.entries.length} unit${c.entries.length === 1 ? "" : "s"}</div>${l.disposition ? `<div class="fbdisp" data-testid="banner-disp">${dispChip(l.disposition)}</div>` : ""}</div>
         <span class="pts big${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"} pts</span></div>
-      ${cfg}${roles}${miss}
+      ${cfg}${roles}${miss}${cfgMore}
       ${!l.entries.length ? `<div class="empty">Add units from the catalog${isPhone() ? " tab" : " on the left"}.</div>` : ""}`;
   }
 
@@ -1659,8 +1685,8 @@
     "show-locked": (t) => mutate((l) => { l.showLocked = t.checked; }),
     "leaders-own": (t) => mutate((l) => { if (t.checked) l.leadersOwnCat = true; else delete l.leadersOwnCat; }),
     "attach": (t) => mutate((l) => { const e = l.entries.find((x) => x.uid === S.ui.panel.uid); if (!e) return; if (t.value) e.attach = t.value; else delete e.attach; }),
-    "size": (t) => mutate((l) => { l.size = t.value; }),
-    "disp": (t) => mutate((l) => { if (t.value) l.disposition = t.value; else delete l.disposition; }),
+    "size": (t) => { S.ui.cfgOpen = null; mutate((l) => { l.size = t.value; }); },
+    "disp": (t) => { S.ui.cfgOpen = null; mutate((l) => { if (t.value) l.disposition = t.value; else delete l.disposition; }); },
     "det": (t) => mutate((l) => {
       const n = t.value; l.dets = l.dets || [];
       if (t.checked) { if (!l.dets.includes(n)) l.dets.push(n); S.ui.focusDet = n; }
@@ -1727,10 +1753,14 @@
   // Colors accordion: opening one color row closes the others
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cset") || !d.open) return;
     $$("#modal details.cset[open]").forEach((x) => { if (x !== d) x.open = false; }); }, true);
+  // Configuration dropdowns (Battle Size / Detachment / Force Disposition): one open at a time, kept open across re-renders
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cfg-dd")) return;
+    if (d.open) { S.ui.cfgOpen = d.dataset.dd; $$("details.cfg-dd[open]").forEach((x) => { if (x !== d) x.open = false; }); }
+    else if (S.ui.cfgOpen === d.dataset.dd) S.ui.cfgOpen = null; }, true);
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("enh-dd")) return;
     if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
     const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);
-  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
+  document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open], details.cfg-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
     if (ev.key === "Escape") { if (dialogOpen()) closeModal(); else if (topFloat()) closeFloat(topFloat()); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
   window.Muster = { S, SY, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
