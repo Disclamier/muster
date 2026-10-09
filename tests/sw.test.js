@@ -73,6 +73,8 @@ test("Saga of the Great Wolf: Master of Wolves (combat doctrines) + 6 current st
   assert.ok(d.st.every((s) => s[1] === 1));
   assert.match(strat("Saga of the Great Wolf", "Grimnar's Command")[5], /Select one combat doctrine/);
   assert.match(strat("Saga of the Great Wolf", "Battle Instincts")[5], /D3\+3"/);
+  // the stale pre-codex version (Faction Pack v1.2: Hunting Packs, The Foe Foreseen, Unrelenting Hunters) must not come back
+  assert.doesNotMatch(JSON.stringify(d), /Hunting Pack|The Foe Foreseen|Unrelenting Hunters/);
   assert.equal(strat("Saga of the Great Wolf", "Wolf Totems")[2], "Any phase");
   assert.equal(strat("Saga of the Great Wolf", "Fenrisian Ferocity")[2], "Movement phase or Charge phase");
   assert.deepEqual(d.enh.map((e) => [ap(e[0]), e[1]]).sort(), [["Chariots of the Storm", 25], ["Grimnar's Mark", 15], ["Howlmaw", 15], ["Skjald's Foretelling", 20]]);
