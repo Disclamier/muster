@@ -16,8 +16,7 @@
   };
   try { S.ui.collapsed = JSON.parse(localStorage.getItem(LS_COLL) || "{}"); } catch (e) { S.ui.collapsed = {}; }
   // side-by-side layout (PC + tablets): the unit catalog column can be minimized to a slim rail; per device
-  const LS_CATHIDE = "muster.catHidden", LS_CATW = "muster.catW", LS_LOOPEN = "muster.loOpen";
-  try { S.ui.loOpen = localStorage.getItem(LS_LOOPEN) === "1"; } catch (e) { S.ui.loOpen = false; }
+  const LS_CATHIDE = "muster.catHidden", LS_CATW = "muster.catW";
   try { S.ui.catHidden = localStorage.getItem(LS_CATHIDE) === "1"; S.ui.catW = +localStorage.getItem(LS_CATW) || 0; } catch (e) { S.ui.catHidden = false; S.ui.catW = 0; }
   try { S.ui.metaRange = localStorage.getItem(LS_WRRANGE) || "weekend"; S.ui.metaRtt = localStorage.getItem(LS_WRRTT) === "1";
     S.ui.metaTab = localStorage.getItem(LS_WRTAB) || "overview"; S.ui.metaHome = localStorage.getItem(LS_WRHOME) || "factions"; } catch (e) { /* ignore */ }
@@ -62,6 +61,9 @@
   function loadLists() {
     try { S.lists = JSON.parse(localStorage.getItem(LS_LISTS) || "[]"); } catch (e) { S.lists = []; }
     try { S.tombs = JSON.parse(localStorage.getItem(LS_TOMBS) || "{}") || {}; } catch (e) { S.tombs = {}; }
+    // saved lists that still carry the secondary source's name: clean them once, save, and (signed in) push the clean copy
+    let scrubbed = false; for (const l of S.lists) if (l && C.scrubList(l)) { l.updated = new Date().toISOString(); scrubbed = true; }
+    if (scrubbed) storeLists();
   }
   function storeLists() {
     try { localStorage.setItem(LS_LISTS, JSON.stringify(S.lists)); } catch (e) { toast("Could not save – storage full?"); }
@@ -142,7 +144,8 @@
       const st = JSON.parse(localStorage.getItem(`muster.stash.${user.id}`) || "null");
       if (st) {
         const have = new Set(S.lists.map((l) => l.id));
-        S.lists.push(...(st.lists || []).filter((l) => !have.has(l.id)));
+        const back = (st.lists || []).filter((l) => !have.has(l.id)); back.forEach((l) => { if (l && C.scrubList(l)) l.updated = new Date().toISOString(); });
+        S.lists.push(...back);
         S.tombs = { ...(st.tombs || {}), ...S.tombs };
         if (st.known) localStorage.setItem(SY.LS_KNOWN, JSON.stringify(st.known));
         localStorage.removeItem(`muster.stash.${user.id}`);
@@ -447,7 +450,7 @@
   function renderFooter() {
     const m = S.meta || {};
     $("#footer").innerHTML = `Muster is an <b>unofficial</b> fan tool, not affiliated with or endorsed by Games Workshop. Points: Munitorum Field Manual ${esc(m.mfm_version || "?")}
-      (fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}) · rules, stratagems &amp; profiles: GrimSlate${S.ds && S.ds.data_version ? ` (data ${esc(S.ds.data_version)})` : ""} · Adeptus Astartes: Codex: Space Marines (11th ed.)${S.wr ? " · win rates: listhammer.info" : ""} · faction artwork © Games Workshop, personal use.
+      (fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}) · rules, stratagems &amp; profiles${S.ds && S.ds.data_version ? ` (data ${esc(S.ds.data_version)})` : ""} · Adeptus Astartes: Codex: Space Marines (11th ed.)${S.wr ? " · win rates: listhammer.info" : ""} · faction artwork © Games Workshop, personal use.
       <button data-action="about">About</button>`;
   }
   function setActiveNav() {
@@ -780,17 +783,17 @@
     const allDets = F ? F.f.dets.filter((d) => d.dp !== null && d.dp !== undefined) : [];
     const selDet = new Set(l.dets || []);
     const detOpt = (d) => `<label class="opt${selDet.has(d.n) ? " sel" : ""}" data-testid="det-opt" data-det="${esc(d.n)}"><input type="checkbox" value="${esc(d.n)}" ${selDet.has(d.n) ? "checked" : ""} data-change="det">
-        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.src === "gs" ? ` <span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selDet.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</span></label>`;
+        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selDet.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</span></label>`;
     const mfmDets = allDets.filter((d) => d.src !== "gs"), gsDets = allDets.filter((d) => d.src === "gs");
     const ds = c.dispositions || [];
     const cfg = `<div class="card cfgcard${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && ds.length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
       <details class="cfg-dd" data-dd="size" data-testid="size-dd"${ddOpen("size")}><summary class="cfgrow" data-testid="cfg-size"><span class="dd-l">Battle Size</span><span class="dd-v"><span class="dd-vn">${esc(size ? size.name : "?")}</span>${size ? pts(size.points) : ""}${caret}</span></summary>
         <div class="dd-list" role="radiogroup" aria-label="Battle Size">${(S.data.battle_sizes || []).map((b) => `<label class="opt${c.size && c.size.id === b.id ? " sel" : ""}"><input type="radio" name="size" value="${esc(b.id)}" ${c.size && c.size.id === b.id ? "checked" : ""} data-change="size"><span class="on"><b>${esc(b.name)}</b>${b.dp != null ? `<span class="desc">${b.dp} DP · ${b.enh} enhancements${b.single3dp ? " · or a single 3 DP detachment" : ""}</span>` : ""}</span>${pts(b.points)}</label>`).join("")}</div></details>
-      <details class="cfg-dd det-dd" data-dd="det" data-testid="det-dd"${ddOpen("det")}><summary class="cfgrow detsrow${dets.length > 1 ? " multi" : ""}" data-testid="cfg-dets"><span class="dd-l">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}Detachment${dets.length > 1 ? "s" : ""}</span><span class="dd-v">${dets.length ? `<span class="detchips">${dets.map((d) => `<span class="detchip" data-testid="det-chip" data-det="${esc(d.n)}"><span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} DP</span>${d.src === "gs" ? `<span class="tag gs">GrimSlate</span>` : ""}</span>`).join("")}</span>` : `<span class="dd-vn err">None selected</span>`}<span class="dd-tot"><span class="dpchip${dpOver ? " over" : ""}" data-testid="dp" title="Detachment Points used">${dpTxt}</span>${caret}</span></span></summary>
+      <details class="cfg-dd det-dd" data-dd="det" data-testid="det-dd"${ddOpen("det")}><summary class="cfgrow detsrow${dets.length > 1 ? " multi" : ""}" data-testid="cfg-dets"><span class="dd-l">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}Detachment${dets.length > 1 ? "s" : ""}</span><span class="dd-v">${dets.length ? `<span class="detchips">${dets.map((d) => `<span class="detchip" data-testid="det-chip" data-det="${esc(d.n)}"><span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} DP</span></span>`).join("")}</span>` : `<span class="dd-vn err">None selected</span>`}<span class="dd-tot"><span class="dpchip${dpOver ? " over" : ""}" data-testid="dp" title="Detachment Points used">${dpTxt}</span>${caret}</span></span></summary>
         <div class="dd-list">
           <div class="dd-hint muted">Tick one or more · <span class="${dpOver ? "err" : ""}" data-testid="dp-used">${dpTxt} used</span>${size && size.single3dp ? ` · ${esc(size.name)}: up to ${size.dp} DP, or a single 3 DP detachment` : ""}</div>
           ${mfmDets.map(detOpt).join("") || `<span class="muted">No detachments in the MFM.</span>`}
-          ${gsDets.length ? `<div class="dd-sub muted">Not in current MFM (GrimSlate)</div>${gsDets.map(detOpt).join("")}` : ""}
+          ${gsDets.length ? `<div class="dd-sub muted">Not in current MFM</div>${gsDets.map(detOpt).join("")}` : ""}
           <button class="dd-more" data-action="open-panel" data-panel="dets" data-testid="det-details">Rules, enhancements &amp; stratagems…</button>
         </div></details>
       ${dets.length ? `<div class="detrules" data-testid="det-rules">${dets.map(detRuleRow).join("")}</div>` : ""}
@@ -868,8 +871,8 @@
   /* detachment rule (+ its enhancements) shown right under the Detachments row of the Configuration card */
   function detRuleRow(d) {
     return `<details class="coll cfgdet detrule" data-testid="det-rule-row" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ` <span class="muted">– no rule text</span>`}</summary>
-      <div class="cb">${d.rule ? `<div class="rules" data-testid="det-rule-text"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}
-        ${d.enh.length ? `<div class="enhs" data-testid="det-rule-enh"><div class="enhs-h">Enhancements</div>${d.enh.map((e) => `<div class="opt"><span class="on"><b class="enh-n">${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("")}</div>` : ""}</div></details>`;
+      <div class="cb">${d.enh.length ? `<div class="enhs" data-testid="det-rule-enh"><div class="enhs-h">Enhancements</div>${d.enh.map((e) => `<div class="opt"><span class="on"><b class="enh-n">${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("")}</div>` : ""}
+        ${d.rule ? `<div class="rules" data-testid="det-rule-text"><div class="enhs-h">Detachment rule</div><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}</div></details>`;
   }
   /* "Stratagems for this unit": the picked detachments' stratagems (first, per detachment) then Core, filtered by the
      stratagem's TARGET text vs the unit's keywords (C.unitStratMatch) */
@@ -912,7 +915,7 @@
     const filt = o.item ? String(o.item).split("|").map(C.norm).filter(Boolean) : null;
     const matchItem = (name) => !filt || filt.some((f) => C.norm(name).includes(f) || f.includes(C.norm(name)));
     let html = "";
-    if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "GrimSlate has no datasheet for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
+    if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "No datasheet available for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
     else {
       if (!filt) html += `<table class="ds-t ds-unit" data-testid="ds-stats"><tr><th class="nm">Unit</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>
         <tr><td class="nm">${esc(u.n)}</td><td>${esc(st.M || "-")}</td><td>${esc(st.T || "-")}</td><td>${esc(st.SV || st.Sv || "-")}</td><td>${esc(st.W || "-")}</td><td>${esc(st.LD || st.Ld || "-")}</td><td>${esc(st.OC || "-")}</td><td data-testid="ds-inv">${esc(ds.inv || "-")}</td></tr>${(ds.sx || []).map((x) => `<tr data-testid="ds-sx"><td class="nm">${esc(x[0])}</td><td>${esc(x[1].M || "-")}</td><td>${esc(x[1].T || "-")}</td><td>${esc(x[1].SV || "-")}</td><td>${esc(x[1].W || "-")}</td><td>${esc(x[1].LD || "-")}</td><td>${esc(x[1].OC || "-")}</td><td>${esc(x[2] || "-")}</td></tr>`).join("")}</table>${ds.src === "codex" ? `<div class="ds-src muted" data-testid="ds-codex">Source: Codex: Space Marines (11th edition)</div>` : ""}`;
@@ -1106,28 +1109,8 @@
         <div class="mtb">${t.fixed.length ? `<div class="fixed">${esc(t.fixed.join(", "))}</div>` : ""}${t.slots.map((sl) => slotHtml(sl, key(sl), k)).join("")}</div></div>`;
     }).join("");
     const unitSlots = M.unit.map((sl) => slotHtml(sl, `*|${sl.name}`, 1)).join("");
-    // nothing the player can change (fixed gear, fixed model count): no Loadout section at all
-    if (!loEditable(u, N)) return "";
-    const sum = loSummary(M, lo);
-    return `<details class="grp coll loadout lo-dd" data-testid="loadout"${S.ui.loOpen ? " open" : ""}><summary data-testid="lo-summary"><span class="lo-t">Loadout</span>${sum ? `<span class="lo-sum muted" data-testid="lo-picks" title="${esc(sum)}">${esc(sum)}</span>` : ""}<span class="muted lo-src" title="Unit composition and wargear choices from GrimSlate; points from the Munitorum Field Manual">(GrimSlate)</span></summary><div class="gb">${types}${unitSlots ? `<div class="mt"><div class="mth"><span class="n">Unit options</span></div><div class="mtb">${unitSlots}</div></div>` : ""}
-      <button class="btn secondary small" data-action="lo-reset">Reset to default loadout</button></div></details>`;
-  }
-  /* does the unit have anything to choose? model counts per type, or a wargear slot with alternatives / optional picks */
-  function loEditable(u, N) {
-    const M = C.loModel(u); if (!M) return false;
-    const choice = (s) => { const [a, b] = C.slotRange(s, 1); return s.opts.length > 1 || a < b; };
-    const plain = M.types.filter((x) => !x.up && !x.addOn).length;
-    return M.types.some((t) => (C.typeMax(t, N) > t.min && (t.up || t.addOn || plain > 1)) || t.slots.some(choice)) || M.unit.some(choice);
-  }
-  /* short header summary of the current wargear picks, e.g. "Plasma pistol, 2× Khornate eviscerator" */
-  function loSummary(M, lo) {
-    const tot = new Map();
-    const add = (s, picks) => { if (!picks || (s.opts.length < 2 && !(C.slotRange(s, 1)[0] < C.slotRange(s, 1)[1]))) return;
-      for (const [n, v] of Object.entries(picks)) if (v > 0) tot.set(n, (tot.get(n) || 0) + v); };
-    M.types.forEach((t) => { const k = lo.c[t.name] || 0; if (k && (t.up || t.addOn)) tot.set(t.name.replace(/^.*?\s(w\/\s)/, "$1"), k);
-      if (k) t.slots.forEach((sl) => add(sl, lo.p[`${t.name}|${sl.name}`])); });
-    M.unit.forEach((sl) => add(sl, lo.p[`*|${sl.name}`]));
-    return [...tot].map(([n, v]) => (v > 1 ? `${v}× ${n}` : n)).join(", ");
+    return `<div class="grp loadout"><div class="gh">Loadout</div><div class="gb">${types}${unitSlots ? `<div class="mt"><div class="mth"><span class="n">Unit options</span></div><div class="mtb">${unitSlots}</div></div>` : ""}
+      <button class="btn secondary small" data-action="lo-reset">Reset to default loadout</button></div></div>`;
   }
   function previewPanel(l, F, c, name) {
     const u = F.units[name]; if (!u) return phead("Unit not found");
@@ -1148,7 +1131,7 @@
     return `<div class="detfocus${o.preview ? " preview" : ""}" data-testid="det-block" data-det="${esc(d.n)}"><h4>${esc(d.n)} <span class="dpchip">${d.dp} DP</span>${o.preview ? ` <span class="tag">not selected</span>` : ""}</h4>
         ${d.fd && d.fd.length ? `<div class="muted fdline">Force Disposition: ${fdChips(d.fd, CUR)}</div>` : ""}
         ${d.sup ? `<div class="muted">${esc([].concat(d.sup).join("; "))}</div>` : ""}
-        ${d.gs_dp !== undefined && d.gs_dp !== d.dp ? `<div class="warn">GrimSlate lists ${esc(d.gs_dp)} DP (MFM value used)</div>` : ""}
+        ${d.gs_dp !== undefined && d.gs_dp !== d.dp ? `<div class="warn">Rules data lists ${esc(d.gs_dp)} DP (MFM value used)</div>` : ""}
         ${d.rule ? `<details class="coll"${o.open ? " open" : ""}><summary>Detachment rule: ${esc(d.rule[0])}</summary><div class="cb rules" data-testid="det-rule">${esc(clean(d.rule[1]))}</div></details>` : `<div class="muted">No detachment rule text available.</div>`}
         ${o.noEnh ? "" : `<details class="coll enh-coll"${o.open ? " open" : ""}><summary>Enhancements (${d.enh.length})</summary><div class="cb">${d.enh.length ? d.enh.map((e) => `<div class="opt"><span class="on"><b class="enh-n">${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("") : `<span class="muted">None listed.</span>`}</div></details>`}
         <details class="coll st-coll"${o.open ? " open" : ""}><summary>Stratagems (${d.st.length})</summary><div class="cb" data-testid="det-strats">${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details></div>`;
@@ -1161,7 +1144,7 @@
     const size = c.size;
     const over = c.dpLimit != null && c.dp > c.dpLimit && !(size.single3dp && l.dets.length === 1 && c.dp === 3);
     const row = (d) => `<div class="detrow${focus && focus.n === d.n ? " focus" : ""}"><label><input type="checkbox" ${selected.has(d.n) ? "checked" : ""} value="${esc(d.n)}" data-change="det">
-        <span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>${d.src === "gs" ? `<span class="tag gs" title="Not in the current MFM – GrimSlate data">GrimSlate</span>` : ""}
+        <span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>
         ${d.chg ? `<span class="tag">updated</span>` : ""}${(d.rs || []).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}${d.fd && d.fd.length ? `<span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selected.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</label>
         <button class="ibtn" data-action="focus-det" data-det="${esc(d.n)}" title="View rules">${icon("eye")}</button></div>`;
     // every selected detachment gets its own block (rule, enhancements, stratagems); an unselected detachment
@@ -1174,7 +1157,7 @@
       `<div class="pbody scroll" data-sk="panel">
         ${size && size.single3dp ? `<div class="cfgnote">${esc(size.name)}: up to ${size.dp} DP, or a single 3 DP detachment.</div>` : ""}
         <div class="grp"><div class="gb">${mfm.map(row).join("") || "<span class='muted'>No detachments in the MFM.</span>"}</div></div>
-        ${gs.length ? `<details class="coll"${gs.some((d) => selected.has(d.n)) ? " open" : ""}><summary>Not in current MFM (GrimSlate) – ${gs.length}</summary><div class="cb">${gs.map(row).join("")}</div></details>` : ""}
+        ${gs.length ? `<details class="coll"${gs.some((d) => selected.has(d.n)) ? " open" : ""}><summary>Not in current MFM – ${gs.length}</summary><div class="cb">${gs.map(row).join("")}</div></details>` : ""}
         ${fd}</div>`;
   }
   function sizePanel(l, c) {
@@ -1529,8 +1512,8 @@
     const m = S.meta || {}; const W = S.wr;
     modal("About Muster", `<p><b>Muster</b> is an unofficial, offline-capable Warhammer 40,000 army list builder for personal use. It is not affiliated with, endorsed by or connected to Games Workshop. Warhammer 40,000 and all faction names and artwork are trademarks/© of Games Workshop.</p>
       <table class="ptable"><tr><td>Points</td><td>Munitorum Field Manual ${esc(m.mfm_version || "?")}, fetched ${esc(m.fetched_at ? localTime(m.fetched_at) : "?")}</td></tr>
-      <tr><td>Rules text &amp; stratagems</td><td>GrimSlate (secondary), ${esc(m.gs_fetched_at ? localTime(m.gs_fetched_at) : "?")}</td></tr>
-      <tr><td>Space Marines datasheets, detachments &amp; stratagems</td><td>Codex: Space Marines (11th edition) – overrides GrimSlate for Adeptus Astartes; points stay MFM</td></tr>
+      <tr><td>Rules text &amp; stratagems</td><td>Secondary rules data, ${esc(m.gs_fetched_at ? localTime(m.gs_fetched_at) : "?")}</td></tr>
+      <tr><td>Space Marines datasheets, detachments &amp; stratagems</td><td>Codex: Space Marines (11th edition) – overrides the secondary rules data for Adeptus Astartes; points stay MFM</td></tr>
       <tr><td>Win rates</td><td>${W ? `listhammer.info, ${esc((W.date_range || {}).label || "")} ${esc((W.date_range || {}).dates || "")}, fetched ${esc(localTime(W.fetched_at))}` : "not loaded"}</td></tr>
       <tr><td>Data hash</td><td>${esc(m.hash || "?")}</td></tr><tr><td>Saved lists</td><td>${S.lists.length} ${SY && SY.session() ? `(synced to your account)` : isGuest() ? `of ${GUEST_MAX} (guest mode – stored only on this device)` : "(stored only on this device)"}</td></tr>
       ${SY && SY.session() ? `<tr><td>Account</td><td>${esc(SY.user().email || "")} · ${esc(SYNC_TXT[(S.sync || SY.info()).status] || "")} <a href="#" data-action="account">Manage / sign out</a></td></tr>` : ""}</table>
@@ -1827,9 +1810,6 @@
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cfg-dd")) return;
     if (d.open) { S.ui.cfgOpen = d.dataset.dd; $$("details.cfg-dd[open]").forEach((x) => { if (x !== d) x.open = false; }); }
     else if (S.ui.cfgOpen === d.dataset.dd) S.ui.cfgOpen = null; }, true);
-  // unit panel Loadout dropdown: open/closed remembered per device
-  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("lo-dd")) return;
-    S.ui.loOpen = d.open; try { localStorage.setItem(LS_LOOPEN, d.open ? "1" : "0"); } catch (e) { /* private mode */ } }, true);
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("enh-dd")) return;
     if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
     const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);

@@ -87,7 +87,8 @@ test("warlord, points limit, unique tags, dispositions, legends/GrimSlate warnin
   assert.match(msgs(C.calcList(list("strikeforce", ["Det A"], [], { disposition: "TAKE AND HOLD" }), idx)), /not offered/);
   const w = C.calcList(list("strikeforce", ["Det GS"], [{ n: "Old Guy", set: { warlord: true } }]), idx);
   assert.ok(w.warnings.some((x) => /Legends/.test(x.msg)));
-  assert.ok(w.warnings.some((x) => /GrimSlate/.test(x.msg)));
+  assert.ok(w.warnings.some((x) => /not in the current Munitorum Field Manual$/.test(x.msg)));
+  assert.ok(!w.warnings.some((x) => /GrimSlate/i.test(x.msg)), "no source name in user-visible warnings");
 });
 
 test("missing units and invalid sizes after a data change", () => {

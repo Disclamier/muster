@@ -670,6 +670,9 @@ test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath sh
   assert.match(rules[1].querySelector("summary").textContent, /Vessels of Wrath – Wrath of Khorne/);
   assert.match(rules[1].querySelector("[data-testid=det-rule-text]").textContent, new RegExp(VW.rule[1].slice(0, 20).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.equal(rules[0].querySelectorAll("[data-testid=det-rule-enh] .opt").length, BW.enh.length);
+  // enhancements first, the detachment rule underneath them
+  for (const r of rules) { const en = r.querySelector("[data-testid=det-rule-enh]"), ru = r.querySelector("[data-testid=det-rule-text]");
+    if (en && ru) assert.ok(en.compareDocumentPosition(ru) & 4, "rule follows the enhancements"); }
   const detsRow = d.querySelector(".roster .cfgcard [data-testid=det-dd]");
   assert.equal(detsRow.nextElementSibling.dataset.testid, "det-rules", "rules sit right below the Detachments row");
   // bottom Stratagems card: one row per detachment (stratagems only), then Core
@@ -2008,45 +2011,69 @@ test("catalog hide: phones have no hide control (Catalog/Roster tabs instead), e
   assert.equal(d.querySelector(".cols").getAttribute("data-tab"), "catalog");
 });
 
-// unit panel Loadout: hidden for fixed gear, a collapsible dropdown (remembered per device) when there are choices
-test("loadout section: fixed-gear units have none; optioned units get a collapsible dropdown with a picks summary, open state remembered", async () => {
-  const { w, d, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khârn the Betrayer", "Khorne Berzerkers"]);
-  await until(() => rowOf(1));
-  click(w, rowOf(0));
-  assert.match(d.querySelector(".panel").textContent, /Khârn the Betrayer/);
-  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null, "fixed gear: no Loadout section");
-  assert.ok(!/\bLoadout\b/.test([...d.querySelectorAll(".panel .gh, .panel summary")].map((x) => x.textContent).join("|")));
-  click(w, rowOf(1));
-  const lo = d.querySelector(".panel [data-testid=loadout]"); assert.ok(lo, "optioned unit has a Loadout section");
-  assert.equal(lo.tagName, "DETAILS"); assert.ok(lo.classList.contains("lo-dd"));
-  assert.ok(!lo.open, "collapsed by default");
-  assert.match(lo.querySelector("summary").textContent, /Loadout/);
-  assert.match(lo.querySelector("[data-testid=lo-picks]").textContent, /Bolt pistol/, "summary of the current picks");
-  // expand: remembered per device and across re-renders
-  lo.open = true; lo.dispatchEvent(new w.Event("toggle"));
-  assert.equal(w.localStorage.getItem("muster.loOpen"), "1");
-  click(w, d.querySelector(".panel [data-testid=loadout] input[data-opt='Plasma pistol']"));
-  const lo2 = d.querySelector(".panel [data-testid=loadout]"); assert.ok(lo2.open, "stays open after a pick");
-  assert.match(lo2.querySelector("[data-testid=lo-picks]").textContent, /Plasma pistol/);
-  assert.equal(l.entries[1].lo.p["Khorne Berzerker Champion|Pistol"]["Plasma pistol"], 1);
-  lo2.open = false; lo2.dispatchEvent(new w.Event("toggle"));
-  assert.equal(w.localStorage.getItem("muster.loOpen"), "0");
-});
-test("loadout section is data-driven: a data refresh adding wargear options to a fixed unit shows the dropdown; removing them hides it", async () => {
-  const { w, d, rowOf } = await weEditor([], ["Khârn the Betrayer"]);
-  const u = w.MusterCore.findUnit(w.Muster.S.idx.factions["world-eaters"], "Khârn the Betrayer"), orig = u.lo;
+test("Lord on Juggernaut (World Eaters + CSM) can take enhancements; eligibility follows each enhancement's keyword text", async () => {
+  const { w, d, rowOf } = await weEditor(["Vessels of Wrath", "Berzerker Warband", "Cult of Blood"], ["Lord on Juggernaut"]);
   await until(() => rowOf(0)); click(w, rowOf(0));
-  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null);
-  // same unit, refreshed data now carries a pistol choice
-  u.lo = { ...orig, m: [[orig.m[0][0], 1, 1, ["Gorechild"], [["Pistol", [["Plasma pistol", null, null, null, null], ["Bolt pistol", null, null, null, null]], ["Plasma pistol"], 1, null, 0]], null, null, 0]] };
-  w.Muster.route();
-  const lo = await until(() => d.querySelector(".panel [data-testid=loadout]"));
-  assert.match(lo.querySelector("[data-testid=lo-picks]").textContent, /Plasma pistol/);
-  // a single forced option is not a choice either
-  u.lo = { ...orig, m: [[orig.m[0][0], 1, 1, ["Gorechild"], [["Pistol", [["Plasma pistol", null, null, null, null]], ["Plasma pistol"], 1, null, 0]], null, null, 0]] };
-  w.Muster.route(); await tick(5);
-  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null);
-  u.lo = orig; w.Muster.route(); await tick(5);
-  assert.equal(d.querySelector(".panel [data-testid=loadout]"), null, "options removed again -> no section");
-  assert.match(d.querySelector(".panel").textContent, /Khârn the Betrayer/);
+  const grp = d.querySelector(".panel [data-testid=enh-grp]"); assert.ok(grp, "enhancement dropdown in the unit panel");
+  const opt = (n) => grp.querySelector(`[data-testid=enh-opt][data-enh="${n}"]`);
+  const on = (n) => opt(n) && !opt(n).querySelector("input").disabled;
+  for (const n of ["Archslaughterer", "Battle-lust", "Favoured of Khorne", "Helm of Brazen Ire", "Strategic Slaughter"]) assert.ok(on(n), n + " selectable");
+  for (const [n, why] of [["Gateways to Glory", /DAEMON PRINCE/i], ["Butcher Lord", /INFANTRY/i], ["Brazen Form", /Monster/i]]) {
+    assert.ok(opt(n) && !on(n), n + " not selectable"); assert.match(opt(n).textContent, why); }
+  const inp = opt("Archslaughterer").querySelector("input"); inp.checked = true; change(w, inp);
+  assert.equal(w.Muster.S.lists.at(-1).entries[0].enh.name, "Archslaughterer");
+  // CSM Chaos Lord on Juggernaut: Khorne marks allowed, other gods / Infantry-only refused
+  const C = w.MusterCore, CSM = POINTS.factions.find((f) => f.id === "chaos-space-marines");
+  const l2 = C.newList({ name: "CSM", faction: "chaos-space-marines", sub: "chaos-space-marines", size: "strikeforce" }); l2.dets = ["Pactbound Zealots", "Deceptors"];
+  l2.entries.push(C.newEntry(CSM.units.find((u) => u.n === "Chaos Lord on Juggernaut"))); w.Muster.S.lists.push(l2);
+  await go(w, "#/list/" + l2.id); await until(() => d.querySelector(`.roster .urow[data-uid="${l2.entries[0].uid}"]`));
+  click(w, d.querySelector(`.roster .urow[data-uid="${l2.entries[0].uid}"]`));
+  const g2 = d.querySelector(".panel [data-testid=enh-grp]"); const o2 = (n) => g2.querySelector(`[data-testid=enh-opt][data-enh="${n}"]`);
+  assert.ok(!o2("Talisman of Burning Blood").querySelector("input").disabled);
+  assert.ok(o2("Eye of Tzeentch").querySelector("input").disabled);
+  assert.ok(o2("Cursed Fang").querySelector("input").disabled);
+});
+
+test("no 'GrimSlate' anywhere user-visible (editor, source-only detachments, panels, About, exports)", async () => {
+  const src = ["js/app.js", "js/core.js", "js/sync.js", "index.html"].map((f) => read(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/<!--[\s\S]*?-->/g, "").split("\n").map((ln) => ln.replace(/(^|\s)\/\/.*$/, "").replace(/\/(?:\\.|[^/\n])*grimslate(?:\\.|[^/\n])*\/[gimsuy]*/gi, "/rx/")).filter((ln) => /grimslate/i.test(ln)));   // regex literals (the scrubber) are not UI
+  assert.deepEqual(src.flat(), [], "only code comments may name it");
+  const { w, d } = makeApp(); await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, BT = POINTS.factions.find((f) => f.id === "black-templars");
+  const gs = (BT.dets || []).find((x) => x.src === "gs"); assert.ok(gs, "fixture: a detachment that's not in the MFM");
+  const l = C.newList({ name: "BT", faction: "black-templars", sub: "black-templars", size: "strikeforce" }); l.dets = [gs.n];
+  l.entries.push(C.newEntry(BT.units.find((u) => C.hasLoadout(u)) || BT.units[0])); w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor"));
+  d.querySelectorAll("details").forEach((x) => { x.open = true; });
+  click(w, d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"]`));
+  assert.doesNotMatch(d.body.innerHTML, /grimslate/i);
+  const noSrc = (lst) => { for (const f of C.EXPORT_FORMATS) { const t = C.exportText(lst, w.Muster.S.idx, {}, f.id); assert.ok(String(t).length > 20, f.id); assert.doesNotMatch(String(t), /grimslate/i, f.id); }
+    const y = C.exportYellowscribe(lst, w.Muster.S.idx, w.Muster.S.ds, {}); assert.doesNotMatch(JSON.stringify(y), /grimslate/i, "yellowscribe"); };
+  await until(() => w.Muster.S.ds); noSrc(l);
+  click(w, d.querySelector("[data-action=about]"));
+  assert.doesNotMatch(d.body.innerHTML, /grimslate/i);
+});
+
+test("saved, imported, shared and synced lists are cleaned of the source name on load (clean copy re-saved)", async () => {
+  const dirty = { id: "g1", name: "Angron Loadout (GrimSlate)", faction: "world-eaters", sub: "world-eaters", size: "strikeforce", dets: ["Berzerker Warband"],
+    entries: [{ uid: "a1", unit: "Angron", models: 1, wargear: {}, addons: [], enh: null, warlord: true, note: "Loadout (GrimSlate) fixed; per GrimSlate data" }], app: "muster", schema: 1, updated: "2026-10-01T00:00:00Z" };
+  const { w, d } = makeApp({ storage: { "muster.lists": JSON.stringify([dirty]) } });
+  await until(() => d.querySelector(".lists-page"));
+  const l = w.Muster.S.lists[0];
+  assert.equal(l.name, "Angron Loadout"); assert.equal(l.entries[0].note, "Loadout fixed; per data");
+  assert.ok(l.updated > dirty.updated, "marked changed so a signed-in device pushes the clean copy");
+  assert.doesNotMatch(w.localStorage.getItem("muster.lists"), /grimslate/i, "clean copy saved locally");
+  await go(w, "#/list/g1"); await until(() => d.querySelector(".editor"));
+  click(w, d.querySelector(`.roster .urow[data-uid="a1"]`));
+  assert.doesNotMatch(d.body.innerHTML, /grimslate/i);
+  const C = w.MusterCore;
+  await until(() => w.Muster.S.ds);
+  for (const f of C.EXPORT_FORMATS) assert.doesNotMatch(String(C.exportText(l, w.Muster.S.idx, {}, f.id)), /grimslate/i, f.id);
+  assert.doesNotMatch(JSON.stringify(C.exportYellowscribe(l, w.Muster.S.idx, w.Muster.S.ds, {})), /grimslate/i);
+  assert.doesNotMatch(C.exportLists([l]), /grimslate/i);
+  // import + share link + account sync
+  assert.doesNotMatch(JSON.stringify(C.importLists(JSON.stringify({ lists: [JSON.parse(JSON.stringify(dirty))] }))), /grimslate/i);
+  const sh = C.shareableList({ ...JSON.parse(JSON.stringify(dirty)) }); assert.doesNotMatch(JSON.stringify(C.listFromShareable(sh)), /grimslate/i);
+  const m = C.mergeLists({ lists: [], tombs: {} }, [{ id: "g2", updated_at: "2026-10-01T00:00:00Z", data: { ...JSON.parse(JSON.stringify(dirty)), id: "g2" } }]);
+  const g2 = m.lists.find((x) => x.id === "g2"); assert.doesNotMatch(JSON.stringify(g2), /grimslate/i);
+  assert.deepEqual([...C.pendingPush({ lists: [g2], tombs: {} }, m.known)], ["g2"], "cleaned server copy is pushed back");
 });

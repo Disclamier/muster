@@ -410,7 +410,7 @@
       if (!d) { err(`Detachment "${dn}" is no longer listed`); continue; }
       dets.push(d);
       res.dp += d.dp || 0;
-      if (d.src === "gs") warn(`${d.n} is not in the current Munitorum Field Manual (data from GrimSlate)`);
+      if (d.src === "gs") warn(`${d.n} is not in the current Munitorum Field Manual`);
     }
     if (!dets.length) err("Select a detachment");
     const fds = [...new Set(dets.flatMap((d) => d.fd || []))];
@@ -1081,6 +1081,7 @@
     l.entries = (o.e || []).map((a) => ({ uid: uid(), unit: a[0], models: a[1], wargear: a[2] || {}, addons: a[3] || [],
       enh: a[4] ? { det: a[4][0], name: a[4][1] } : null, warlord: !!a[5], ...(a[6] ? { note: a[6] } : {}), ...(a[7] ? { lo: a[7] } : {}), ...(a[9] != null ? { ml: a[9] } : {}) }));
     (o.e || []).forEach((a, i) => { if (a[8] != null && a[8] >= 0 && l.entries[a[8]]) l.entries[i].attach = l.entries[a[8]].uid; });
+    scrubList(l);
     return l;
   }
 
@@ -1211,12 +1212,31 @@
     const groups = (dets || []).map((d) => ({ det: d, items: pick(d.st || []), total: (d.st || []).length }));
     return { groups, core: { items: pick(core || []), total: (core || []).length } };
   }
+  /* strip the secondary data source's name from saved / imported / synced / shared lists (e.g. "Loadout (GrimSlate)"
+     copied into a note or name). Mutates in place; returns true when anything changed. */
+  const SRC_RX = /\s*[([]\s*grimslate\s*[)\]]|\bgrimslate\b[ \t]*/gi;
+  function scrubSourceName(s) { return typeof s === "string" && /grimslate/i.test(s) ? s.replace(SRC_RX, "").replace(/[ \t]{2,}/g, " ").trim() : s; }
+  function scrubList(l) {
+    let changed = false;
+    const walk = (o) => {
+      if (!o || typeof o !== "object") return;
+      for (const k of Object.keys(o)) {
+        const v = o[k];
+        if (typeof v === "string") { const n = scrubSourceName(v); if (n !== v) { o[k] = n; changed = true; } }
+        else if (v && typeof v === "object") walk(v);
+        if (/grimslate/i.test(k)) { const nk = scrubSourceName(k); if (nk && !(nk in o)) { o[nk] = o[k]; } delete o[k]; changed = true; }
+      }
+    };
+    walk(l);
+    return changed;
+  }
   /* ---------------------------------------------------------------- import/export */
   function exportLists(lists) { return JSON.stringify({ app: "muster", schema: 1, exported: new Date().toISOString(), lists }, null, 1); }
   function importLists(text) {
     const j = JSON.parse(text);
     const arr = Array.isArray(j) ? j : Array.isArray(j.lists) ? j.lists : j.entries ? [j] : null;
     if (!arr) throw new Error("No lists found in file");
+    arr.forEach((l) => { if (l && typeof l === "object") scrubList(l); });
     return arr.filter((l) => l && l.faction && Array.isArray(l.entries)).map((l) => ({
       ...l, id: uid(), entries: l.entries.map((e) => ({ wargear: {}, addons: [], enh: null, warlord: false, ...e, uid: e.uid || uid() })),
       dets: Array.isArray(l.dets) ? l.dets : [], updated: new Date().toISOString() }));
@@ -1321,7 +1341,8 @@
       const l = lists.get(r.id), t = tombs[r.id];
       const rt = syncTime(r.updated_at) || 0;
       const lt = l ? (syncTime(l.updated) || 0) : t ? (syncTime(t) || 0) : null;
-      const adopt = () => ({ ...r.data, id: r.id, updated: r.updated_at });
+      // a server copy still carrying the source name is cleaned and marked newer, so the clean copy is pushed back
+      const adopt = () => { const x = { ...JSON.parse(JSON.stringify(r.data)), id: r.id, updated: r.updated_at }; if (scrubList(x)) x.updated = new Date(Math.max(Date.now(), (syncTime(r.updated_at) || 0) + 1)).toISOString(); return x; };
       if (lt === null) {                                   // only on the server
         if (!r.deleted && r.data) { lists.set(r.id, adopt()); added.push(r.id); changed = true; }
         continue;
@@ -1335,7 +1356,7 @@
     return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
   }
 
-  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

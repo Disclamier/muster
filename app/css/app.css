@@ -938,7 +938,8 @@ details.cfg-dd.det-dd .detchip .dpchip { color: var(--cost); }
 .detrules { margin: 0 0 4px; }
 details.detrule { margin: 0 0 2px 10px; }
 details.detrule > summary { padding: 6px 4px; }
-details.detrule .enhs { margin-top: 6px; }
+details.detrule .enhs { margin: 2px 0 8px; }
+details.detrule .rules .enhs-h { margin-top: 2px; }
 details.detrule .enhs-h { font-weight: 700; font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
 details.detrule .enhs .opt { padding: 3px 0; }
 details.cfgdet.corest > summary, html[data-theme] details.cfgdet.corest > summary b { color: var(--text); }
@@ -990,10 +991,3 @@ html[data-c-strat] details.ust { border-left: 3px solid var(--c-strat); padding-
   .cols.cat-hidden .col.catalog > :not(.catrail) { width: auto; min-width: 0; visibility: visible; pointer-events: auto; }
 }
 
-/* unit panel: Loadout as a collapsible dropdown (only shown when the unit has choices) */
-details.lo-dd > summary { min-height: 30px; gap: 8px; min-width: 0; }
-details.lo-dd > summary .lo-t { flex: none; }
-details.lo-dd > summary .lo-sum { flex: 1 1 auto; min-width: 0; font-weight: 400; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-details.lo-dd > summary .lo-src { flex: none; margin-left: auto; font-weight: 400; font-size: 11px; }
-details.lo-dd > .gb { padding: 4px 6px; }
-@media (pointer: coarse) { details.lo-dd > summary { min-height: 44px; } }

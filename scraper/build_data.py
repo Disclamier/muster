@@ -548,7 +548,7 @@ def main():
         except Exception as e:  # noqa: BLE001
             print("warn: winrates not bundled:", e, file=sys.stderr)
     # datasheets (GrimSlate profiles/abilities) - separate file so rules-text changes never touch the points hash
-    dsb = {"source": "GrimSlate (profiles, abilities, keywords); Codex: Space Marines 11th ed. override (scraper/overrides)", "gs_fetched_at": gs.get("fetched_at"),
+    dsb = {"source": "Secondary rules data (profiles, abilities, keywords); Codex: Space Marines 11th ed. override (scraper/overrides)", "gs_fetched_at": gs.get("fetched_at"),
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
            "weapon_keywords": gs.get("weapon_keywords") or {}, "core_st": load_core_strats(), "factions": merge.datasheets}
     # hash the content only (not the fetch time) so an unchanged GrimSlate isn't republished every day
