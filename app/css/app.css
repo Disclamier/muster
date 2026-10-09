@@ -705,6 +705,7 @@ html[data-c-strat] .strat { border-left: 3px solid var(--c-strat); padding-left:
 
 /* Unit catalog: unit names where you pick units */
 html[data-c-cat] .crow .cname { color: var(--c-cat); }
+html[data-c-cat] .urow .line .n:not(.err) { color: var(--c-cat); }
 
 /* Abilities (datasheet): names + colored edge (Damaged keeps red, Leader keeps green) */
 html[data-c-abil] .ab-card:not(.aura) .ab-n,
@@ -790,3 +791,5 @@ html[data-theme="dark"] .dispc.chosen { box-shadow: 0 0 0 2px var(--surface), 0 
 .lrow.has-disp { border-left: 5px solid var(--dc); }
 .lrow .lmain { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
 .lrow .lmain .name { max-width: 100%; }
+/* the picked detachment name(s) in the Configuration row follow the Detachments color too */
+.cfgrow.detsrow .dn, html[data-theme] .cfgrow.detsrow .dn { color: var(--c-det, #39ff14); font-weight: 600; }
