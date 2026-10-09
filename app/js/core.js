@@ -1230,6 +1230,79 @@
     walk(l);
     return changed;
   }
+
+  /* ---------------------------------------------------------------- Core Rules search (app/data/core_rules.json) */
+  const RULE_ENT = { amp: "&", lt: "<", gt: ">", quot: '"', "#39": "'", nbsp: " " };
+  const ruleText = (h) => String(h || "").replace(/<br>|<\/(p|li|tr|div)>/g, "\n").replace(/<\/t[hd]>/g, " ").replace(/<[^>]+>/g, "")
+    .replace(/&(#\d+|#x[0-9a-f]+|\w+);/gi, (m, e) => RULE_ENT[e.toLowerCase()] !== undefined ? RULE_ENT[e.toLowerCase()] : e[0] === "#" ? String.fromCodePoint(e[1] === "x" || e[1] === "X" ? parseInt(e.slice(2), 16) : +e.slice(1)) : m)
+    .replace(/[ \t]+/g, " ").replace(/\s*\n\s*/g, "\n").trim();
+  /* matching form: lower case, curly quotes straight, hyphens / brackets / punctuation as spaces ("battle-shock" = "battle shock") */
+  const ruleNorm = (t) => String(t || "").toLowerCase().replace(/[’‘`]/g, "'").replace(/[\u2010-\u2015\-_/\[\](){}:;,.!?"“”+*]/g, " ").replace(/\s+/g, " ").trim();
+  function rulesIndex(doc) {
+    const S = (doc && doc.sections) || [];
+    const items = S.map((s, i) => {
+      const text = ruleText(s.h);
+      return { i, id: s.id, t: s.t, n: s.n || "", l: s.l, p: s.p, text, nt: " " + ruleNorm(s.t) + " ", nb: " " + ruleNorm(text) + " " };
+    });
+    for (const it of items) {
+      const path = []; let p = it.p;
+      while (p !== null && p !== undefined && items[p]) { path.unshift(items[p].t); p = items[p].p; }
+      it.path = path;
+    }
+    return { items, byId: Object.fromEntries(items.map((x) => [x.id, x])) };
+  }
+  const countIn = (hay, needle) => { let n = 0, k = hay.indexOf(needle); while (k >= 0 && n < 20) { n++; k = hay.indexOf(needle, k + needle.length); } return n; };
+  /* ranked matches: heading matches first (exact, prefix, phrase, all words), then body phrase, then all words anywhere */
+  function rulesSearch(ix, q, limit) {
+    const nq = ruleNorm(q); if (!ix || nq.length < 2) return [];
+    const terms = [...new Set(nq.split(" ").filter((t) => t.length > 1 || /\d/.test(t)))];
+    if (!terms.length) return [];
+    const numQ = /^\d\d(\.\d\d)*$/.test(String(q).trim()) ? String(q).trim() : null;
+    const out = [];
+    for (const it of ix.items) {
+      if (it.l === 0) continue;
+      const tt = it.nt, bb = it.nb; let score = 0, where = "";
+      if (numQ && it.n && it.n.split(" / ").some((n) => n === numQ || n.startsWith(numQ + "."))) { score = it.n === numQ ? 950 : 500; where = "n"; }
+      else if (tt.trim() === nq) { score = 1000; where = "t"; }
+      else if (tt.startsWith(" " + nq + " ")) { score = 850; where = "t"; }
+      else if (tt.includes(" " + nq + " ")) { score = 760; where = "t"; }
+      else if (tt.includes(nq)) { score = 700; where = "t"; }
+      else if (terms.every((t) => tt.includes(" " + t))) { score = 600; where = "t"; }
+      if (!score || where === "t") {
+        const ph = countIn(bb, " " + nq);
+        if (!score && ph) score = 300 + Math.min(ph, 10) * 12;
+        else if (!score && terms.every((t) => bb.includes(" " + t) || tt.includes(" " + t))) score = 100 + Math.min(terms.reduce((a, t) => a + countIn(bb, " " + t), 0), 20) * 3;
+        else if (score) score += Math.min(ph, 10) * 2;
+      }
+      if (!score) continue;
+      if (it.l >= 4) score += 4;                       // a specific rule beats its chapter on ties
+      if (it.path[0] && /appendix/i.test(it.path[0])) score -= 5;
+      out.push({ it, score });
+    }
+    out.sort((a, b) => b.score - a.score || a.it.i - b.it.i);
+    return out.slice(0, limit || 60).map(({ it, score }) => ({ id: it.id, t: it.t, n: it.n, path: it.path, score, snippet: rulesSnippet(it.text, terms, nq) }));
+  }
+  /* ~180 characters around the first match (phrase first, else the rarest term) */
+  function rulesSnippet(text, terms, nq) {
+    const low = text.toLowerCase().replace(/[’‘]/g, "'").replace(/[\u2010-\u2015\-\[\]]/g, " ");
+    let k = low.indexOf(nq);
+    if (k < 0) for (const t of terms.slice().sort((a, b) => b.length - a.length)) { k = low.indexOf(t); if (k >= 0) break; }
+    const flat = (x) => x.replace(/\s*\n\s*/g, " · ");
+    if (k < 0) return flat(text.slice(0, 180)) + (text.length > 180 ? "…" : "");
+    const a = Math.max(0, k - 70), b = Math.min(text.length, k + 110);
+    let st = a; if (a > 0) { const sp = text.indexOf(" ", a); if (sp > 0 && sp < k) st = sp + 1; }
+    return (st > 0 ? "…" : "") + flat(text.slice(st, b)) + (b < text.length ? "…" : "");
+  }
+  /* split a plain string into [text, isMatch] parts for highlighting (hyphens / brackets in the text still match) */
+  function rulesMarks(str, q) {
+    const terms = [...new Set(ruleNorm(q).split(" ").filter((t) => t.length > 1))].sort((a, b) => b.length - a.length);
+    if (!terms.length) return [[str, false]];
+    const rx = new RegExp(terms.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/'/g, "['’‘]").replace(/ /g, "[\\s\\-\u2010-\u2015]+")).join("|"), "gi");
+    const out = []; let last = 0, m;
+    while ((m = rx.exec(str))) { if (m.index > last) out.push([str.slice(last, m.index), false]); out.push([m[0], true]); last = m.index + m[0].length; if (!m[0].length) rx.lastIndex++; }
+    if (last < str.length) out.push([str.slice(last), false]);
+    return out;
+  }
   /* ---------------------------------------------------------------- import/export */
   function exportLists(lists) { return JSON.stringify({ app: "muster", schema: 1, exported: new Date().toISOString(), lists }, null, 1); }
   function importLists(text) {
@@ -1356,7 +1429,7 @@
     return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
   }
 
-  return { scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

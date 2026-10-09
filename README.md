@@ -75,6 +75,18 @@ good copy and falls back to the transcribed `scraper/overrides/core_stratagems.j
 `app/data/datasheets.json` as `core_st` and show in the Stratagems card and in each unit's "Stratagems for this unit"
 box (keyword-filtered by their TARGET line, like detachment stratagems).
 
+### Core Rules (searchable)
+
+`scraper/fetch_core_rules.py` scrapes Wahapedia's reproduction of the 11th-edition Core Rules and Rules Appendix
+(https://wahapedia.ru/wh40k11ed/the-rules/core-rules/ and .../rules-appendix/, allowed by robots.txt) into
+`app/data/core_rules.json`: a flat list of sections (book > part > chapter > section > rule / ability / stratagem, with
+rule numbers) holding sanitized HTML (lists, tables, rule boxes, FAQ/errata Q&A), plus source URLs, the GW "last
+updated" date, fetch time and a content hash. The daily refresh rewrites it only when the hash changes and keeps the
+previous copy when a scrape fails or looks incomplete (needs 250+ sections, 150k+ characters and key rules such as
+Lethal Hits / Deep Strike / Fire Overwatch). The Core Rules view (`#/rules`; on phones via the Meta button's switch)
+searches it in the browser with ranked heading matches, highlighted snippets and a collapsible table of contents; the
+service worker precaches it for offline use.
+
 ## In the app: loadouts
 Unit options panel shows a New Recruit-style tree from GrimSlate compositions: each model type with its count
 (upgrade models such as "Intercessor w/ Grenade Launcher" trade with their base model, min/max incl. size-dependent

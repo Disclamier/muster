@@ -12,13 +12,14 @@ const HTML = read("index.html").replace(/<script src="[^"]+"><\/script>/g, "");
 const POINTS = JSON.parse(read("data/points.json"));
 const VERSION = JSON.parse(read("data/version.json"));
 const DS = fs.existsSync(path.join(APP, "data/datasheets.json")) ? JSON.parse(read("data/datasheets.json")) : null;
+const RULES = JSON.parse(read("data/core_rules.json"));
 const WR = fs.existsSync(path.join(APP, "data/winrates.json")) ? JSON.parse(read("data/winrates.json")) : null;
 
 const OPEN = [];   // accounts-enabled windows are closed after each test (the 60 s sync poll would keep node alive)
 test.afterEach(() => { while (OPEN.length) { try { OPEN.pop().window.close(); } catch (e) { /* already closed */ } } });
 function makeApp(opts) {
   opts = opts || {};
-  const server = { version: { ...VERSION }, points: POINTS, winrates: WR, datasheets: opts.noDatasheets ? null : DS, offline: false, requests: [] };
+  const server = { version: { ...VERSION }, points: POINTS, winrates: WR, rules: opts.noRules ? null : RULES, datasheets: opts.noDatasheets ? null : DS, offline: false, requests: [] };
   const dom = new JSDOM(HTML, {
     url: opts.url || "http://localhost:8765/", runScripts: "dangerously", pretendToBeVisual: true,
     beforeParse(w) {
@@ -39,7 +40,7 @@ function makeApp(opts) {
         const p = String(url).split("?")[0];
         const ml = p.match(/data\/meta-lists\/([a-z0-9-]+)\.json$/);
         if (ml) { const fp = path.join(APP, "data/meta-lists", ml[1] + ".json"); if (!fs.existsSync(fp)) return { ok: false, status: 404, json: async () => ({}) }; return { ok: true, status: 200, json: async () => JSON.parse(fs.readFileSync(fp, "utf8")) }; }
-        const body = p.endsWith("version.json") ? server.version : p.endsWith("points.json") ? server.points : p.endsWith("winrates.json") ? server.winrates : p.endsWith("datasheets.json") ? server.datasheets : null;
+        const body = p.endsWith("version.json") ? server.version : p.endsWith("points.json") ? server.points : p.endsWith("winrates.json") ? server.winrates : p.endsWith("datasheets.json") ? server.datasheets : p.endsWith("core_rules.json") ? server.rules : null;
         if (!body) return { ok: false, status: 404, json: async () => ({}) };
         return { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(body)) };
       };
@@ -992,7 +993,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v30/);
+  assert.match(read("sw.js"), /muster-shell-v31/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2076,4 +2077,89 @@ test("saved, imported, shared and synced lists are cleaned of the source name on
   const m = C.mergeLists({ lists: [], tombs: {} }, [{ id: "g2", updated_at: "2026-10-01T00:00:00Z", data: { ...JSON.parse(JSON.stringify(dirty)), id: "g2" } }]);
   const g2 = m.lists.find((x) => x.id === "g2"); assert.doesNotMatch(JSON.stringify(g2), /grimslate/i);
   assert.deepEqual([...C.pendingPush({ lists: [g2], tombs: {} }, m.known)], ["g2"], "cleaned server copy is pushed back");
+});
+
+/* ---------------------------------------------------------------- Core Rules (#/rules) */
+const typeRules = async (w, d, q) => { const i = d.querySelector("[data-testid=rules-q]"); i.value = q; i.dispatchEvent(new w.Event("input", { bubbles: true })); await tick(120); };
+test("Core Rules: header tab, data loaded, ranked + highlighted search, jump to an expanded section, TOC", async () => {
+  const { w, d, server } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const nav = d.querySelector('#hdr a[href="#/rules"]');
+  assert.ok(nav, "header tab on PC"); assert.match(nav.textContent, /Core Rules/);
+  await go(w, "#/rules");
+  await until(() => d.querySelector("[data-testid=rules-toc]"));
+  assert.ok(nav.classList.contains("on"), "tab highlighted");
+  assert.ok(server.requests.some((u) => /data\/core_rules\.json/.test(u)), "loaded data/core_rules.json");
+  assert.equal(w.Muster.S.rules.sections.length, RULES.sections.length);
+  assert.match(d.querySelector("[data-testid=rules-src]").textContent, /Wahapedia/);
+  assert.doesNotMatch(d.body.textContent, /grimslate/i);
+  // TOC: the two books open, chapters collapsed (bodies built lazily)
+  const tops = [...d.querySelectorAll("[data-testid=rules-toc] > details.rl0")].map((x) => x.querySelector("summary").textContent);
+  assert.deepEqual(tops, ["Core Rules", "Rules Appendix"]);
+  assert.ok([...d.querySelectorAll("details.rl2")].length >= 20 && [...d.querySelectorAll("details.rl2")].every((x) => !x.open));
+  for (const [q, want] of [["Lethal Hits", /LETHAL HITS/], ["deep strike", /DEEP STRIKE/], ["Overwatch", /Overwatch/], ["battle-shock", /Battle-shock/], ["feel no pain", /FEEL NO PAIN/]]) {
+    await typeRules(w, d, q);
+    const hits = d.querySelectorAll("[data-testid=rules-hit]");
+    assert.ok(hits.length >= 1, `results for ${q}`);
+    assert.match(hits[0].querySelector(".rt").textContent, want, `heading match ranked first for ${q}`);
+    assert.ok(hits[0].querySelector("mark"), `highlighted terms for ${q}`);
+  }
+  await typeRules(w, d, "lethal hits");
+  const first = d.querySelector("[data-testid=rules-hit]");
+  assert.ok(first.querySelector(".rres-s").textContent.length > 40, "snippet");
+  assert.equal(d.activeElement === d.body || d.querySelector("[data-testid=rules-q]").value === "lethal hits", true);
+  // tap -> section opened (and its ancestors), terms highlighted, back to results
+  await go(w, first.getAttribute("href"));
+  const tgt = await until(() => d.querySelector("details.rtarget"));
+  assert.ok(tgt.open, "section expanded");
+  assert.match(tgt.querySelector("summary").textContent, /LETHAL HITS/);
+  for (let p = tgt.parentElement.closest("details"); p; p = p.parentElement.closest("details")) assert.ok(p.open, "ancestors open");
+  assert.match(tgt.querySelector(".rtext").textContent, /critical hit/i);
+  assert.ok(tgt.querySelector(".rtext mark"), "terms highlighted in the section");
+  click(w, d.querySelector("[data-testid=rules-back]")); await tick(5); w.Muster.route();
+  await until(() => d.querySelectorAll("[data-testid=rules-hit]").length);
+  // no match / empty search -> TOC; rule numbers work too
+  await typeRules(w, d, "zzqxv");
+  assert.match(d.querySelector("[data-testid=rules-count]").textContent, /No rules match/);
+  await typeRules(w, d, "24.09");
+  assert.match(d.querySelector("[data-testid=rules-hit] .rt").textContent, /DEEP STRIKE/);
+  await typeRules(w, d, "");
+  assert.ok(d.querySelector("[data-testid=rules-toc]"));
+  // lazily built section bodies on open; tables + FAQ kept
+  const ch = [...d.querySelectorAll("details.rl2")].find((x) => /Core Abilities/.test(x.querySelector("summary").textContent));
+  ch.open = true; ch.dispatchEvent(new w.Event("toggle"));
+  await until(() => ch.querySelector(".rb").childElementCount);
+  assert.ok(ch.querySelector("details.rnode"), "sub-sections rendered on open");
+  assert.ok(RULES.sections.some((s) => /<table/.test(s.h)) && RULES.sections.some((s) => /class="faq"/.test(s.h)), "tables + FAQ/errata in data");
+});
+
+test("Core Rules on phones: reachable from the Meta button + switch, header not widened", async () => {
+  const { w, d } = makeApp({ phone: true });
+  await until(() => d.querySelector(".lists-page"));
+  const navs = [...d.querySelectorAll("#hdr [data-nav]")].map((a) => a.getAttribute("data-nav"));
+  const rulesBtn = d.querySelector('#hdr a[href="#/rules"]');
+  assert.ok(rulesBtn.classList.contains("nophone"), "header Rules button is hidden on phones (CSS)");
+  assert.match(read("css/app.css"), /@media \(max-width: 760px\) \{\s*\.hbtn\.nophone \{ display: none; \}/);
+  assert.ok(navs.includes("#/meta"));
+  await go(w, "#/meta");
+  const sw = await until(() => d.querySelector("[data-testid=view-tabs] [data-testid=rules-tab-phone]"));
+  assert.equal(sw.getAttribute("href"), "#/rules");
+  await go(w, "#/rules");
+  await until(() => d.querySelector("[data-testid=rules-toc]"));
+  assert.ok(d.querySelector("[data-testid=view-tabs] a.on[href='#/rules']"), "switch shows Core Rules");
+  assert.ok(d.querySelector('#hdr a[href="#/meta"]').classList.contains("on"), "Meta button highlighted while on Core Rules");
+  await typeRules(w, d, "deep strike");
+  assert.match(d.querySelector("[data-testid=rules-hit] .rt").textContent, /DEEP STRIKE/);
+});
+
+test("Core Rules offline / missing data: friendly message, no crash", async () => {
+  const { w, d } = makeApp({ noRules: true });
+  await until(() => d.querySelector(".lists-page"));
+  await go(w, "#/rules");
+  await until(() => /aren't downloaded yet/.test((d.querySelector("[data-testid=rules-body]") || {}).textContent || ""));
+});
+
+test("service worker precaches the core rules data", () => {
+  const sw = read("sw.js");
+  assert.match(sw, /"data\/core_rules\.json"/);
 });

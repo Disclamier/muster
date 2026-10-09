@@ -26,6 +26,7 @@ case "\$1" in
   scraper/fetch_images.py) exit 0;;
   scraper/fetch_winrates.py) echo "simulated listhammer failure" >&2; exit 1;;
   scraper/fetch_core_strats.py) echo "simulated Wahapedia failure" >&2; exit 1;;
+  scraper/fetch_core_rules.py) echo "simulated Wahapedia failure" >&2; exit 1;;
 esac
 exec /usr/bin/env python3 "\$@"
 PY

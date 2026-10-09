@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Refresh all data: scrape MFM (primary) + GrimSlate (secondary) + listhammer win rates, sanity-check, then rebuild app/data.
+# Refresh all data: scrape MFM (primary) + GrimSlate (secondary) + listhammer win rates + Core Rules text, sanity-check, then rebuild app/data.
 # Fails safely: scrapes go to a temp dir; existing data is only replaced when the new data passes checks.
 #   MFM failure / too few factions or units  -> abort, keep old data, exit 1
 #   GrimSlate failure / too few factions     -> keep old grimslate.json (CI: restored from the Actions cache),
 #                                               still rebuild with fresh MFM; with NO GrimSlate data at all -> abort
 #   Win rates failure                        -> keep the previously published winrates
+#   Core rules failure                       -> keep the previously published core_rules.json
 #   Built data unchanged (same content hash) -> app/data left untouched (no daily commit churn)
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -76,6 +77,11 @@ if "$PY" scraper/fetch_core_strats.py --out "$TMP/core_stratagems.json"; then
 else
   echo "!! core stratagems fetch failed - using the previous / transcribed copy" >&2
 fi
+
+echo "== Core Rules text (11th-ed Core Rules + Rules Appendix via Wahapedia, non-fatal; previous core_rules.json kept on failure)"
+# writes app/data/core_rules.json only when the content hash changed; a failed or incomplete scrape changes nothing
+"$PY" scraper/fetch_core_rules.py --out "$TMP/core_rules.json" --publish app/data/core_rules.json || \
+  echo "!! core rules fetch failed or looks incomplete - keeping previous core_rules.json" >&2
 
 echo "== Build app/data"
 if "$PY" scraper/build_data.py --outdir "$TMP/appdata" && check "$TMP/appdata/points.json" "$MIN_FACTIONS" "$MIN_UNITS" && \

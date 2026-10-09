@@ -4,6 +4,7 @@ data/grimslate.json
 data/grimslate*.json
 data/winrates.json
 data/core_stratagems.json
+data/core_rules.json
 data/*.log
 raw/
 # --- build / tooling

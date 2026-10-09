@@ -418,3 +418,22 @@ test("real data: an option granting N of an MFM per-item priced weapon costs N x
     if (o[3] != null && m && +m[1] > 1) assert.equal(o[5], +m[1], `${f.id} ${u.n}: ${o[0]}`);
   }
 });
+
+test("core rules search: data shape + ranked heading matches", () => {
+  const D = JSON.parse(require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "app/data/core_rules.json"), "utf8"));
+  assert.ok(D.sections.length >= 250 && D.hash && D.fetched_at && D.source.length === 2);
+  const ix = C.rulesIndex(D);
+  const top = (q) => C.rulesSearch(ix, q, 10)[0];
+  assert.match(top("Lethal Hits").t, /LETHAL HITS/);
+  assert.match(top("deep strike").t, /DEEP STRIKE/);
+  assert.match(top("overwatch").t, /Fire Overwatch/);
+  assert.match(top("Battle-shock").t, /Battle-shock/);
+  assert.match(top("battle shock").t, /Battle-shock/);
+  assert.match(top("feel no pain").t, /FEEL NO PAIN/);
+  assert.match(top("Strategic Reserves").t, /Strategic Reserves/);
+  assert.equal(top("24.23").n, "24.23");
+  assert.deepEqual(C.rulesSearch(ix, "a", 10), []);
+  const r = top("lethal hits"); assert.ok(r.path.length >= 2 && r.snippet.length > 30);
+  assert.deepEqual(C.rulesMarks("[LETHAL HITS] hit", "lethal hits").filter((x) => x[1]).map((x) => x[0]), ["LETHAL", "HITS"]);
+  assert.equal(C.ruleText("<p>a &amp; b</p><p>c</p>"), "a & b\nc");
+});

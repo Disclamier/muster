@@ -18,6 +18,7 @@
   // side-by-side layout (PC + tablets): the unit catalog column can be minimized to a slim rail; per device
   const LS_CATHIDE = "muster.catHidden", LS_CATW = "muster.catW";
   try { S.ui.catHidden = localStorage.getItem(LS_CATHIDE) === "1"; S.ui.catW = +localStorage.getItem(LS_CATW) || 0; } catch (e) { S.ui.catHidden = false; S.ui.catW = 0; }
+  S.ui.rulesQ = ""; S.ui.rulesOpen = new Set(); S.ui.rulesTarget = null;
   try { S.ui.metaRange = localStorage.getItem(LS_WRRANGE) || "weekend"; S.ui.metaRtt = localStorage.getItem(LS_WRRTT) === "1";
     S.ui.metaTab = localStorage.getItem(LS_WRTAB) || "overview"; S.ui.metaHome = localStorage.getItem(LS_WRHOME) || "factions"; } catch (e) { /* ignore */ }
 
@@ -455,7 +456,7 @@
   }
   function setActiveNav() {
     const h = location.hash || "#/lists";
-    $$("#hdr [data-nav]").forEach((a) => a.classList.toggle("on", h.startsWith(a.getAttribute("data-nav"))));
+    $$("#hdr [data-nav]").forEach((a) => a.classList.toggle("on", h.startsWith(a.getAttribute("data-nav")) || (isPhone() && !!a.dataset.navPhone && h.startsWith(a.dataset.navPhone))));
   }
 
   /* ------------------------------------------------------------------ router */
@@ -472,7 +473,8 @@
     const cl = parts[0] === "list" && parts[1] ? findList(decodeURIComponent(parts[1])) : null;
     if (MC.setScope(cl ? cl.sub || cl.faction : null) && $("#modal [data-testid=colors]")) openColors();
     if (parts[0] === "list" && parts[1]) renderEditor(decodeURIComponent(parts[1]));
-    else if (parts[0] === "meta") renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null);
+    else if (parts[0] === "meta") { renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null); const mp = $("#main .meta-page"); if (mp && !parts[1]) mp.insertAdjacentHTML("afterbegin", viewTabs("meta")); }
+    else if (parts[0] === "rules") renderRules(parts[1] ? decodeURIComponent(parts[1]) : null);
     else if (parts[0] === "share" && parts[1]) openShared(parts.slice(1).join("/"));
     else renderLists();
     renderBanner(); renderFooter(); setActiveNav(); renderAcct();
@@ -1353,6 +1355,82 @@
     </div>`;
   }
   const mtabs = (tabs, cur, scope) => `<div class="metatabs" role="tablist">${tabs.map(([k, l, n]) => `<button role="tab" class="${cur === k ? "on" : ""}" data-action="meta-tab" data-scope="${scope}" data-tab="${k}">${esc(l)}${n !== undefined && n !== null ? ` <span class="cnt">${esc(n)}</span>` : ""}</button>`).join("")}</div>`;
+  /* ------------------------------------------------------------------ Core Rules (searchable 11th-edition core rules) */
+  /* phones: the header is full, so Meta Win Rates and Core Rules share the Meta button with a switch at the top */
+  const viewTabs = (on) => `<div class="viewtabs" data-testid="view-tabs"><a href="#/meta" class="${on === "meta" ? "on" : ""}">Meta Win Rates</a><a href="#/rules" class="${on === "rules" ? "on" : ""}" data-testid="rules-tab-phone">Core Rules</a></div>`;
+  let rulesFetch = null;
+  function setRules(doc) { if (!doc || !Array.isArray(doc.sections) || !doc.sections.length) return false; S.rules = doc; S.rulesIx = C.rulesIndex(doc); return true; }
+  /* saved copy first (instant, offline), then the published file once per session (service worker: network-first) */
+  function loadRules() {
+    if (rulesFetch) return rulesFetch;
+    rulesFetch = (async () => {
+      if (!S.rules) { try { setRules(await idb.get("rules")); } catch (e) { /* no saved copy */ } if (S.rules && onRules()) renderRules(S.ui.rulesTarget); }
+      try {
+        const d = await fetchJSON("data/core_rules.json");
+        if ((!S.rules || d.hash !== S.rules.hash) && setRules(d)) { try { await idb.set("rules", d); } catch (e) { /* ignore */ } if (onRules()) renderRules(S.ui.rulesTarget); }
+      } catch (e) { if (!S.rules && onRules()) renderRules(null); }
+      S.rulesTried = true;
+    })();
+    return rulesFetch;
+  }
+  const onRules = () => (location.hash || "").startsWith("#/rules");
+  const markHtml = (str, q) => C.rulesMarks(String(str || ""), q || "").map(([t, m]) => (m ? `<mark>${esc(t)}</mark>` : esc(t))).join("");
+  function renderRules(target) {
+    S.ui.rulesTarget = target || null;
+    const R = S.rules;
+    const upd = R && R.source.map((x) => x.updated).find(Boolean);
+    const src = R ? `<div class="meta-src" data-testid="rules-src">Warhammer 40,000 11th edition${upd ? ` (GW update ${esc(upd)})` : ""} · ${R.source.map((x) => `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.book)}</a>`).join(" + ")} via Wahapedia · checked ${esc(localTime(R.fetched_at))}</div>` : "";
+    $("#main").innerHTML = `<div class="meta-page rules-page" data-testid="rules-page">${viewTabs("rules")}
+      <div class="meta-h"><div><h2>Core Rules</h2>${src}</div></div>
+      <div class="rules-search"><svg class="i" aria-hidden="true"><use href="#i-search"/></svg><input type="search" class="search" data-input="rules-q" data-testid="rules-q" value="${esc(S.ui.rulesQ || "")}" placeholder="Search all core rules (e.g. lethal hits, overwatch, 24.23)" aria-label="Search the core rules" autocomplete="off" enterkeyhint="search"><button class="btn secondary small rback hidden" data-action="rules-back" data-testid="rules-back" title="Back to the search results">${icon("back")} Results</button></div>
+      <div id="rules-body" data-testid="rules-body">${R ? "" : `<div class="empty">${S.rulesTried ? "The core rules aren't downloaded yet – connect once to load them." : "Loading the core rules…"}</div>`}</div></div>`;
+    if (!R) { loadRules(); return; }
+    if (!S.rulesTried) loadRules();
+    renderRulesBody();
+  }
+  function rulesKids(i) { return S.rules.sections.reduce((a, s, j) => { if (s.p === i) a.push(j); return a; }, []); }
+  function rulesNode(i) {
+    const s = S.rules.sections[i], open = s.l === 0 || S.ui.rulesOpen.has(s.id);
+    return `<details class="rnode rl${s.l}" data-rid="${esc(s.id)}" data-testid="rnode"${open ? " open" : ""}><summary><span class="rtt">${esc(s.t)}</span>${s.n ? `<span class="rnum">${esc(s.n)}</span>` : ""}</summary><div class="rb">${open ? rulesInner(i) : ""}</div></details>`;
+  }
+  function rulesInner(i) {
+    const s = S.rules.sections[i];
+    return `${s.h ? `<div class="rtext">${s.h.replace(/<table/g, '<div class="tw"><table').replace(/<\/table>/g, "</table></div>")}</div>` : ""}${rulesKids(i).map(rulesNode).join("")}`;
+  }
+  function renderRulesBody() {
+    const box = $("#rules-body"); if (!box || !S.rules) return;
+    const q = (S.ui.rulesQ || "").trim(), tgt = S.ui.rulesTarget && S.rulesIx.byId[S.ui.rulesTarget];
+    const back = $("[data-testid=rules-back]"); if (back) back.classList.toggle("hidden", !(tgt && q.length >= 2));
+    if (q.length >= 2 && !tgt) {
+      const res = C.rulesSearch(S.rulesIx, q, 60);
+      box.innerHTML = `<div class="rres-h muted" data-testid="rules-count">${res.length ? `${res.length}${res.length === 60 ? "+" : ""} match${res.length === 1 ? "" : "es"}` : `No rules match “${esc(q)}”.`}</div>
+        <ol class="rres" data-testid="rules-results">${res.map((r) => `<li><a class="rres-i" href="#/rules/${esc(encodeURIComponent(r.id))}" data-testid="rules-hit" data-rid="${esc(r.id)}">
+          <span class="rres-t"><span class="rt">${markHtml(r.t, q)}</span>${r.n ? `<span class="rnum">${esc(r.n)}</span>` : ""}</span>
+          <span class="rres-p">${esc(r.path.join(" › "))}</span><span class="rres-s">${markHtml(r.snippet, q)}</span></a></li>`).join("")}</ol>`;
+      return;
+    }
+    if (tgt) { let p = tgt.i; while (p !== null && p !== undefined) { S.ui.rulesOpen.add(S.rules.sections[p].id); p = S.rules.sections[p].p; } }
+    const roots = S.rules.sections.reduce((a, s, j) => { if (s.p === null || s.p === undefined) a.push(j); return a; }, []);
+    box.innerHTML = `${!tgt ? `<div class="rtoc-ctl"><button class="btn secondary small" data-action="rules-collapse">Collapse all</button></div>` : ""}<div class="rtoc" data-testid="rules-toc">${roots.map(rulesNode).join("")}</div>`;
+    if (tgt) {
+      const el = [...box.querySelectorAll("details.rnode")].find((x) => x.dataset.rid === tgt.id);
+      if (el) {
+        el.classList.add("rtarget");
+        if (q.length >= 2) markTextNodes(el.querySelector(":scope > .rb > .rtext"), q);
+        requestAnimationFrame(() => { const top = el.getBoundingClientRect().top + window.scrollY - (($("#hdr") || {}).offsetHeight || 0) - (($(".rules-search") || {}).offsetHeight || 0) - 6; window.scrollTo({ top: Math.max(0, top) }); });
+      }
+    }
+  }
+  function markTextNodes(root, q) {
+    if (!root) return;
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT); const nodes = []; while (w.nextNode()) nodes.push(w.currentNode);
+    for (const n of nodes) {
+      const parts = C.rulesMarks(n.nodeValue, q); if (!parts.some((x) => x[1])) continue;
+      const f = document.createDocumentFragment();
+      for (const [t, m] of parts) { if (m) { const mk = document.createElement("mark"); mk.textContent = t; f.appendChild(mk); } else f.appendChild(document.createTextNode(t)); }
+      n.parentNode.replaceChild(f, n);
+    }
+  }
   function renderMeta(slug) {
     const W = S.wr;
     if (!W || !W.factions) { $("#main").innerHTML = `<div class="meta-page">${metaHeader("Meta Win Rates")}<div class="empty">No win-rate data available yet. It is downloaded with the points data when online.</div></div>`; return; }
@@ -1688,6 +1766,8 @@
     "exp-ys": () => exportYellowscribe(),
     // meta
     "meta-faction": (t) => { S.ui.metaListDet = ""; location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
+    "rules-back": () => { location.hash = "#/rules"; },
+    "rules-collapse": () => { S.ui.rulesOpen.clear(); renderRulesBody(); },
     "meta-range": (t) => { S.ui.metaRange = t.dataset.range; lsSet(LS_WRRANGE, S.ui.metaRange); route(); },
     "meta-tab": (t) => { if (t.dataset.scope === "home") { S.ui.metaHome = t.dataset.tab; lsSet(LS_WRHOME, t.dataset.tab); } else { S.ui.metaTab = t.dataset.tab; lsSet(LS_WRTAB, t.dataset.tab); } route(); },
     "meta-disp": (t) => { S.ui.metaDispOpen = S.ui.metaDispOpen === t.dataset.name ? null : t.dataset.name; route(); },
@@ -1776,6 +1856,9 @@
     "new-name": (t) => { NEW.name = t.value; },
     "color": (t) => { MC.set(t.dataset.k, t.value); refreshColorRow(t.dataset.k); },
     "color-b": (t) => { const k = t.dataset.k; MC.setB(k, t.value); const row = t.closest(".cset"); if (row) { row.classList.toggle("custom", !!(MC.get(k) || MC.getB(k))); const o = $(".cs-bv", row); if (o) o.textContent = bLabel(MC.getB(k)); } },
+    "rules-q": (t) => { S.ui.rulesQ = t.value; clearTimeout(S.rulesDeb); S.rulesDeb = setTimeout(() => {
+      if (S.ui.rulesTarget) { S.ui.rulesTarget = null; if (location.hash !== "#/rules") history.replaceState(null, "", "#/rules"); }
+      renderRulesBody(); }, 70); },
     "meta-q": (t) => { S.ui.metaQ = t.value; const pos = t.selectionStart; renderMeta(null); const n = $("[data-input=meta-q]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
   };
   document.addEventListener("click", (ev) => {
@@ -1803,6 +1886,10 @@
   document.addEventListener("change", (ev) => { const t = ev.target.closest("[data-change]"); if (t && changes[t.dataset.change]) changes[t.dataset.change](t, ev); });
   document.addEventListener("input", (ev) => { const t = ev.target.closest("[data-input]"); if (t && inputs[t.dataset.input]) inputs[t.dataset.input](t, ev); });
   // enhancement dropdown: remember which one is open so background re-renders (sync, data refresh) don't snap it shut
+  // Core Rules: a section's text + sub-sections are built when it is first opened (fast on phones); open state kept
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("rnode") || !S.rules) return;
+    const id = d.dataset.rid; if (d.open) { S.ui.rulesOpen.add(id); const rb = d.querySelector(":scope > .rb"); if (rb && !rb.childElementCount) { const it = S.rulesIx.byId[id]; if (it) rb.innerHTML = rulesInner(it.i); } }
+    else S.ui.rulesOpen.delete(id); }, true);
   // Colors accordion: opening one color row closes the others
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cset") || !d.open) return;
     $$("#modal details.cset[open]").forEach((x) => { if (x !== d) x.open = false; }); }, true);
