@@ -46,6 +46,15 @@ and detachment unit restrictions; units are matched by name. Report: `data/codex
 30 Sep 2026 + Warhammer Community 16 Sep 2026) adds the detachments the codex does not cover: Champions of Fenris,
 Saga of the Beastslayer, Saga of the Great Wolf (Space Wolves) and Deathwatch Support.
 
+### Warhammer 40,000 app detachment layer (all armies)
+`scraper/overrides/gwapp_detachments.json` holds every detachment's rule, stratagems (name, CP, category,
+WHEN/TARGET/EFFECT) and enhancement text from the Warhammer 40,000 app data (via 40k.app; version + release date in the
+file). `build_data.py` applies it last (`scraper/gwapp_override.py`), after GrimSlate and the codex override, so the
+newest published text wins on every daily refresh; points, DP, detachment lists and enhancement names/costs stay MFM.
+Refresh it with `python3 scraper/fetch_gwapp.py /tmp/gwapp` (headless Chrome; the site blocks plain HTTP) then
+`python3 scraper/gwapp_compile.py /tmp/gwapp <app version> <release date>`. Report: `data/gwapp_report.json`
+(detachments not found in the app, unmatched enhancements, app-vs-MFM enhancement cost differences).
+
 ## Refresh
     make refresh          # = scripts/refresh.sh
 1. MFM → temp file; must have ≥ MIN_FACTIONS (25) factions and ≥ MIN_UNITS (1400) units, else **abort, old data kept, exit 1**

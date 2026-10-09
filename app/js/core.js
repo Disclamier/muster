@@ -1174,7 +1174,7 @@
     for (let c of clauses) {
       if (/\benemy\b|\bobjective\b|\bmarkers?\b/i.test(c.split(/\b(?:that|which|within|from)\b/i)[0])) continue;   // the enemy / a marker, not your unit
       c = c.replace(/^\s*(?:that|those|the|this|your)\b\s*/i, "");
-      const subj = c.split(/\.|;|\b(?:from your army|from your|that|which|who|whose|within|wholly|if|in|on|with|while|whilst|is|was|has|have|can|eligible)\b/i)[0];
+      const subj = c.split(/\.|;|\b(?:from your army|from your|that|which|who|whose|within|wholly|if|in|on|with|while|whilst|is|was|has|have|can|eligible|equipped|embarked)\b/i)[0];
       // "ADEPTUS ASTARTES INFANTRY/MOUNTED", "HERETIC ASTARTES PSYKER/DAEMON": a lone keyword after the first
       // alternative shares its leading keywords
       let prefix = null;

@@ -21,6 +21,7 @@ import argparse, datetime as dt, hashlib, json, os, re, sys
 from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import gwapp_override  # noqa: E402  newest rules text (Warhammer 40,000 app detachments), applied last
 import codex_override  # noqa: E402  committed codex override layer (Space Marines 11th-ed codex)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -185,6 +186,8 @@ def merge(mfm, gs):
     unmatched_dets, out_factions = [], []
     ds_out = merge.datasheets = {}
     merge.codex_report = {}
+    merge.gwapp_report = {}
+    sing = lambda n: n.replace("s", "")   # spelling variants: 'broodbrothersauxilia' ~ 'broodbrotherauxilia'
     for mf in mfm["factions"]:
         gf = gsf.get(SLUG_MAP.get(mf["id"], mf["id"]))
         fu = {}
@@ -305,6 +308,10 @@ def merge(mfm, gs):
         for gd in (gf or {}).get("detachments", []):
             if norm(gd["name"]) in seen or gd.get("detachment_points") is None:
                 continue
+            # the same detachment under a spelling variant of its MFM name (GSC "Brood Brother(s) Auxilia")
+            if any(sing(norm(gd["name"])) == sing(x) for x in seen):
+                stats["gs_only_spelling_duplicates_dropped"] += 1
+                continue
             if drop_gs_only and not codex_override.has_detachment(mf["id"], gd["name"]):
                 stats["gs_only_detachments_dropped"] += 1
                 continue
@@ -315,6 +322,15 @@ def merge(mfm, gs):
                           for e in gd["enhancements"]],
                   "st": [[s["name"], s["cp"], s.get("phase"), s.get("type"), s.get("turn"), s.get("text")]
                          for s in gd["stratagems"]]}
+            if drop_gs_only:
+                # a codex detachment the MFM omits on this faction's page (Black Templars Gladius): enhancement
+                # names/costs from the MFM's Space Marines page, never the secondary source's points
+                sm = next((x for x in mfm["factions"] if x["id"] == "space-marines"), None)
+                smd = next((x for x in (sm or {}).get("detachments", []) if norm(x["name"]) == norm(gd["name"])), None)
+                if smd:
+                    cd["enh"] = [[e["name"], e["points"], None, 1 if "(upgrade)" in e["name"].lower() else 0] for e in smd["enhancements"]]
+                    cd["dp"] = smd["detachment_points"]
+                    cd["fd"] = smd.get("force_dispositions", cd["fd"])
             if gd.get("unique_tag"):
                 cd["rs"] = [f'UNIQUE: {gd["unique_tag"].upper()}']
             if gd.get("rule"):
@@ -339,6 +355,7 @@ def merge(mfm, gs):
         codex_override.apply(mf["id"], units, dets, f_ds, f_rules,
                              {x["n"]: [{"name": w[0]} for w in x.get("w") or []] for x in units},
                              stats, merge.codex_report, role_from_keywords)
+        gwapp_override.apply(mf["id"], dets, stats, merge.gwapp_report)
         for x in units:
             unique_slot_names(x.get("lo"))
         units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))
@@ -588,6 +605,7 @@ def main():
     print(f"  codex override: {s['codex_datasheets']} datasheets, {s['codex_detachments']} detachments, "
           f"{s['codex_stratagems']} stratagems, {s['codex_enhancements']} enhancement texts", file=sys.stderr)
     json.dump(merge.codex_report, open(os.path.join(ROOT, "data", "codex_report.json"), "w"), indent=1, ensure_ascii=False)
+    json.dump(merge.gwapp_report, open(os.path.join(ROOT, "data", "gwapp_report.json"), "w"), indent=1, ensure_ascii=False)
     stats_path = os.path.join(ROOT, "data", "build_stats.json")
     json.dump({"stats": dict(s), "unmatched_mfm_detachments": unmatched}, open(stats_path, "w"), indent=1)
 

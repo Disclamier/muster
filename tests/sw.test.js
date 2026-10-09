@@ -46,7 +46,7 @@ test("Champions of Fenris: current rule, enhancements and stratagems; MFM points
   assert.equal(d.dp, 1);
   assert.equal(d.rule[0], "The Great Wolf Watches");
   assert.match(d.rule[1], /ADEPTUS ASTARTES CHARACTER units/);
-  assert.match(d.rule[1], /Heroic Intervention Stratagem, that use is -1CP/);
+  assert.match(d.rule[1], /Heroic Intervention Stratagem, that use is -1CP/i);
   assert.deepEqual(d.st.map((s) => [s[0], s[1]]), [["Champion's Guidance", 1], ["Birth of a Saga", 1], ["Heroic Resolve", 2]]);
   assert.match(strat("Champions of Fenris", "Heroic Resolve")[5], /-1 D until that enemy unit has attacked/);
   assert.equal(enh("Champions of Fenris", "Preyslayer")[1], 15);

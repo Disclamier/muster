@@ -1,0 +1,588 @@
+{
+ "adepta-sororitas": {
+  "applied": [
+   "Army of Faith",
+   "Bringers of Flame",
+   "Champions of Faith",
+   "Chorus of Condemnation",
+   "Hallowed Martyrs",
+   "Penitent Host",
+   "Sacred Champions",
+   "Sanctified Orators"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "adeptus-custodes": {
+  "applied": [
+   "Auric Champions",
+   "Lions of the Emperor",
+   "Might of the Moritoi",
+   "Null Maiden Vigil",
+   "Shield Host",
+   "Silent Hunters",
+   "Solar Spearhead",
+   "Talons of the Emperor",
+   "Tharanatoi Hammerblow"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "adeptus-mechanicus": {
+  "applied": [
+   "Cohort Acquisitus",
+   "Cohort Cybernetica",
+   "Data-Psalm Conclave",
+   "Eradication Cohort",
+   "Explorator Maniple",
+   "Haloscreed Battle Clade",
+   "Lords of the Forge",
+   "Luminen Auto-Choir",
+   "Rad-Zone Corps",
+   "Skitarii Hunter Cohort"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "aeldari": {
+  "applied": [
+   "Armoured Warhost",
+   "Aspect Host",
+   "Corsair Coterie",
+   "Devoted of Ynnead",
+   "Eldritch Raiders",
+   "Fateful Performance",
+   "Ghosts of the Webway",
+   "Guardian Battlehost",
+   "Path of the Outcast",
+   "Seer Council",
+   "Serpent’s Brood",
+   "Spirit Conclave",
+   "Twilight Flickers",
+   "Warhost",
+   "Windrider Host"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "astra-militarum": {
+  "applied": [
+   "Abhuman Auxiliaries",
+   "Armoured Infantry",
+   "Bridgehead Strike",
+   "Combined Arms",
+   "Designation Force",
+   "Grizzled Company",
+   "Hammer of the Emperor",
+   "Mechanised Assault",
+   "Recon Element",
+   "Siege Regiment",
+   "Steel Hammer"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "black-templars": {
+  "applied": [
+   "Assault Brethren",
+   "Deathwatch Support",
+   "Devastator Brethren",
+   "Fist of the God-Emperor",
+   "Gauntlet Task Force",
+   "Gravis Linebreaker Force",
+   "Gravis Siege Force",
+   "Ironclad Champions",
+   "Ironstorm Spearhead",
+   "Marshal's Household",
+   "Phobos Shadow Force",
+   "Phobos Shock Force",
+   "Stormlance Task Force",
+   "Tactical Brethren",
+   "Tacticus Attack Force",
+   "Tacticus Firestorm Force",
+   "Terminator Storm Force",
+   "Vow-Sworn Crusaders"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": [
+   "Gladius Task Force"
+  ]
+ },
+ "blood-angels": {
+  "applied": [
+   "Angelic Inheritors",
+   "Assault Brethren",
+   "Deathwatch Support",
+   "Devastator Brethren",
+   "Encarmine Speartip",
+   "Gauntlet Task Force",
+   "Gladius Task Force",
+   "Gravis Linebreaker Force",
+   "Gravis Siege Force",
+   "Ironclad Champions",
+   "Ironstorm Spearhead",
+   "Phobos Shadow Force",
+   "Phobos Shock Force",
+   "Stormlance Task Force",
+   "Tactical Brethren",
+   "Tacticus Attack Force",
+   "Tacticus Firestorm Force",
+   "Terminator Storm Force",
+   "Wrath of the Doomed"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "chaos-daemons": {
+  "applied": [
+   "Blood Legion",
+   "Cavalcade of Chaos",
+   "Daemonic Incursion",
+   "Legion of Excess",
+   "Lords of the Warp",
+   "Plague Legion",
+   "Scintillating Legion",
+   "Shadow Legion",
+   "Warptide"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "chaos-knights": {
+  "applied": [
+   "Bastions of Tyranny",
+   "Helhunt Lance",
+   "Houndpack Lance",
+   "Hunting Warpack",
+   "Iconoclast Fiefdom",
+   "Infernal Lance",
+   "Lords of Dread",
+   "Traitoris Lance"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "chaos-space-marines": {
+  "applied": [
+   "Cabal of Chaos",
+   "Chaos Cult",
+   "Creations of Bile",
+   "Cult of the Arkifane",
+   "Deceptors",
+   "Devotees of Destruction",
+   "Dread Talons",
+   "Fellhammer Siege-Host",
+   "Huron’s Marauders",
+   "Murdertalon Raiders",
+   "Nightmare Hunt",
+   "Pactbound Zealots",
+   "Renegade Raiders",
+   "Renegade Warband",
+   "Soulforged Warpack",
+   "Veterans of the Long War",
+   "Warpstrike Champions"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "dark-angels": {
+  "applied": [
+   "Assault Brethren",
+   "Darkflight Pursuit",
+   "Deathwatch Support",
+   "Devastator Brethren",
+   "Gauntlet Task Force",
+   "Gladius Task Force",
+   "Gravis Linebreaker Force",
+   "Gravis Siege Force",
+   "Inner Circle Task Force",
+   "Ironclad Champions",
+   "Ironstorm Spearhead",
+   "Phobos Shadow Force",
+   "Phobos Shock Force",
+   "Stormlance Task Force",
+   "Tactical Brethren",
+   "Tacticus Attack Force",
+   "Tacticus Firestorm Force",
+   "Terminator Storm Force",
+   "Wrath of the Rock"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "death-guard": {
+  "applied": [
+   "Champions of Contagion",
+   "Contagion Engines",
+   "Death Lord’s Chosen",
+   "Flyblown Host",
+   "Mortarion’s Hammer",
+   "Paragons of Putrescence",
+   "Shamblerot Vectorium",
+   "Tallyband Summoners",
+   "Virulent Vectorium"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "deathwatch": {
+  "applied": [
+   "Assault Brethren",
+   "Black Spear Task Force",
+   "Devastator Brethren",
+   "Gauntlet Task Force",
+   "Gladius Task Force",
+   "Gravis Linebreaker Force",
+   "Gravis Siege Force",
+   "Ironclad Champions",
+   "Ironstorm Spearhead",
+   "Phobos Shadow Force",
+   "Phobos Shock Force",
+   "Stormlance Task Force",
+   "Tactical Brethren",
+   "Tacticus Attack Force",
+   "Tacticus Firestorm Force",
+   "Terminator Storm Force"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": [
+   "Deathwatch Support"
+  ]
+ },
+ "drukhari": {
+  "applied": [
+   "Covenite Coterie",
+   "Exhibition of Slaughter",
+   "Kabalite Agonysts",
+   "Kabalite Cartel",
+   "Realspace Raiders",
+   "Reaper’s Wager",
+   "Skysplinter Assault",
+   "Spectacle of Spite",
+   "Tools of Torment"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "emperors-children": {
+  "applied": [
+   "Carnival of Excess",
+   "Coterie of the Conceited",
+   "Court of the Phoenician",
+   "Elegant Brutes",
+   "Frenzied Host",
+   "Mercurial Host",
+   "Peerless Bladesmen",
+   "Rapid Evisceration",
+   "Slaanesh’s Chosen",
+   "Spectacle of Slaughter"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "genestealer-cults": {
+  "applied": [
+   "Biosanctic Broodsurge",
+   "Brood Brothers Auxilia",
+   "Final Day",
+   "Heroes of the Uprising",
+   "Host of Ascension",
+   "Outlander Claw",
+   "Purestrain Broodswarm",
+   "Xenocreed Congregation",
+   "Xenocult Masses"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "grey-knights": {
+  "applied": [
+   "Argent Assault",
+   "Augurium Task Force",
+   "Banishers",
+   "Brotherhood Strike",
+   "Fires of Purgation",
+   "Hallowed Conclave",
+   "Immaterial Interdiction",
+   "Sanctic Spearhead",
+   "Warpbane Task Force"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "imperial-agents": {
+  "applied": [
+   "Imperialis Fleet",
+   "Ordo Hereticus, Purgation Force",
+   "Ordo Malleus, Daemon Hunters",
+   "Ordo Xenos, Alien Hunters",
+   "Veiled Blade Elimination Force"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "imperial-knights": {
+  "applied": [
+   "Dominus Foebreakers",
+   "Freeblade Company",
+   "Gate Warden Lance",
+   "Questor Forgepact",
+   "Questoris Companions",
+   "Spearhead-At-Arms",
+   "Throne-Bonded Outriders",
+   "Valourstrike Lance"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "leagues-of-votann": {
+  "applied": [
+   "Armoured Trailblazers",
+   "Brandfast Oathband",
+   "Dêlve Assault Shift",
+   "Farseekers",
+   "Hearthband",
+   "Hearthfyre Arsenal",
+   "Hearthguard Covenant",
+   "Mercenary Oathband",
+   "Needgaârd Oathband",
+   "Persecution Prospect"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "necrons": {
+  "applied": [
+   "Annihilation Legion",
+   "Awakened Dynasty",
+   "Canoptek Court",
+   "Cryptek Conclave",
+   "Cursed Legion",
+   "Hand of the Dynasty",
+   "Hypercrypt Legion",
+   "Obeisance Phalanx",
+   "Pantheon of Woe",
+   "Skyshroud Spearhead",
+   "Starshatter Arsenal",
+   "The Phaeron's Armoury"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "orks": {
+  "applied": [
+   "Blitz Brigade",
+   "Brute Bosses",
+   "Bully Boyz",
+   "Da Big Hunt",
+   "Dread Mob",
+   "Flyboyz",
+   "Green Tide",
+   "Kult of Speed",
+   "Madcap Meks",
+   "Runt Swarm",
+   "Shoota Boyz",
+   "Taktikal Brigade",
+   "War Horde",
+   "Wreckas",
+   "Wurrband"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "space-marines": {
+  "applied": [
+   "Assault Brethren",
+   "Blade of Ultramar",
+   "Ceramite Sentinels",
+   "Deathwatch Support",
+   "Devastator Brethren",
+   "Forgefather’s Seekers",
+   "Gauntlet Task Force",
+   "Gladius Task Force",
+   "Gravis Linebreaker Force",
+   "Gravis Siege Force",
+   "Ironclad Champions",
+   "Ironstorm Spearhead",
+   "Medusa's Wrath",
+   "Phobos Shadow Force",
+   "Phobos Shock Force",
+   "Shadowmark Talon",
+   "Spearpoint Task Force",
+   "Stormlance Task Force",
+   "Tactical Brethren",
+   "Tacticus Attack Force",
+   "Tacticus Firestorm Force",
+   "Terminator Storm Force"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "space-wolves": {
+  "applied": [
+   "Assault Brethren",
+   "Champions of Fenris",
+   "Deathwatch Support",
+   "Devastator Brethren",
+   "Gauntlet Task Force",
+   "Gladius Task Force",
+   "Gravis Linebreaker Force",
+   "Gravis Siege Force",
+   "Ironclad Champions",
+   "Ironstorm Spearhead",
+   "Phobos Shadow Force",
+   "Phobos Shock Force",
+   "Saga of the Beastslayer",
+   "Saga of the Great Wolf",
+   "Stormlance Task Force",
+   "Tactical Brethren",
+   "Tacticus Attack Force",
+   "Tacticus Firestorm Force",
+   "Terminator Storm Force"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "tau-empire": {
+  "applied": [
+   "Advanced Acquisition Cadre",
+   "Auxiliary Cadre",
+   "Experimental Prototype Cadre",
+   "Kauyon",
+   "Kroot Hunting Pack",
+   "Mont’Ka",
+   "Retaliation Cadre"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "thousand-sons": {
+  "applied": [
+   "Changehost of Deceit",
+   "Grand Coven",
+   "Hexwarp Thrallband",
+   "Ritual of Regeneration",
+   "Rubricae Phalanx",
+   "Sekhetar Cohort",
+   "Servants of Change",
+   "Warpforged Cabal",
+   "Warpmeld Pact"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "tyranids": {
+  "applied": [
+   "Ambush Predators",
+   "Assimilation Swarm",
+   "Crusher Stampede",
+   "Invasion Fleet",
+   "Subterranean Assault",
+   "Synaptic Nexus",
+   "Talons of the Norn Queen",
+   "Unending Swarm",
+   "Vanguard Onslaught",
+   "Warrior Bioform Onslaught"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ },
+ "world-eaters": {
+  "applied": [
+   "Berzerker Warband",
+   "Brazen Engines",
+   "Butchers of Khorne",
+   "Cult of Blood",
+   "Goretrack Onslaught",
+   "Khorne Daemonkin",
+   "Possessed Slaughterband",
+   "Vessels of Wrath"
+  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
+  "strat_cp_missing": [],
+  "app_only": []
+ }
+}

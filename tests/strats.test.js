@@ -10,7 +10,8 @@ const I = C.indexData(D);
 const CORE = DS.core_st.st;
 
 function st(fid, det, name) {
-  const s = I.factions[fid].dets[det].st.find((x) => x[0].toLowerCase() === name.toLowerCase());
+  const n = (x) => x.toLowerCase().replace(/[’‘]/g, "'");   // names come from the app data (straight apostrophes)
+  const s = I.factions[fid].dets[det].st.find((x) => n(x[0]) === n(name));
   assert.ok(s, `${fid}/${det}: stratagem ${name}`); return s;
 }
 const core = (name) => { const s = CORE.find((x) => x[0] === name); assert.ok(s, name); return s; };

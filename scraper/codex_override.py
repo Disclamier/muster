@@ -324,14 +324,18 @@ def _phase_turn(text):
             if p.title() + " phase" not in ph:
                 ph.append(p.title() + " phase")
     if not ph:
-        if c.startswith("any phase"):
+        if re.search(r"\bany (?:of your )?phases?\b", c):
             ph = ["Any phase"]
+        elif "reinforcements step" in c:
+            ph = ["Movement phase"]
+        elif re.search(r"\bend of (?:your |your opponent'?s |the )?turn\b", c):
+            ph = ["End of turn"]
         elif re.search(r"deploy|battle formations|start of the battle", c):
             ph = ["Deployment"]
         elif "battle round" in c:
             ph = ["Start of battle round"]
     opp = re.search(r"opponent'?s", c)
-    mine = re.search(r"\byour (command|movement|shooting|charge|fight)", c) or c.startswith("end of your ") and not opp
+    mine = re.search(r"\byour (command|movement|shooting|charge|fight|phases)\b|\bany of your phases\b", c) or c.startswith("end of your ") and not opp
     if opp and " or the " not in c and not mine:
         turn = "Opponent's turn"
     elif mine and not opp and " or the " not in c:
