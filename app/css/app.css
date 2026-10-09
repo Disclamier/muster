@@ -673,3 +673,20 @@ html[data-theme="dark"] .metatabs button.on { border-color: var(--green); }
   .guest-note .btn { min-height: 36px; font-size: 13px; }
   .guest-foot .btn { min-height: 42px; flex: 1 1 calc(50% - 6px); justify-content: center; }
 }
+
+/* Detachment names + rules: bright green so they stand out (James, Oct 8) */
+.detfocus > h4,
+details.cfgdet > summary,
+.stgrp-h,
+.detfocus details.coll > summary { color: #39ff14; }
+.detfocus > h4 .dpchip { color: var(--text); }
+details.cfgdet > summary .muted { color: var(--gray); }
+.detfocus .rules,
+details.cfgdet .rules,
+.stgrp .rules,
+.rules.small { color: #39ff14; }
+html[data-theme] details.cfgdet > summary,
+html[data-theme] details.cfgdet > summary b,
+html[data-theme] .detfocus details.coll > summary,
+html[data-theme] .detfocus > h4 { color: #39ff14; }
+html[data-theme] details.cfgdet > summary .muted { color: var(--gray); }
