@@ -510,12 +510,40 @@
   /* ------------------------------------------------------------------ modals */
   function modal(titleText, body, opts) {
     const m = $("#modal");
-    m.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}" data-action="modal-bg"><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}" role="dialog" aria-label="${esc(titleText)}">
+    const fl = opts && opts.float;
+    m.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}${fl ? " floatwrap" : ""}"${fl ? "" : ` data-action="modal-bg"`}><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}${fl ? " float" : ""}" role="dialog" aria-label="${esc(titleText)}">
       <div class="mtitle"><span>${esc(titleText)}</span><button class="ibtn" data-action="close-modal" title="Close">${icon("x")}</button></div>
       <div class="mbody">${body}</div></div></div>`;
     const f = $(".modal input[autofocus], .modal textarea[autofocus]", m); if (f) setTimeout(() => f.focus(), 0);
+    if (fl) makeDraggable($(".modal", m));
     return $(".modal", m);
   }
+  // desktop floating window (Colors): no dim, the page behind stays usable; drag it by the title bar, kept inside the viewport
+  let FLOAT_POS = null;
+  function clampFloat(el, x, y) {
+    const r = el.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    const hb = $("#hdr"), top = hb ? hb.getBoundingClientRect().bottom : 0;   // never over the header (Refresh, Colors stay reachable)
+    x = Math.max(0, Math.min(x, W - r.width)); y = Math.max(top, Math.min(y, H - r.height));
+    el.style.left = x + "px"; el.style.top = y + "px"; return { x, y };
+  }
+  function makeDraggable(el) {
+    if (!el) return;
+    const bar = $(".mtitle", el);
+    el.style.position = "fixed";
+    const r = el.getBoundingClientRect();
+    FLOAT_POS = clampFloat(el, FLOAT_POS ? FLOAT_POS.x : (window.innerWidth - r.width) / 2, FLOAT_POS ? FLOAT_POS.y : Math.max(48, (window.innerHeight - r.height) / 2));
+    let d = null;
+    bar.addEventListener("pointerdown", (ev) => {
+      if (ev.button !== 0 || ev.target.closest("button")) return;
+      const b = el.getBoundingClientRect(); d = { dx: ev.clientX - b.left, dy: ev.clientY - b.top };
+      try { bar.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
+      el.classList.add("dragging"); ev.preventDefault();
+    });
+    bar.addEventListener("pointermove", (ev) => { if (d) FLOAT_POS = clampFloat(el, ev.clientX - d.dx, ev.clientY - d.dy); });
+    const end = () => { d = null; el.classList.remove("dragging"); };
+    bar.addEventListener("pointerup", end); bar.addEventListener("pointercancel", end);
+  }
+  window.addEventListener("resize", () => { const el = $("#modal .modal.float"); if (el && FLOAT_POS) FLOAT_POS = clampFloat(el, FLOAT_POS.x, FLOAT_POS.y); });
   function closeModal() { $("#modal").innerHTML = ""; }
   function confirmModal(text, okLabel, onOk) {
     const m = modal("Please confirm", `<p>${text}</p><div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button>
@@ -1384,14 +1412,26 @@
     if (c.k === "aura") return `<span class="cprev"><span class="pl"><span class="aura-badge" style="background:var(${v}, #8a5cd1);color:var(${v}-fg, #fff)">Aura</span></span><span class="pd"><span class="aura-badge" style="background:var(${v}, #7a4fc4);color:var(${v}-fg, #fff)">Aura</span></span></span>`;
     return `<span class="cprev"><span class="pl" style="color:var(${v}, ${c.def || "#000"})">${esc(SAMPLE[c.k] || c.label)}</span><span class="pd" style="color:var(${v}, ${c.def || "#e8e8e8"})">${esc(SAMPLE[c.k] || c.label)}</span></span>`;
   }
+  // brightness slider for one color: shades the picked (or built-in default) color, hue stays the same
+  const bLabel = (b) => (b > 0 ? "+" + b : String(b));
+  function brightRow(c) {
+    const base = MC.base(c.k), b = MC.getB(c.k), off = !base;
+    return `<div class="cs-bright${off ? " off" : ""}" data-testid="color-bright">
+      <span class="cs-res" style="background:var(--c-${c.k}, ${base || "transparent"})" title="Result" aria-hidden="true"></span>
+      <span class="cs-bl">Darker</span>
+      <input type="range" min="-50" max="50" step="1" value="${b}" data-input="color-b" data-k="${esc(c.k)}" aria-label="${esc(c.label)} brightness" ${off ? "disabled" : ""}>
+      <span class="cs-bl">Brighter</span><output class="cs-bv">${off ? "" : bLabel(b)}</output>
+      ${off ? `<span class="cs-bhint muted">Pick a color to adjust its brightness</span>` : ""}</div>`;
+  }
   function colorRow(c) {
-    const cur = MC.get(c.k), val = cur || colorDefault(c);
-    return `<div class="cset${cur ? " custom" : ""}" data-ck="${esc(c.k)}" data-testid="color-row">
+    const cur = MC.get(c.k), val = cur || colorDefault(c), custom = cur || MC.getB(c.k);
+    return `<div class="cset${custom ? " custom" : ""}" data-ck="${esc(c.k)}" data-testid="color-row">
       <div class="cs-top"><div class="cs-t"><b>${esc(c.label)}</b>${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</div>
         <button class="btn secondary sm cs-reset" data-action="color-reset" data-k="${esc(c.k)}" title="Back to the default color">Reset</button></div>
       <div class="cs-ctl">${colorPreview(c)}</div>
       <div class="cs-ctl"><span class="cs-sw">${(c.disp ? SW_DISP : SW_TEXT).map((x) => `<button class="sw${cur === x ? " on" : ""}" data-action="color-pick" data-k="${esc(c.k)}" data-v="${x}" style="background:${x}" title="${x}" aria-label="${esc(c.label)}: ${x}"></button>`).join("")}
-        <label class="cs-pick" title="Custom color: pick any color"><input type="color" value="${esc(val)}" data-input="color" data-k="${esc(c.k)}" aria-label="${esc(c.label)}: custom color"></label></span></div></div>`;
+        <label class="cs-pick" title="Custom color: pick any color"><input type="color" value="${esc(val)}" data-input="color" data-k="${esc(c.k)}" aria-label="${esc(c.label)}: custom color"></label></span></div>
+      ${brightRow(c)}</div>`;
   }
   function openColors() {
     const txt = MC.CATS.filter((c) => !c.disp), disp = MC.CATS.filter((c) => c.disp);
@@ -1401,11 +1441,12 @@
       <div class="cs-h">Force Dispositions</div>
       <p class="muted cs-intro">Defaults are the colors Games Workshop uses on the 11th edition Force Disposition icons.</p>
       ${disp.map(colorRow).join("")}
-      <div class="mfoot"><button class="btn secondary" data-action="color-reset-all" data-testid="color-reset-all">Reset all</button><button class="btn" data-action="close-modal">Done</button></div></div>`, { sheet: isPhone() });
+      <div class="mfoot"><button class="btn secondary" data-action="color-reset-all" data-testid="color-reset-all">Reset all</button><button class="btn" data-action="close-modal">Done</button></div></div>`, isPhone() ? { sheet: true } : { float: true });
   }
   function refreshColorRow(k) {
     const row = $(`.cset[data-ck="${k}"]`); const c = MC.cat(k); if (!row || !c) return;
-    const cur = MC.get(k); row.classList.toggle("custom", !!cur);
+    const cur = MC.get(k); row.classList.toggle("custom", !!(cur || MC.getB(k)));
+    const br = $(".cs-bright", row); if (br) br.outerHTML = brightRow(c);
     $$(".sw", row).forEach((b) => b.classList.toggle("on", b.dataset.v === cur));
     const inp = $("input[type=color]", row); if (inp && document.activeElement !== inp) inp.value = cur || colorDefault(c);
   }
@@ -1595,6 +1636,7 @@
     "list-search": (t) => { S.ui.listQ = t.value; const pos = t.selectionStart; renderLists(); const n = $("[data-input=list-search]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
     "new-name": (t) => { NEW.name = t.value; },
     "color": (t) => { MC.set(t.dataset.k, t.value); refreshColorRow(t.dataset.k); },
+    "color-b": (t) => { const k = t.dataset.k; MC.setB(k, t.value); const row = t.closest(".cset"); if (row) { row.classList.toggle("custom", !!(MC.get(k) || MC.getB(k))); const o = $(".cs-bv", row); if (o) o.textContent = bLabel(MC.getB(k)); } },
     "meta-q": (t) => { S.ui.metaQ = t.value; const pos = t.selectionStart; renderMeta(null); const n = $("[data-input=meta-q]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
   };
   document.addEventListener("click", (ev) => {

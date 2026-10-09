@@ -39,18 +39,36 @@
     // readable text on top of a color: black on light colors, white on dark ones
     function fg(hex) { var n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(function (x) { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); });
       return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] > 0.25 ? "#000" : "#fff"; }
+    // brightness: -50 (darker) .. +50 (brighter), stored as "<key>_b" next to the picked color; hue + saturation stay the same
+    function bOf(o, k) { var b = Math.round(Number(o[k + "_b"])); return isFinite(b) ? Math.max(-50, Math.min(50, b)) : 0; }
+    function hsl(hex) { var n = parseInt(hex.slice(1), 16), r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255,
+        mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2, d = mx - mn, h = 0, s = 0;
+      if (d) { s = d / (1 - Math.abs(2 * l - 1)); h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
+      return [h, s, l]; }
+    function hex(h, s, l) { var c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2, i = Math.floor(h / 60) % 6,
+        rgb = [[c, x, 0], [x, c, 0], [0, c, x], [0, x, c], [x, 0, c], [c, 0, x]][i];
+      return "#" + rgb.map(function (v) { return ("0" + Math.round((v + m) * 255).toString(16)).slice(-2); }).join(""); }
+    // +50 moves lightness 90% of the way to white, -50 90% of the way to black; 0 = the color itself
+    function shade(h0, b) { if (!ok(h0) || !b) return ok(h0) ? h0.toLowerCase() : h0; var t = hsl(h0), f = Math.abs(b) / 50 * 0.9;
+      return hex(t[0], t[1], b > 0 ? t[2] + (1 - t[2]) * f : t[2] * (1 - f)); }
+    // the base the slider works on: the picked color, else the built-in default (null-default categories need a picked color)
+    function base(o, c) { return ok(o[c.k]) ? o[c.k].toLowerCase() : c.def || c.dflt || null; }
+    function eff(o, c) { var b = bOf(o, c.k), v = base(o, c); if (ok(o[c.k])) return shade(v, b); return b && v ? shade(v, b) : null; }
     function apply(o) {
       var r = document.documentElement; o = o || load();
-      CATS.forEach(function (c) { var v = o[c.k];
+      CATS.forEach(function (c) { var v = eff(o, c);
         if (ok(v)) { r.style.setProperty("--c-" + c.k, v); r.style.setProperty("--c-" + c.k + "-fg", fg(v)); r.setAttribute("data-c-" + c.k, ""); }
         else { r.style.removeProperty("--c-" + c.k); r.style.removeProperty("--c-" + c.k + "-fg"); r.removeAttribute("data-c-" + c.k); } });
     }
     function save(o) { try { if (Object.keys(o).length) localStorage.setItem(KEY, JSON.stringify(o)); else localStorage.removeItem(KEY); } catch (e) { /* ignore */ } apply(o); }
-    function set(k, v) { var o = load(); if (ok(v)) o[k] = v.toLowerCase(); else delete o[k]; save(o); }
+    // set(k, null) = Reset: drops the color and its brightness
+    function set(k, v) { var o = load(); if (ok(v)) o[k] = v.toLowerCase(); else { delete o[k]; delete o[k + "_b"]; } save(o); }
+    function setB(k, b) { var o = load(); b = Math.max(-50, Math.min(50, Math.round(Number(b) || 0))); if (b) o[k + "_b"] = b; else delete o[k + "_b"]; save(o); }
     function get(k) { var v = load()[k]; return ok(v) ? v.toLowerCase() : null; }
     function cat(k) { for (var i = 0; i < CATS.length; i++) if (CATS[i].k === k) return CATS[i]; return null; }
     try { apply(); } catch (e) { /* ignore */ }
-    return { KEY: KEY, CATS: CATS, load: load, apply: apply, set: set, get: get, cat: cat, fg: fg, ok: ok, resetAll: function () { save({}); } };
+    return { KEY: KEY, CATS: CATS, load: load, apply: apply, set: set, get: get, cat: cat, fg: fg, ok: ok, setB: setB, shade: shade,
+      getB: function (k) { return bOf(load(), k); }, base: function (k) { return base(load(), cat(k)); }, effective: function (k) { return eff(load(), cat(k)); }, resetAll: function () { save({}); } };
   })();
 </script>
 </head>

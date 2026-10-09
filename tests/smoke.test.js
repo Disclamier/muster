@@ -960,7 +960,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v18/);
+  assert.match(read("sw.js"), /muster-shell-v19/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1377,4 +1377,58 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   assert.ok(!plain.classList.contains("has-disp") && !plain.querySelector(".dispc"));
   // text export names the disposition
   for (const f of ["gw", "wtc", "wtc-full", "simple"]) assert.match(C.exportText(l, w.Muster.S.idx, w.Muster.S.meta, f), new RegExp("FORCE DISPOSITION: " + fd, "i"), f);
+});
+
+test("Colors brightness: shade keeps the hue, slider saves + applies before paint, Reset clears it; desktop window floats", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const MC = w.MusterColors, root = d.documentElement;
+  // math: 0 = unchanged, + brighter, - darker, same hue; old {det:'#hex'} data still works
+  assert.equal(MC.shade("#ff0000", 0), "#ff0000");
+  assert.equal(MC.shade("#ff0000", 25), "#ff7373");
+  assert.equal(MC.shade("#ff0000", -25), "#8c0000");
+  assert.equal(MC.shade("#ff0000", 50), "#ffe5e5");
+  assert.equal(MC.shade("#ff0000", -50), "#190000");
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const m = d.querySelector("#modal .modal");
+  assert.ok(m.classList.contains("float"), "desktop: floating window");
+  assert.ok(!d.querySelector("#modal .modal-wrap").hasAttribute("data-action"), "no click-outside-to-close backdrop on desktop");
+  assert.equal(d.querySelectorAll("#modal [data-testid=color-bright]").length, MC.CATS.length, "a slider for every color");
+  // null-default categories: slider disabled until a color is picked
+  assert.ok(d.querySelector('#modal input[type=range][data-k=strat]').disabled);
+  assert.ok(!d.querySelector('#modal input[type=range][data-k=det]').disabled, "Detachments default green can be shaded");
+  // pick red for Detachments, slide it darker
+  click(w, d.querySelector('#modal [data-action=color-pick][data-k=det][data-v="#ff4d6d"]'));
+  const sl = d.querySelector('#modal input[type=range][data-k=det]');
+  sl.value = "-25"; sl.dispatchEvent(new w.Event("input", { bubbles: true }));
+  const saved = JSON.parse(w.localStorage.getItem("muster.colors"));
+  assert.equal(saved.det, "#ff4d6d"); assert.equal(saved.det_b, -25);
+  assert.equal(root.style.getPropertyValue("--c-det"), MC.shade("#ff4d6d", -25));
+  assert.notEqual(root.style.getPropertyValue("--c-det"), "#ff4d6d");
+  assert.equal(root.style.getPropertyValue("--c-det-fg"), MC.fg(MC.shade("#ff4d6d", -25)));
+  assert.equal(d.querySelector('#modal .cset[data-ck=det] .cs-bv').textContent, "-25");
+  // brightness on a default color (Take and Hold green) without picking one
+  const s2 = d.querySelector('#modal input[type=range][data-k="disp-take-and-hold"]');
+  s2.value = "20"; s2.dispatchEvent(new w.Event("input", { bubbles: true }));
+  assert.equal(root.style.getPropertyValue("--c-disp-take-and-hold"), MC.shade("#196819", 20));
+  // applied before paint on the next load
+  const b = makeApp({ storage: { "muster.colors": JSON.stringify({ det: "#ff4d6d", det_b: 30, cat: "#00e5ff" }) } });
+  assert.equal(b.d.documentElement.style.getPropertyValue("--c-det"), MC.shade("#ff4d6d", 30));
+  assert.equal(b.d.documentElement.style.getPropertyValue("--c-cat"), "#00e5ff");
+  // Reset clears the color and its brightness
+  click(w, d.querySelector("#modal [data-action=color-reset][data-k=det]"));
+  const after = JSON.parse(w.localStorage.getItem("muster.colors"));
+  assert.equal(after.det, undefined); assert.equal(after.det_b, undefined);
+  assert.equal(root.style.getPropertyValue("--c-det"), "");
+  assert.equal(d.querySelector('#modal input[type=range][data-k=det]').value, "0");
+  click(w, d.querySelector("#modal [data-action=color-reset-all]"));
+  assert.equal(w.localStorage.getItem("muster.colors"), null);
+});
+
+test("Colors on phones: full-screen sheet, not a floating window", async () => {
+  const { w, d } = makeApp({ phone: true });
+  await until(() => d.querySelector(".lists-page"));
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const m = d.querySelector("#modal .modal");
+  assert.ok(m.classList.contains("sheet") && !m.classList.contains("float"));
 });
