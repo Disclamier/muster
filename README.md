@@ -24,7 +24,7 @@ tests/                  node:test unit tests + jsdom smoke tests + refresh fail-
 | Source | Used for | Notes |
 |---|---|---|
 | MFM (mfm.warhammer-community.com) | **all legal points**: units (cost tiers per copy), wargear add-ons, enhancements, detachment points, Muster battle sizes | primary; Next.js RSC payload |
-| GrimSlate | stratagems, detachment rules, enhancement text, unit keywords/roles, **unit compositions + wargear options/default loadouts**, **datasheets: unit stats (M T Sv W Ld OC + invuln), ranged/melee weapon profiles, abilities, weapon-keyword glossary** (never points); DP for detachments MFM lacks | secondary; MFM always wins; GrimSlate-only detachments are listed under "Not in current MFM" and warn (the source name is never shown in the app) |
+| GrimSlate | stratagems, detachment rules, enhancement text, unit keywords/roles, **unit compositions + wargear options/default loadouts**, **datasheets: unit stats (M T Sv W Ld OC + invuln), ranged/melee weapon profiles, abilities, weapon-keyword glossary** (never points); DP for detachments MFM lacks | secondary; MFM always wins; GrimSlate-only detachments are listed under "Not in current MFM" and warn (the source name is never shown in the app), except for the codex-override Adeptus Astartes factions, where they are pre-codex leftovers and dropped |
 | listhammer.info | Meta Win Rates tab | server-rendered `__NUXT_DATA__` from `/stats[?range=4weeks\|dataslate][&includeRtt=true]` (6 views) and `/factions/<slug>[?includeRtt=true]` (This Weekend detail + recent lists, split into `app/data/meta-lists/<slug>.json`); robots.txt is re-read every run and `/api/`, `/players/`, `/events/`, `/list/` are never touched |
 
 `build_data.py` merges `data/mfm.json` + `data/grimslate.json` into `app/data/points.json` (compact keys), writes
@@ -42,6 +42,9 @@ units have datasheets. Units missing in GrimSlate (Titans, Kaius Konorius, gener
 and beats GrimSlate for Space Marines and the generic Adeptus Astartes units/detachments of Black Templars, Blood Angels,
 Dark Angels, Deathwatch and Space Wolves. MFM still owns all points, unit/detachment names, enhancement names/points
 and detachment unit restrictions; units are matched by name. Report: `data/codex_report.json`.
+`scraper/overrides/sm_chapter_detachments.json` (same schema, hand-entered from the Warhammer 40,000 app data of
+30 Sep 2026 + Warhammer Community 16 Sep 2026) adds the detachments the codex does not cover: Champions of Fenris,
+Saga of the Beastslayer, Saga of the Great Wolf (Space Wolves) and Deathwatch Support.
 
 ## Refresh
     make refresh          # = scripts/refresh.sh

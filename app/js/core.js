@@ -30,6 +30,15 @@
     const fall = new Set();
     for (const f of data.factions || []) { fall.add(stNorm(f.name)); for (const u of f.units) if (u.fk) fall.add(stNorm(u.fk)); }
     for (const k in factions) Object.defineProperty(factions[k], "_fall", { value: fall, enumerable: false });
+    // datasheet keywords per faction: a stratagem target keyword that only other factions' datasheets carry (e.g. the
+    // Deathwatch KILL TEAM in a Space Wolves Deathwatch Support detachment) is not "granted by rules" here
+    const kwOf = (f) => { const s = new Set(); for (const u of f.units) for (const x of u.kw || []) s.add(stNorm(x)); return s; };
+    const own = {}, kwall = new Set();
+    for (const f of data.factions || []) { own[f.id] = kwOf(f); for (const x of own[f.id]) kwall.add(x); }
+    for (const k in factions) {
+      const mine = own[k], other = new Set([...kwall].filter((x) => !mine.has(x)));
+      Object.defineProperty(factions[k], "_kwother", { value: other, enumerable: false });
+    }
     const subs = {};
     for (const g of data.groups || []) for (const s of g.factions) subs[s.id] = { ...s, group: g.name };
     const sizes = {};
@@ -1190,6 +1199,7 @@
         // the detachment/army rules (TANK ACE, KILLER, SOUL FORGE...) -> shown as "check"
         const u2 = unk.join(" ");
         if (FALL.has(u2) || unk.some((x) => FALL.has(x))) continue;
+        if (F && F._kwother && F._kwother.has(u2)) continue;
         ok = true; unsure = true; why.push(`${u2.toUpperCase()} (keyword from rules, check)`);
       }
     }

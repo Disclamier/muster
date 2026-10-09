@@ -17,7 +17,10 @@ Adeptus Astartes factions listed in its "factions" field:
 import itertools, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OVERRIDES = [os.path.join(HERE, "overrides", "space_marines_codex.json")]
+OVERRIDES = [os.path.join(HERE, "overrides", "space_marines_codex.json"),
+             # detachments the codex transcription does not cover (Space Wolves sagas, Deathwatch Support): same schema,
+             # text only; applied after the codex
+             os.path.join(HERE, "overrides", "sm_chapter_detachments.json")]
 
 # keywords the app's rules logic depends on (roles, enhancement eligibility): kept from the previous data when the
 # printed codex keyword line lacks them (e.g. a misprint), so no unit silently loses eligibility
@@ -32,6 +35,18 @@ def norm(s):
 
 def enh_key(n):
     return norm(re.sub(r"\((?:upgrade|aura)\)", "", n or "", flags=re.I))
+
+
+def covers(fid):
+    """True when a codex override defines faction `fid`: its detachment list is then exactly the current MFM one
+    (GrimSlate-only detachments are pre-codex leftovers and get dropped by build_data, unless has_detachment)."""
+    return any(fid in ov.get("factions", []) for ov in load())
+
+
+def has_detachment(fid, name):
+    """A detachment of an override covering `fid` (a current codex detachment, kept even when one MFM faction page
+    omits it, e.g. Gladius Task Force on the MFM v1.5 Black Templars page)."""
+    return any(fid in ov.get("factions", []) and norm(name) in {norm(d["name"]) for d in ov["detachments"]} for ov in load())
 
 
 def load():
@@ -303,11 +318,15 @@ def _phase_turn(text):
     clause = when.split(",")[0]
     c = clause.lower()
     ph = []
-    for p in re.findall(r"(command|movement|shooting|charge|fight) phase", c):
-        if p.title() + " phase" not in ph:
-            ph.append(p.title() + " phase")
+    # "your Movement or Charge phase" names both phases
+    for grp in re.findall(r"(PP(?:\s*(?:or|/)\s*(?:the\s+|your\s+)?PP)*) phase".replace("PP", "(?:command|movement|shooting|charge|fight)"), c):
+        for p in re.findall(r"command|movement|shooting|charge|fight", grp):
+            if p.title() + " phase" not in ph:
+                ph.append(p.title() + " phase")
     if not ph:
-        if re.search(r"deploy|battle formations|start of the battle", c):
+        if c.startswith("any phase"):
+            ph = ["Any phase"]
+        elif re.search(r"deploy|battle formations|start of the battle", c):
             ph = ["Deployment"]
         elif "battle round" in c:
             ph = ["Start of battle round"]
@@ -374,7 +393,8 @@ def apply(fid, units, dets, f_ds, rules, wargear_by_unit, stats, report, role_fn
             f_ds[u["n"]] = compact(d, f_ds.get(u["n"]))
             rep["datasheets"].append(u["n"])
             stats["codex_datasheets"] += 1
-        rep["unmatched_codex_units"] = [d["name"] for d in ov["datasheets"] if norm(d["name"]) not in matched] if home else []
+        if home:
+            rep["unmatched_codex_units"] = [d["name"] for d in ov["datasheets"] if norm(d["name"]) not in matched]
         dby = {norm(d["name"]): d for d in ov["detachments"]}
         for cd in dets:
             od = dby.get(norm(cd["n"]))

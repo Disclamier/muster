@@ -61,8 +61,8 @@ test("built data: codex detachments (rule, stratagems, enhancement text) with MF
   assert.deepEqual(g.enh.map((e) => [e[0], e[1]]).sort(), [["Adept of the Codex", 20], ["Artificer Armour", 15], ["Laurels of Triumph", 20], ["Standard of the Emperor Ascendant", 25]]);
   assert.equal(g.dp, 3);   // MFM detachment points
   const codexDets = fac("space-marines").dets.filter((d) => d.cx);
-  assert.equal(codexDets.length, 15);
-  assert.equal(codexDets.reduce((n, d) => n + d.st.length, 0), 48);
+  assert.equal(codexDets.length, 16);   // the 15 codex detachments + Deathwatch Support (sm_chapter_detachments.json)
+  assert.equal(codexDets.reduce((n, d) => n + d.st.length, 0), 52);
   assert.ok(codexDets.find((d) => d.n === "Terminator Storm Force").rs.includes("UNIQUE: TERMINATOR"), "MFM restrictions preserved");
 });
 

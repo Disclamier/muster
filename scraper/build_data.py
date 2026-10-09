@@ -298,8 +298,15 @@ def merge(mfm, gs):
             seen.add(norm(md["name"]))
         # Detachments GrimSlate lists that the current MFM does not (e.g. Space Marine codex detachments
         # awaiting their codex). Included but flagged src="gs"; skipped when no DP (Boarding Actions etc.).
+        # Factions covered by the codex override are the exception: the codex replaced their whole detachment
+        # list and the MFM lists it in full, so GrimSlate-only ones there are obsolete (pre-codex) and dropped
+        # (a codex detachment an MFM faction page happens to omit stays, flagged as not in the MFM).
+        drop_gs_only = codex_override.covers(mf["id"])
         for gd in (gf or {}).get("detachments", []):
             if norm(gd["name"]) in seen or gd.get("detachment_points") is None:
+                continue
+            if drop_gs_only and not codex_override.has_detachment(mf["id"], gd["name"]):
+                stats["gs_only_detachments_dropped"] += 1
                 continue
             stats["gs_only_detachments"] += 1
             cd = {"n": gd["name"], "dp": gd["detachment_points"], "src": "gs",

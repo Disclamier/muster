@@ -1,0 +1,191 @@
+{
+ "source": "Warhammer 40,000 app detachment data, update of 30 Sep 2026 (Codex: Space Marines release; Space Wolves sagas per Warhammer Community, 16 Sep 2026)",
+ "transcribed": "2026-10-09",
+ "note": "Detachments the transcribed codex does not cover (Space Wolves-specific sagas, Deathwatch Support). Text only: points, DP and restrictions stay MFM. 'Unbridled Ferocity' is spelled 'Feroicity' in the app data (typo corrected here).",
+ "factions": [
+  "space-marines",
+  "black-templars",
+  "blood-angels",
+  "dark-angels",
+  "deathwatch",
+  "space-wolves"
+ ],
+ "home_faction": null,
+ "army_rules": [],
+ "datasheets": [],
+ "detachments": [
+  {
+   "name": "Champions of Fenris",
+   "unique": "Terminator",
+   "rule": {
+    "name": "The Great Wolf Watches",
+    "text": "Friendly ADEPTUS ASTARTES CHARACTER units have the following ability:\nCountercharge (Once per battle round, per unit): When you target this unit with the Heroic Intervention Stratagem, that use is -1CP."
+   },
+   "enhancements": [
+    {
+     "name": "A Giant Amongst Giants",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES INFANTRY model only. This model has +2 W. This model's melee attacks have +1 S."
+    },
+    {
+     "name": "Preyslayer",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES INFANTRY model only. This unit can re-roll charge rolls."
+    }
+   ],
+   "stratagems": [
+    {
+     "name": "Champion's Guidance",
+     "cp": 1,
+     "text": "WHEN: Fight phase, when a friendly ADEPTUS ASTARTES CHARACTER unit is selected to fight.\nTARGET: That ADEPTUS ASTARTES CHARACTER unit.\nEFFECT: Your unit's melee attacks can re-roll hit rolls of 1 and wound rolls of 1."
+    },
+    {
+     "name": "Birth of a Saga",
+     "cp": 1,
+     "text": "WHEN: Your Command phase.\nTARGET: One friendly ADEPTUS ASTARTES unit (excluding MONSTER/VEHICLE units).\nEFFECT: Until the start of your next Command phase, your unit has CHARACTER."
+    },
+    {
+     "name": "Heroic Resolve",
+     "cp": 2,
+     "text": "WHEN: Your opponent's Shooting phase or the Fight phase, when an enemy unit targets a friendly ADEPTUS ASTARTES CHARACTER unit.\nTARGET: That ADEPTUS ASTARTES CHARACTER unit.\nEFFECT: Attacks that target your unit have -1 D until that enemy unit has attacked."
+    }
+   ]
+  },
+  {
+   "name": "Saga of the Beastslayer",
+   "unique": null,
+   "rule": {
+    "name": "Legendary Slayers",
+    "text": "Attacks made by friendly BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN units have [LETHAL HITS: CHARACTER/MONSTER/VEHICLE]."
+   },
+   "enhancements": [
+    {
+     "name": "Hunter's Guile",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES model only. When both players have deployed their armies, you can redeploy up to three friendly BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN units. When doing so, you can set those units up in strategic reserves, regardless of how many units are already in strategic reserves."
+    },
+    {
+     "name": "Wolf-Touched",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES model only. This unit has:\n■ WULFEN.\n■ +2\" M."
+    }
+   ],
+   "stratagems": [
+    {
+     "name": "Co-ordinated Strike",
+     "cp": 1,
+     "text": "WHEN: End of your opponent's Fight phase.\nTARGET: One unengaged BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN unit that is within 9\" of one or more battlefield edges.\nEFFECT: Place your unit in strategic reserves."
+    },
+    {
+     "name": "Impetuosity",
+     "cp": 1,
+     "text": "WHEN: Your opponent's Shooting phase, when an enemy unit that targeted a friendly unengaged BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN unit has shot.\nTARGET: That BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN unit.\nEFFECT: Your unit can make a surge move of up to D6\"."
+    },
+    {
+     "name": "Unbridled Ferocity",
+     "cp": 1,
+     "text": "WHEN: Fight phase, when a friendly BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN unit is selected to fight.\nTARGET: That BLOOD CLAWS/THUNDERWOLF CAVALRY/WULFEN unit.\nEFFECT: Your unit's melee attacks have [LANCE]."
+    }
+   ]
+  },
+  {
+   "name": "Saga of the Great Wolf",
+   "unique": null,
+   "rule": {
+    "name": "Master of Wolves",
+    "text": "Friendly ADEPTUS ASTARTES units (excluding MONSTER/VEHICLE units) with this ability have the following abilities:\n■ Encircling Jaws: If the assault doctrine is active for your unit, your unit has +1 to advance rolls and charge rolls.\n■ Hunter's Eye: If the devastator doctrine is active for your unit, your unit's ranged attacks can re-roll hit rolls of 1.\n■ Ferocious Strike: If the tactical doctrine is active for your unit, your unit's attacks that target an enemy unit within 9\" have [SUSTAINED HITS 1].\nFriendly LOGAN GRIMNAR units have the following ability:\n■ Howling Onslaught (Once per battle, per army): In your Command phase, you can use this ability. If you do, friendly ADEPTUS ASTARTES MONSTER/VEHICLE units benefit from the Master of Wolves rule until the start of your next Command phase.\nRestrictions: Your army can include SPACE WOLVES units, but it cannot include any ADEPTUS ASTARTES units drawn from any other Chapter."
+   },
+   "enhancements": [
+    {
+     "name": "Chariots of the Storm",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES model only. When both players have deployed their armies, you can redeploy up to three friendly ADEPTUS ASTARTES units. When doing so, you can set those units up in strategic reserves, regardless of how many units are already in strategic reserves."
+    },
+    {
+     "name": "Grimnar's Mark",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES TERMINATOR CAPTAIN model only. (Once per battle round, per army) You can target this unit with the Rapid Ingress or Heroic Intervention Stratagem, regardless of any other uses of that Stratagem this phase. If you do:\n■ That use is -1CP.\n■ That use does not prevent any uses of that Stratagem on other units this phase."
+    },
+    {
+     "name": "Howlmaw",
+     "upgrade": false,
+     "text": "WOLF PRIEST model only. (Once per turn, per unit) At the start of the Fight phase, you can select one enemy unit within 6\" of this model. That unit makes a Battle-shock roll with -1 to that Battle-shock roll."
+    },
+    {
+     "name": "Skjald's Foretelling",
+     "upgrade": false,
+     "text": "WOLF GUARD BATTLE LEADER model only. This unit's melee attacks have [LANCE]."
+    }
+   ],
+   "stratagems": [
+    {
+     "name": "Fenrisian Ferocity",
+     "cp": 1,
+     "text": "WHEN: Your Movement or Charge phase, when a friendly ADEPTUS ASTARTES MOUNTED/WALKER unit is selected to move or declares a charge.\nTARGET: That ADEPTUS ASTARTES MOUNTED/WALKER unit.\nEFFECT: Your unit has MOBILE."
+    },
+    {
+     "name": "Eye of the Pack",
+     "cp": 1,
+     "text": "WHEN: Your Shooting phase or the Fight phase, when a friendly ADEPTUS ASTARTES INFANTRY unit is selected to attack.\nTARGET: That ADEPTUS ASTARTES INFANTRY unit.\nEFFECT: Your unit's attacks can re-roll wound rolls of 1 and 2."
+    },
+    {
+     "name": "Battle Instincts",
+     "cp": 1,
+     "text": "WHEN: Your opponent's Shooting phase, when an enemy unit that targeted a friendly unengaged ADEPTUS ASTARTES INFANTRY/MOUNTED unit has shot.\nTARGET: That ADEPTUS ASTARTES INFANTRY/MOUNTED unit.\nEFFECT: Your unit can make a normal move of up to D3+3\"."
+    },
+    {
+     "name": "Grimnar's Command",
+     "cp": 1,
+     "text": "WHEN: Your Command phase.\nTARGET: One friendly ADEPTUS ASTARTES unit (excluding MONSTER/VEHICLE units).\nEFFECT: Select one combat doctrine. That combat doctrine is active for your unit until the start of your next Command phase."
+    },
+    {
+     "name": "Wolf Totems",
+     "cp": 1,
+     "text": "WHEN: Any phase, when a friendly ADEPTUS ASTARTES INFANTRY/MOUNTED unit suffers a mortal wound.\nTARGET: That ADEPTUS ASTARTES INFANTRY/MOUNTED unit.\nEFFECT: Your unit has Feel No Pain 5+ against mortal wounds."
+    },
+    {
+     "name": "Fangs of the Pack",
+     "cp": 1,
+     "text": "WHEN: Fight phase, when a friendly ADEPTUS ASTARTES INFANTRY/MOUNTED unit is selected to fight.\nTARGET: That ADEPTUS ASTARTES INFANTRY/MOUNTED unit.\nEFFECT: Your unit's melee attacks have [PRECISION]."
+    }
+   ]
+  },
+  {
+   "name": "Deathwatch Support",
+   "unique": null,
+   "rule": {
+    "name": "Mission Tactics",
+    "text": "Friendly KILL TEAM units with this ability have the following abilities:\n■ Furor Tactics: If the devastator doctrine is active for your unit, your unit's attacks have [SUSTAINED HITS 1].\n■ Malleus Tactics: If the tactical doctrine is active for your unit, your unit's attacks have [LETHAL HITS].\n■ Purgatus Tactics: If the assault doctrine is active for your unit, your unit's attacks that target an enemy unit within 9\" of this unit have [PRECISION].\nDeathwatch Allies: You can include DEATHWATCH units in your army, even though they do not have the same Chapter Faction keyword as other units in your army. The combined points value of such units cannot exceed 500 points. When mustering your army, unless otherwise stated, you cannot select a DEATHWATCH model to be your WARLORD. In addition, KILL TEAM units can only take Enhancements from this Detachment. This is an exception to the Space Marine Chapters army rule."
+   },
+   "enhancements": [
+    {
+     "name": "Beacon Angelis",
+     "upgrade": false,
+     "text": "ADEPTUS ASTARTES model only. If this unit is a KILL TEAM unit, this unit has:\n■ Deep Strike.\n■ When you target this unit with the Rapid Ingress Stratagem, that use is -1CP."
+    }
+   ],
+   "stratagems": [
+    {
+     "name": "Blackstar Extraction",
+     "cp": 1,
+     "text": "WHEN: End of your opponent's Fight phase.\nTARGET: One friendly unengaged KILL TEAM unit.\nEFFECT: Place your unit in strategic reserves."
+    },
+    {
+     "name": "Kraken Rounds",
+     "cp": 1,
+     "text": "WHEN: Your Shooting phase, when a KILL TEAM unit is selected to shoot.\nTARGET: That KILL TEAM unit.\nEFFECT: Your unit's ranged attacks have:\n■ +6\" range.\n■ +1 S."
+    },
+    {
+     "name": "Dragonfire Rounds",
+     "cp": 1,
+     "text": "WHEN: Your Shooting phase, when a KILL TEAM unit is selected to shoot.\nTARGET: That KILL TEAM unit.\nEFFECT: Your unit's ranged attacks:\n■ Can re-roll wound rolls of 1.\n■ Have [IGNORES COVER]."
+    },
+    {
+     "name": "Hellfire Rounds",
+     "cp": 1,
+     "text": "WHEN: Your Shooting phase, when a KILL TEAM unit is selected to shoot.\nTARGET: That KILL TEAM unit.\nEFFECT: Your unit's ranged attacks (excluding [DEVASTATING WOUNDS] attacks) have [ANTI-non-VEHICLE 4+]."
+    }
+   ]
+  }
+ ]
+}
