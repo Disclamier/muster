@@ -19,6 +19,9 @@
   const LS_CATHIDE = "muster.catHidden", LS_CATW = "muster.catW";
   try { S.ui.catHidden = localStorage.getItem(LS_CATHIDE) === "1"; S.ui.catW = +localStorage.getItem(LS_CATW) || 0; } catch (e) { S.ui.catHidden = false; S.ui.catW = 0; }
   S.ui.rulesQ = ""; S.ui.rulesOpen = new Set(); S.ui.rulesTarget = null;
+  const LS_STRANGE = "muster.stats.range";
+  try { S.ui.statsRange = localStorage.getItem(LS_STRANGE) || "7"; } catch (e) { S.ui.statsRange = "7"; }
+  S.stats = {};
   try { S.ui.metaRange = localStorage.getItem(LS_WRRANGE) || "weekend"; S.ui.metaRtt = localStorage.getItem(LS_WRRTT) === "1";
     S.ui.metaTab = localStorage.getItem(LS_WRTAB) || "overview"; S.ui.metaHome = localStorage.getItem(LS_WRHOME) || "factions"; } catch (e) { /* ignore */ }
 
@@ -107,6 +110,24 @@
     onStatus: (i) => { S.sync = i; renderAcct(); },
     onSignedOut: (reason) => { if (reason === "expired") { AUTH.msg = { err: true, text: "Your session expired – please sign in again. Your lists are safe on this device." }; route(); } },
   }) : null;
+  /* owner-only traffic stats (js/stats.js + supabase/page_views.sql): anonymous counting; Stats page only for the owner */
+  const MS = window.MusterStats || null;
+  const ST = MS ? MS.create(window.MUSTER_CONFIG || {}) : null;
+  const curUid = () => (SY && SY.session() && SY.user() && SY.user().id) || null;
+  const isOwner = () => !!(MS && curUid() && MS.owner() === curUid());
+  let ownerChecked = null;
+  /* ask the database once per page load and account; anything but a clear "true" (no function yet, offline) = not owner */
+  function checkOwner() {
+    const uid = curUid(); if (!uid || !MS || ownerChecked === uid || !SY.rpc) return;
+    ownerChecked = uid;
+    SY.rpc("muster_is_owner", {}).then((r) => {
+      if (curUid() !== uid) return;
+      const was = isOwner();
+      if (r === true) { MS.setOwner(uid); if (MS.noCount() === false && localStorage.getItem(MS.LS_NOCOUNT) === null) MS.setNoCount(true); }
+      else MS.setOwner(null);
+      if (was !== isOwner()) { renderAcct(); if ((location.hash || "").startsWith("#/stats")) route(); }
+    }, (e) => { if (e && e.kind === "offline") ownerChecked = null; });
+  }
   // a color change on this device -> pushed to the account (debounced with the list sync); guests: no session, nothing sent
   if (window.MusterColors) window.MusterColors.onChange = () => { if (SY && SY.configured && SY.session()) SY.schedulePush(); };
   /* guest mode ("Try it without an account"): the whole app, lists saved only on this device, nothing syncs, max GUEST_MAX list(s) */
@@ -186,6 +207,9 @@
     return `${i.email ? i.email + " · " : ""}${t}`;
   }
   function renderAcct() {
+    const sn = $("#statsnav"); if (sn) sn.hidden = !isOwner();
+    if (curUid() && ownerChecked !== curUid()) checkOwner();
+    if (!curUid() && MS && MS.owner()) MS.setOwner(null);
     const b = $("#acct"); if (!b) return;
     const use = $("use", b), lbl = $(".lbl", b);
     if (isGuest()) {
@@ -205,7 +229,7 @@
     const m = modal("Account", `<table class="ptable" data-testid="account-info"><tr><td>Signed in as</td><td><b>${esc(i.email || "")}</b></td></tr>
       <tr><td>Sync</td><td><span class="sync-pill s-${esc(i.status)}">${esc(SYNC_TXT[i.status] || i.status)}</span> ${esc(syncTooltip({ ...i, email: null }))}</td></tr>
       <tr><td>Lists</td><td>${S.lists.length} – saved on this device and in your account; changes sync automatically to every device you sign in on.</td></tr></table>
-      <div class="mfoot wrap"><button class="btn secondary" data-action="sync-now">${icon("refresh")} Sync now</button><button class="btn danger" data-action="sign-out">Sign out</button><button class="btn" data-action="close-modal">Close</button></div>`);
+      <div class="mfoot wrap">${isOwner() ? `<button class="btn secondary" data-action="open-stats" data-testid="acct-stats">Stats</button>` : ""}<button class="btn secondary" data-action="sync-now">${icon("refresh")} Sync now</button><button class="btn danger" data-action="sign-out">Sign out</button><button class="btn" data-action="close-modal">Close</button></div>`);
     return m;
   }
   async function signOut() {
@@ -461,7 +485,7 @@
 
   /* ------------------------------------------------------------------ router */
   function route() {
-    if (authWall()) { closeMenus(); renderAuth(); return; }
+    if (authWall()) { closeMenus(); renderAuth(); if (ST) ST.track("#/signin"); return; }
     document.body.classList.remove("auth-wall");
     if (!S.data) { if ($(".auth-page")) $("#main").innerHTML = `<div class="empty">Loading…</div>`; return; }
     const h = location.hash || "#/lists";
@@ -476,8 +500,10 @@
     else if (parts[0] === "meta") { renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null); }
     else if (parts[0] === "rules") renderRules(parts[1] ? decodeURIComponent(parts[1]) : null);
     else if (parts[0] === "share" && parts[1]) openShared(parts.slice(1).join("/"));
+    else if (parts[0] === "stats" && isOwner()) renderStats();
     else renderLists();
     renderBanner(); renderFooter(); setActiveNav(); renderAcct();
+    if (ST) ST.track(parts[0] === "stats" && !isOwner() ? "#/lists" : h);
   }
   window.addEventListener("hashchange", () => { S.ui.panel = null; route(); });
 
@@ -1431,6 +1457,61 @@
       n.parentNode.replaceChild(f, n);
     }
   }
+  /* ------------------------------------------------------------------ owner-only Stats page (aggregates from muster_stats) */
+  const STATS_RANGES = [["1", "Today"], ["7", "7 days"], ["30", "30 days"], ["90", "90 days"]];
+  const VIEW_LBL = { signin: "Sign-in screen", lists: "My Lists", editor: "List editor", meta: "Meta Win Rates", share: "Shared list links", other: "Other (incl. Core Rules)" };
+  const DEV_LBL = { pc: "PC", tablet: "Tablet", phone: "Phone" };
+  function statsRange(key) {
+    const n = Math.max(1, +key || 7), to = new Date(), from = new Date(to.getFullYear(), to.getMonth(), to.getDate() - (n - 1));
+    let tz = "UTC"; try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"; } catch (e) { /* default */ }
+    return { p_from: MS.localDay(from), p_to: MS.localDay(to), p_tz: tz };
+  }
+  function statsChart(daily) {
+    const W = isPhone() ? 420 : 960, H = isPhone() ? 220 : 230, L = 34, B = 22, T = 10, n = daily.length || 1;   // wider canvas on big screens keeps the chart (and its text) a sensible height
+    const max = Math.max(1, ...daily.map((d) => Math.max(d.visits || 0, d.visitors || 0)));
+    const nice = max <= 5 ? 5 : Math.ceil(max / 5) * 5;
+    const bw = (W - L - 4) / n, y = (v) => T + (H - T - B) * (1 - v / nice);
+    const bars = daily.map((d, i) => `<rect class="sbar" x="${(L + i * bw + bw * 0.14).toFixed(1)}" y="${y(d.visits || 0).toFixed(1)}" width="${Math.max(1, bw * 0.72).toFixed(1)}" height="${(H - B - y(d.visits || 0)).toFixed(1)}"><title>${esc(d.d)}: ${d.visits || 0} visits, ${d.visitors || 0} visitors</title></rect>`).join("");
+    const pts = daily.map((d, i) => `${(L + i * bw + bw / 2).toFixed(1)},${y(d.visitors || 0).toFixed(1)}`).join(" ");
+    const grid = [0, 0.5, 1].map((f) => `<line class="sgrid" x1="${L}" x2="${W}" y1="${y(nice * f).toFixed(1)}" y2="${y(nice * f).toFixed(1)}"/><text class="sax" x="${L - 5}" y="${(y(nice * f) + 4).toFixed(1)}" text-anchor="end">${Math.round(nice * f)}</text>`).join("");
+    const lblIdx = n <= 7 ? daily.map((_, i) => i) : [0, Math.floor((n - 1) / 2), n - 1];
+    const fmtD = (iso) => { const [yy, mm, dd] = String(iso).split("-").map(Number); return new Date(yy, mm - 1, dd).toLocaleDateString("en-US", { month: "short", day: "numeric" }); };
+    const xl = lblIdx.map((i) => `<text class="sax" x="${(L + i * bw + bw / 2).toFixed(1)}" y="${H - 6}" text-anchor="${n > 7 && i === 0 ? "start" : n > 7 && i === n - 1 ? "end" : "middle"}">${esc(fmtD(daily[i].d))}</text>`).join("");
+    return `<svg class="schart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Daily visits (bars) and visitors (line)" data-testid="stats-chart">${grid}${bars}${n > 1 ? `<polyline class="sline" points="${pts}"/>` : ""}${daily.map((d, i) => `<circle class="sdot" cx="${(L + i * bw + bw / 2).toFixed(1)}" cy="${y(d.visitors || 0).toFixed(1)}" r="${n > 45 ? 1.6 : 2.6}"/>`).join("")}${xl}</svg>`;
+  }
+  function statsBreak(title, rows, lbl, testid, unit) {
+    const tot = rows.reduce((a, r) => a + (r.n || 0), 0);
+    return `<div class="scard" data-testid="${testid}"><div class="scard-h">${esc(title)}</div>${rows.length ? rows.map((r) => { const pct = tot ? Math.round((r.n || 0) / tot * 100) : 0;
+      return `<div class="srow"><span class="sk">${esc(lbl ? lbl[r.k] || r.k : r.k)}</span><span class="sbarh"><span style="width:${pct}%"></span></span><span class="sn">${esc(fmtN(r.n))}</span><span class="sp muted">${pct}%</span></div>`; }).join("")
+      : `<div class="muted small">No ${esc(unit || "data")} in this range.</div>`}</div>`;
+  }
+  function renderStats() {
+    if (!isOwner()) { location.hash = "#/lists"; return; }
+    const key = STATS_RANGES.some((r) => r[0] === S.ui.statsRange) ? S.ui.statsRange : "7";
+    const R = statsRange(key), ck = `${key}|${R.p_to}`;
+    const got = S.stats[ck];
+    const tile = (v, l, tid) => `<div class="tile" data-testid="${tid}"><div class="tv">${esc(fmtN(v))}</div><div class="tl">${esc(l)}</div></div>`;
+    let body;
+    if (!got) body = `<div class="empty">Loading…</div>`;
+    else if (got.err) body = `<div class="card pad" data-testid="stats-err"><b>Stats aren't available yet.</b> <span class="muted">${esc(got.err)}</span><div class="muted small">Run <code>supabase/page_views.sql</code> once in the Supabase SQL Editor to start counting. <button class="btn secondary small" data-action="stats-reload">Try again</button></div></div>`;
+    else {
+      const d = got.data || {}, t = d.totals || {};
+      body = `<div class="tiles stiles">${tile(t.visits || 0, "Visits", "st-visits")}${tile(t.visitors || 0, "Unique visitors", "st-visitors")}${tile(t.views || 0, "Page views", "st-views")}${d.lists ? tile(d.lists.saved, "Lists saved (all accounts)", "st-lists") + tile(d.lists.accounts, "Accounts", "st-accounts") : ""}</div>
+        <div class="scard sc-chart"><div class="scard-h">Daily visits <span class="lg"><i class="lgb"></i>visits <i class="lgl"></i>unique visitors</span></div>${statsChart(d.daily || [])}</div>
+        <div class="sgrid3">${statsBreak("Visitors by device", d.by_device || [], DEV_LBL, "st-device", "visitors")}${statsBreak("Page views by page", d.by_view || [], VIEW_LBL, "st-view", "page views")}${statsBreak("Top referrers", d.referrers || [], null, "st-ref", "referrers")}</div>`;
+    }
+    $("#main").innerHTML = `<div class="meta-page stats-page" data-testid="stats-page">
+      <div class="meta-h"><div><h2>Stats</h2><div class="meta-src">Only you can see this · cookieless, anonymous counting (no IPs, no accounts)</div></div></div>
+      <div class="meta-ctl"><div class="seg" data-testid="stats-range">${STATS_RANGES.map(([k, l]) => `<button class="${k === key ? "on" : ""}" data-action="stats-range" data-range="${k}">${l}</button>`).join("")}</div>
+        <label class="chk"><input type="checkbox" data-change="stats-nocount" data-testid="stats-nocount" ${MS.noCount() ? "checked" : ""}> Don't count my visits on this device</label></div>
+      ${body}
+      <p class="muted small">Visits = app opens; page views also count switching between My Lists, the editor and Meta. Visitor ids are random and replaced every day, so over several days "unique visitors" adds up each day's visitors. Not counted: previews/localhost, Do Not Track / Global Privacy Control browsers and this device while the box above is ticked.</p></div>`;
+    if (!got && !(ck in S.stats)) {
+      S.stats[ck] = null;
+      SY.rpc("muster_stats", R).then((data) => { S.stats[ck] = { data }; }, (e) => { S.stats[ck] = { err: e && e.status === 404 ? "The stats table / function isn't in the database yet." : (e && e.message) || "Could not load stats." }; })
+        .then(() => { if ((location.hash || "").startsWith("#/stats") && $("[data-testid=stats-page]")) renderStats(); });
+    }
+  }
   function renderMeta(slug) {
     const W = S.wr;
     if (!W || !W.factions) { $("#main").innerHTML = `<div class="meta-page">${metaHeader("Meta Win Rates")}<div class="empty">No win-rate data available yet. It is downloaded with the points data when online.</div></div>`; return; }
@@ -1768,6 +1849,9 @@
     "meta-faction": (t) => { S.ui.metaListDet = ""; location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
     "rules-back": () => { location.hash = "#/rules"; },
     "rules-collapse": () => { S.ui.rulesOpen.clear(); renderRulesBody(); },
+    "stats-range": (t) => { S.ui.statsRange = t.dataset.range; lsSet(LS_STRANGE, S.ui.statsRange); renderStats(); },
+    "open-stats": () => { closeModal(); location.hash = "#/stats"; },
+    "stats-reload": () => { S.stats = {}; renderStats(); },
     "meta-range": (t) => { S.ui.metaRange = t.dataset.range; lsSet(LS_WRRANGE, S.ui.metaRange); route(); },
     "meta-tab": (t) => { if (t.dataset.scope === "home") { S.ui.metaHome = t.dataset.tab; lsSet(LS_WRHOME, t.dataset.tab); } else { S.ui.metaTab = t.dataset.tab; lsSet(LS_WRTAB, t.dataset.tab); } route(); },
     "meta-disp": (t) => { S.ui.metaDispOpen = S.ui.metaDispOpen === t.dataset.name ? null : t.dataset.name; route(); },
@@ -1814,6 +1898,7 @@
     return { c: lo.c, p: { ...lo.p, [key]: p } };
   }
   const changes = {
+    "stats-nocount": (t) => { if (MS) MS.setNoCount(t.checked); toast(t.checked ? "Your visits on this device are not counted" : "Your visits on this device are counted"); },
     "legends": (t) => mutate((l) => { l.showLegends = t.checked; }),
     "show-locked": (t) => mutate((l) => { l.showLocked = t.checked; }),
     "leaders-own": (t) => mutate((l) => { if (t.checked) l.leadersOwnCat = true; else delete l.leadersOwnCat; }),

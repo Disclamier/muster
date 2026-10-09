@@ -53,6 +53,7 @@ function makeApp(opts) {
   w.MUSTER_CONFIG = opts.config || { SUPABASE_URL: "", SUPABASE_ANON_KEY: "" };
   w.eval(read("js/core.js"));
   w.eval(read("js/sync.js"));
+  w.eval(read("js/stats.js"));
   w.eval(read("js/app.js"));
   return { dom, w, d: w.document, server };
 }
@@ -993,7 +994,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v31/);
+  assert.match(read("sw.js"), /muster-shell-v32/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2168,4 +2169,155 @@ test("Core Rules offline / missing data: friendly message, no crash", async () =
 test("service worker precaches the core rules data", () => {
   const sw = read("sw.js");
   assert.match(sw, /"data\/core_rules\.json"/);
+});
+
+/* ------------------------------------------------------------------ owner-only traffic stats */
+const LIVE = "https://disclamier.github.io/muster/";
+function statsSb(o) {
+  o = o || {};
+  const sb = mockSupabase(); const inner = sb.handle; sb.views = []; sb.owner = o.owner === undefined ? "u-1" : o.owner;
+  const res = (status, body) => ({ ok: status >= 200 && status < 300, status, text: async () => (body === undefined ? "" : JSON.stringify(body)), json: async () => body });
+  sb.handle = async (url, init) => {
+    const u = new URL(url); const h = init.headers || {};
+    if (u.pathname === "/rest/v1/page_views") {
+      sb.calls.push({ method: init.method, path: u.pathname, body: JSON.parse(init.body), headers: h });
+      if (o.noTable) return res(404, { code: "42P01", message: 'relation "public.page_views" does not exist' });
+      if (o.throwFetch) throw new TypeError("Failed to fetch");
+      sb.views.push({ body: JSON.parse(init.body), headers: h, init }); return res(201);
+    }
+    if (u.pathname.startsWith("/rest/v1/rpc/")) {
+      sb.calls.push({ method: init.method, path: u.pathname, body: JSON.parse(init.body || "{}"), headers: h });
+      if (o.noTable) return res(404, { code: "PGRST202", message: "Could not find the function" });
+      const uid = /^Bearer at-/.test(h.Authorization || "") ? h.Authorization.split("-")[1] + "-" + h.Authorization.split("-")[2] : null;
+      if (!uid) return res(401, { message: "JWT expired" });
+      if (u.pathname.endsWith("/muster_is_owner")) return res(200, uid === sb.owner);
+      if (u.pathname.endsWith("/muster_stats")) {
+        if (uid !== sb.owner) return res(403, { code: "42501", message: "not allowed" });
+        const b = JSON.parse(init.body); sb.statsArgs = b;
+        return res(200, { from: b.p_from, to: b.p_to, tz: b.p_tz, totals: { visits: 42, views: 97, visitors: 31 },
+          daily: [{ d: b.p_from, visits: 20, views: 50, visitors: 15 }, { d: b.p_to, visits: 22, views: 47, visitors: 16 }],
+          by_view: [{ k: "editor", n: 60 }, { k: "lists", n: 30 }, { k: "meta", n: 7 }], by_device: [{ k: "phone", n: 18 }, { k: "pc", n: 9 }, { k: "tablet", n: 4 }],
+          referrers: [{ k: "reddit.com", n: 9 }], lists: { saved: 12, accounts: 5 } });
+      }
+    }
+    return inner(url, init);
+  };
+  return sb;
+}
+const signedIn = (uid, email) => ({ "muster.auth": JSON.stringify({ access_token: `at-${uid}-0`, refresh_token: `rt-${uid}`, expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: uid, email } }), "muster.sync.owner": uid });
+
+test("stats: device classification follows the app layout (phone = narrow, pc = wide + mouse, tablet = wide + touch)", async () => {
+  const fake = (q) => ({ matchMedia: (x) => ({ matches: q(x) }) });
+  const MSx = makeApp().w.MusterStats;
+  assert.equal(MSx.deviceClass(fake((x) => /max-width: 760px/.test(x))), "phone");
+  assert.equal(MSx.deviceClass(fake((x) => /hover: hover/.test(x))), "pc");
+  assert.equal(MSx.deviceClass(fake(() => false)), "tablet");
+  for (const [o, want] of [[{}, "pc"], [{ tablet: true }, "tablet"], [{ phone: true }, "phone"]]) assert.equal(makeApp(o).w.MusterStats.deviceClass(), want, JSON.stringify(o));
+  assert.equal(MSx.refHost("https://www.reddit.com/r/WarhammerCompetitive/comments/abc?utm=1", "disclamier.github.io"), "reddit.com");
+  assert.equal(MSx.refHost("https://disclamier.github.io/muster/#/lists", "disclamier.github.io"), null);
+  assert.equal(MSx.refHost("not a url", "x"), null);
+  assert.deepEqual(["", "#/lists", "#/list/abc123", "#/meta/orks", "#/share/xyz", "#/stats", "#/weird"].map(MSx.viewOf), ["lists", "lists", "editor", "meta", "share", null, "other"]);
+});
+
+test("stats: the counted row holds no personal data (anon key, random daily id, no list ids / user / email); localhost not counted", async () => {
+  const sb = statsSb({ owner: "nobody" });
+  const mine = { id: "secretlist1", name: "James Secret Orks", faction: "orks", sub: "orks", size: "strikeforce", dets: [], entries: [], app: "muster", schema: 1, updated: "2026-10-02T00:00:00.000Z" };
+  const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: { ...signedIn("u-1", "james@example.com"), "muster.lists": JSON.stringify([mine]) },
+    beforeParse(win) { Object.defineProperty(win.document, "referrer", { value: "https://www.reddit.com/r/x/comments/123?user=bob" }); } });
+  await until(() => d.querySelector(".lists-page"));
+  await until(() => sb.views.length >= 1);
+  await go(w, "#/list/secretlist1"); await until(() => sb.views.length >= 2);
+  await go(w, "#/list/secretlist1"); await go(w, "#/meta"); await until(() => sb.views.length >= 3);
+  const [v1, v2, v3] = sb.views;
+  for (const v of sb.views) {
+    assert.deepEqual(Object.keys(v.body).sort(), ["device", "kind", "ref_host", "view", "visitor"]);
+    assert.match(v.body.visitor, /^[0-9a-f]{16}$/);
+    assert.equal(v.headers.Authorization, "Bearer anon-key", "anon key only, never the user's token");
+    assert.equal(v.init.credentials, "omit");
+    assert.doesNotMatch(JSON.stringify(v), /james|u-1|secret|Orks|bob|at-u/i);
+  }
+  assert.deepEqual([v1.body.kind, v1.body.view, v1.body.ref_host, v1.body.device], ["load", "lists", "reddit.com", "pc"]);
+  assert.deepEqual([v2.body.kind, v2.body.view, v2.body.ref_host], ["view", "editor", null]);
+  assert.equal(v3.body.view, "meta"); assert.equal(sb.views.length, 3, "same view again isn't counted twice");
+  assert.equal(new Set(sb.views.map((v) => v.body.visitor)).size, 1, "one id per device per day");
+  const st = JSON.parse(w.localStorage.getItem("muster.stats.vid")); assert.equal(st.d, w.MusterStats.localDay());
+  // the id is replaced on a new day
+  w.localStorage.setItem("muster.stats.vid", JSON.stringify({ d: "2000-01-01", id: st.id }));
+  assert.notEqual(w.MusterStats.visitorId(w), st.id);
+  // localhost / preview: nothing sent
+  const sb2 = statsSb();
+  const b = makeApp({ config: CFG, supabase: sb2, storage: signedIn("u-1", "james@example.com") });
+  await until(() => b.d.querySelector(".lists-page")); await tick(50);
+  assert.equal(sb2.views.length, 0); assert.ok(!sb2.calls.some((c) => c.path === "/rest/v1/page_views"));
+  // Do Not Track: nothing sent
+  const sb3 = statsSb();
+  const c = makeApp({ config: CFG, supabase: sb3, url: LIVE, storage: signedIn("u-2", "x@example.com"), beforeParse(win) { Object.defineProperty(win.navigator, "doNotTrack", { value: "1" }); } });
+  await until(() => c.d.querySelector(".lists-page")); await tick(50); assert.equal(sb3.views.length, 0);
+});
+
+test("stats: silent when the table / functions don't exist yet or the network fails (no errors, no Stats entry, app works)", async () => {
+  for (const o of [{ noTable: true }, { throwFetch: true, owner: "nobody" }]) {
+    const sb = statsSb(o); const errs = [];
+    const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: signedIn("u-1", "james@example.com"),
+      beforeParse(win) { win.addEventListener("error", (e) => errs.push(e.message)); win.addEventListener("unhandledrejection", (e) => errs.push(String(e.reason))); } });
+    await until(() => d.querySelector(".lists-page"));
+    await tick(80);
+    await go(w, "#/meta"); await go(w, "#/lists"); await tick(50);
+    assert.deepEqual(errs, [], JSON.stringify(o));
+    assert.ok(d.querySelector("#statsnav").hidden, "no Stats entry");
+    assert.equal(d.querySelector(".toast"), null);
+    const tries = sb.calls.filter((c) => c.path === "/rest/v1/page_views").length;
+    if (o.noTable) assert.equal(tries, 1, "a missing table stops further tries for this page load");
+    await go(w, "#/stats"); assert.ok(d.querySelector(".lists-page") && !d.querySelector("[data-testid=stats-page]"));
+  }
+});
+
+test("stats: Stats page only for the owner account (checked by the database); owner's visits not counted by default; range picker", async () => {
+  const sb = statsSb({ owner: "u-1" });
+  const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: signedIn("u-1", "james@example.com") });
+  await until(() => d.querySelector(".lists-page"));
+  const nav = d.querySelector("#statsnav");
+  await until(() => !nav.hidden);
+  assert.equal(w.localStorage.getItem("muster.stats.noCount"), "1", "owner device defaults to not counted");
+  const before = sb.views.length;
+  await go(w, "#/stats");
+  await until(() => d.querySelector("[data-testid=st-visits]"));
+  assert.match(d.querySelector("[data-testid=st-visits]").textContent, /42/); assert.match(d.querySelector("[data-testid=st-visitors]").textContent, /31/);
+  assert.ok(d.querySelector("[data-testid=stats-chart] rect.sbar"));
+  assert.match(d.querySelector("[data-testid=st-device]").textContent, /Phone/); assert.match(d.querySelector("[data-testid=st-ref]").textContent, /reddit\.com/);
+  assert.ok(d.querySelector("[data-testid=stats-nocount]").checked);
+  const rc = sb.calls.find((c) => c.path === "/rest/v1/rpc/muster_stats"); assert.match(rc.headers.Authorization, /^Bearer at-u-1/);
+  click(w, d.querySelector('[data-action=stats-range][data-range="30"]'));
+  await until(() => sb.statsArgs && sb.statsArgs.p_from !== sb.statsArgs.p_to && (Date.parse(sb.statsArgs.p_to) - Date.parse(sb.statsArgs.p_from)) / 864e5 === 29);
+  assert.equal(w.localStorage.getItem("muster.stats.range"), "30");
+  await go(w, "#/meta"); await go(w, "#/lists"); await tick(30);
+  assert.equal(sb.views.length, before, "owner's own visits not counted");
+  const box = d.querySelector("[data-testid=stats-nocount]"); // gone after leaving; reopen and untick
+  assert.equal(box, null);
+  await go(w, "#/stats"); await until(() => d.querySelector("[data-testid=stats-nocount]"));
+  change(w, d.querySelector("[data-testid=stats-nocount]"), false);
+  assert.equal(w.localStorage.getItem("muster.stats.noCount"), "0");
+  await go(w, "#/lists"); await until(() => sb.views.length > before);
+  // phones: header is full, so Stats sits in the Account window (and the header entry is CSS-hidden there)
+  assert.match(read("css/app.css"), /max-width: 760px\) \{ #statsnav \{ display: none !important; \} \}/);
+  click(w, d.querySelector("#acct")); click(w, d.querySelector("[data-testid=acct-stats]")); await tick(10); w.Muster.route();
+  await until(() => d.querySelector("[data-testid=stats-page]"));
+  // another account: no Stats entry, #/stats goes to My Lists, the database refuses muster_stats anyway
+  const sb2 = statsSb({ owner: "u-1" });
+  const b = makeApp({ config: CFG, supabase: sb2, url: LIVE + "#/stats", storage: signedIn("u-9", "friend@example.com") });
+  await until(() => b.d.querySelector(".lists-page")); await tick(80);
+  assert.ok(b.d.querySelector("#statsnav").hidden); assert.equal(b.d.querySelector("[data-testid=stats-page]"), null);
+  click(b.w, b.d.querySelector("#acct")); assert.equal(b.d.querySelector("[data-testid=acct-stats]"), null);
+  assert.equal(b.w.localStorage.getItem("muster.stats.owner"), null);
+  assert.ok(!sb2.calls.some((c) => c.path === "/rest/v1/rpc/muster_stats"));
+  // guest / signed out: no Stats entry and no owner calls
+  const g = makeApp({ url: LIVE + "#/lists" }); await until(() => g.d.querySelector(".lists-page"));
+  assert.ok(g.d.querySelector("#statsnav").hidden);
+  // SQL migration: owner-only aggregate RPC, insert-only for the public
+  const sql = fs.readFileSync(path.join(__dirname, "../supabase/page_views.sql"), "utf8");
+  assert.match(sql, /grant insert \(kind, view, device, ref_host, visitor\) on public\.page_views to anon, authenticated/);
+  assert.match(sql, /revoke all on public\.page_views from anon, authenticated/);
+  assert.match(sql, /if not public\.muster_is_owner\(\) then raise exception/);
+  assert.match(sql, /revoke all on function public\.muster_stats\(date, date, text\) from public, anon/);
+  assert.doesNotMatch(sql, /\b(ip|user_agent|email)\b\s+text/i);
 });

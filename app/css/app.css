@@ -1049,3 +1049,27 @@ html[data-theme="dark"] .rules-page mark { background: #7a5d00; color: #fff; }
 .rtext .str { border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; margin: 6px 0; }
 @media (min-width: 761px) and (hover: none), (min-width: 761px) and (pointer: coarse) { .rules-search { top: 54px; } }
 @media (max-width: 760px) { .rules-search { top: 56px; } }
+/* owner-only Stats page */
+.stats-page .meta-ctl .chk { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; min-height: 32px; cursor: pointer; }
+.stiles { margin-bottom: 8px; }
+.scard { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; min-width: 0; }
+.scard-h { font-weight: 700; font-size: 13px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.scard-h .lg { font-weight: 400; font-size: 12px; color: var(--gray); display: inline-flex; align-items: center; gap: 6px; margin-left: auto; }
+.scard-h .lg i { display: inline-block; width: 12px; height: 8px; border-radius: 2px; }
+.scard-h .lgb { background: var(--green); opacity: .75; } .scard-h .lgl { height: 2px !important; background: #e0a526; }
+.sc-chart { margin-bottom: 8px; }
+.schart { width: 100%; height: auto; display: block; }
+.schart .sbar { fill: var(--green); opacity: .75; } .schart .sbar:hover { opacity: 1; }
+.schart .sline { fill: none; stroke: #e0a526; stroke-width: 2; stroke-linejoin: round; }
+.schart .sdot { fill: #e0a526; }
+.schart .sgrid { stroke: var(--border); stroke-width: 1; }
+.schart .sax { fill: var(--gray); font-size: 11px; font-family: inherit; }
+.sgrid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-bottom: 8px; }
+.srow { display: grid; grid-template-columns: minmax(110px, 1.4fr) 2fr auto 38px; align-items: center; gap: 8px; padding: 4px 0; font-size: 13px; }
+.srow .sk { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.srow .sbarh { height: 8px; border-radius: 4px; background: var(--sect, rgba(127,127,127,.15)); overflow: hidden; }
+.srow .sbarh span { display: block; height: 100%; background: var(--green); border-radius: 4px; }
+.srow .sn { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; } .srow .sp { text-align: right; font-size: 12px; }
+@media (pointer: coarse) { .stats-page .seg button { min-height: 40px; padding: 6px 14px; } .stats-page .meta-ctl .chk { min-height: 44px; } }
+/* phones: the header is full, so the owner's Stats entry lives in the Account window there */
+@media (max-width: 760px) { #statsnav { display: none !important; } }

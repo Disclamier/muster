@@ -199,10 +199,15 @@
       if (st.status !== "syncing") setStatus(online() ? "syncing" : "offline");
       st.debounce = setTimeout(() => syncNow({ pull: false }), ms === undefined ? 1000 : ms);
     }
+    /* owner-only Postgres functions (supabase/page_views.sql): POST /rest/v1/rpc/<fn> with the signed-in token */
+    async function rpc(fn, args) {
+      if (!configured || !session) throw new SyncError("Not signed in", "auth");
+      return authed(`/rest/v1/rpc/${encodeURIComponent(fn)}`, { method: "POST", body: args || {} });
+    }
     async function flush() { clearTimeout(st.debounce); await syncNow({ pull: false }); if (st.busy) await st.busy; return info(); }
 
     return { configured, info, session: () => session, user: () => session && session.user, signUp, signIn, recover, updatePassword, signOut,
-      consumeRedirect, refresh, token, syncNow, schedulePush, flush, lastPull: () => st.lastPull, LS_KNOWN, LS_CSYNC,
+      consumeRedirect, refresh, token, rpc, syncNow, schedulePush, flush, lastPull: () => st.lastPull, LS_KNOWN, LS_CSYNC,
       colorsError: () => st.colorsError || null };
   }
   root.MusterSync = { create };
