@@ -3,7 +3,7 @@ Weekly rules-text check: re-fetch the Warhammer 40,000 app detachment pages (via
 them and diff against the committed override (scraper/overrides/gwapp_detachments.json). Never commits or pushes.
 
   python3 scraper/rules_check.py              # fetch + compile + report (exit 0 = no changes, 1 = changes, 2 = fetch problem)
-  python3 scraper/rules_check.py --apply      # also write the override and rebuild app/data (review, test, commit yourself)
+  python3 scraper/rules_check.py --apply      # also write the override and run scripts/refresh.sh (fresh MFM + GrimSlate rebuild of app/data) (review, test, commit yourself)
   python3 scraper/rules_check.py --pages DIR  # reuse already fetched pages
 
 Report: data/rules_check.txt (also printed). `make rules-check` / `make rules-apply`.
@@ -90,8 +90,9 @@ def main():
     print(txt)
     if a.apply and n:
         shutil.copy(tmp, CUR)
-        subprocess.run([sys.executable, os.path.join(HERE, "build_data.py")], check=True)
-        print(f"applied: {CUR} + app/data rebuilt. Review `git diff`, run `make test` + `make audit`, bump sw.js, commit. Not pushed.")
+        # full refresh (fresh MFM + GrimSlate), so app/data is not rebuilt from stale local scrapes
+        subprocess.run(["bash", os.path.join(ROOT, "scripts", "refresh.sh")], check=True)
+        print(f"applied: {CUR} + app/data refreshed. Review `git diff`, run `make test` + `make audit`, bump sw.js, commit. Not pushed.")
     return 1 if n else 0
 
 

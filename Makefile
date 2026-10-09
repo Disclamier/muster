@@ -13,5 +13,5 @@ audit:        ## independent points audit: live MFM (headless Chrome) vs what th
 	node audit/check_points.js audit/out/mfm_audit.json --json audit/out/result.json
 rules-check:  ## weekly: re-fetch GW app detachment pages (40k.app, headless Chrome), diff vs committed rules override; exit 1 on changes; never commits/pushes
 	python3 scraper/rules_check.py
-rules-apply:  ## same, and write the override + rebuild app/data (then review, test, commit yourself)
+rules-apply:  ## same, and write the override + full refresh of app/data (then review, test, commit yourself)
 	python3 scraper/rules_check.py --apply

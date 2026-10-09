@@ -84,7 +84,7 @@ def parse(path):
     url = L[0]
     if "Become a supporter" in L:                       # site footer
         L = L[:L.index("Become a supporter")]
-    SHOP = {"Discover more", "Warhammer 40,000 miniatures", "Warhammer 40,000 books", "Warhammer merchandise", "Shop Miniatures", "Forge World models"}
+    SHOP = {"Discover more", "Warhammer 40,000 miniatures", "Warhammer 40,000 books", "Warhammer merchandise", "Shop Miniatures", "Forge World models", "Play Tabletop RPGs"}
     L = [l for l in L if l not in SHOP]                 # shop-link block the site inserts between sections
     i = L.index("CREATE LIST")
     hdr = L[:i]

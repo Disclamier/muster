@@ -102,3 +102,12 @@ test("compiled app data: version + every MFM detachment present", () => {
   const all = new Set(Object.values(OV.factions).flat().map((d) => n(d.name).replace(/[^a-z0-9]/g, "")));
   for (const f of P.factions) for (const d of f.dets) assert.ok(all.has(n(d.n).replace(/[^a-z0-9]/g, "")), `${f.id}: ${d.n}`);
 });
+
+test("no site ad/shop lines leak into rules text (e.g. 'Play Tabletop RPGs' after an enhancement)", () => {
+  const bad = /Play Tabletop RPGs|Shop Miniatures|Become a supporter|Discover more|Forge World models/;
+  for (const f of P.factions) for (const d of f.dets) {
+    assert.doesNotMatch(d.rule[1], bad, `${f.id}: ${d.n} rule`);
+    for (const e of d.enh) assert.doesNotMatch(e[2] || "", bad, `${f.id}/${d.n}/${e[0]}`);
+    for (const s of d.st) assert.doesNotMatch(s[5], bad, `${f.id}/${d.n}/${s[0]}`);
+  }
+});
