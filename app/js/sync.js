@@ -3,7 +3,10 @@
    hooks: getLocal() -> {lists, tombs}; apply(mergeResult); onStatus(status); onSignedOut(reason). */
 (function (root) {
   "use strict";
-  const LS_AUTH = "muster.auth", LS_KNOWN = "muster.sync.known";
+  const LS_AUTH = "muster.auth", LS_KNOWN = "muster.sync.known", LS_CSYNC = "muster.colors.syncedAt";
+  // Colors bundle rides in the user's auth metadata (user_metadata.musterColors): no table/SQL needed. It is also copied
+  // into the access token, so keep it small (a few KB; 16 KB hard cap).
+  const COLORS_MAX = 16000;
   const C = root.MusterCore;
 
   function create(cfg, hooks) {
@@ -148,6 +151,7 @@
             for (const r of rows) known[r.id] = r.updated_at;
             ls.set(LS_KNOWN, known);
           }
+          await colorsStep(pull);
           st.lastSync = new Date().toISOString();
           setStatus("synced");
           return true;
@@ -163,6 +167,31 @@
       })();
       return st.busy;
     }
+    /* Colors across devices: whole bundle, newest updatedAt wins. Pull (GET /auth/v1/user) on sign-in/start/focus/
+       refresh; push (PUT /auth/v1/user {data:{musterColors}}) when this device changed since the last sync.
+       A colors failure never fails the list sync. */
+    async function colorsStep(pull) {
+      if (!hooks.getColors) return;
+      try {
+        const local = hooks.getColors(); const lt = Number(local && local.updatedAt) || 0;
+        let rt = Number(ls.get(LS_CSYNC)) || 0, push = lt > rt;
+        if (pull) {
+          const u = await authed("/auth/v1/user", {});
+          const r = u && u.user_metadata && u.user_metadata.musterColors;
+          rt = r && typeof r === "object" ? Number(r.updatedAt) || 0 : 0;
+          if (rt && rt > lt) { if (hooks.applyColors) hooks.applyColors(r); ls.set(LS_CSYNC, rt); push = false; }
+          else { push = lt > rt; if (!push) ls.set(LS_CSYNC, rt); }
+        }
+        if (!push) return;
+        const b = hooks.getColors(); const txt = JSON.stringify(b);
+        if (txt.length > COLORS_MAX) { st.colorsError = "Colors too large to sync"; return; }
+        await authed("/auth/v1/user", { method: "PUT", body: { data: { musterColors: b } } });
+        ls.set(LS_CSYNC, Number(b.updatedAt) || 0); st.colorsError = null;
+      } catch (e) {
+        st.colorsError = e.message;
+        if (e.kind === "offline") throw e;
+      }
+    }
     /* debounced push after a local change (create / edit / rename / delete / import) */
     function schedulePush(ms) {
       if (!configured || !session) return;
@@ -173,7 +202,8 @@
     async function flush() { clearTimeout(st.debounce); await syncNow({ pull: false }); if (st.busy) await st.busy; return info(); }
 
     return { configured, info, session: () => session, user: () => session && session.user, signUp, signIn, recover, updatePassword, signOut,
-      consumeRedirect, refresh, token, syncNow, schedulePush, flush, lastPull: () => st.lastPull, LS_KNOWN };
+      consumeRedirect, refresh, token, syncNow, schedulePush, flush, lastPull: () => st.lastPull, LS_KNOWN, LS_CSYNC,
+      colorsError: () => st.colorsError || null };
   }
   root.MusterSync = { create };
 })(typeof self !== "undefined" ? self : this);

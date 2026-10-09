@@ -84,8 +84,27 @@
         if (ok(v)) { r.style.setProperty("--c-" + c.k, v); r.style.setProperty("--c-" + c.k + "-fg", fg(v)); r.setAttribute("data-c-" + c.k, ""); }
         else { r.style.removeProperty("--c-" + c.k); r.style.removeProperty("--c-" + c.k + "-fg"); r.removeAttribute("data-c-" + c.k); } });
     }
+    // every local change stamps the whole bundle (account sync: newest bundle wins across devices)
+    var UKEY = "muster.colors.updatedAt", api = null;
+    function touch() { try { localStorage.setItem(UKEY, String(Date.now())); } catch (e) { /* ignore */ } if (api && api.onChange) try { api.onChange(); } catch (e) { /* ignore */ } }
     function save(o) { wr(KEY, pick(o, true));
-      if (scope) wr(FKEY + scope, pick(o, false)); apply(); }
+      if (scope) wr(FKEY + scope, pick(o, false)); apply(); touch(); }
+    function fkeys() { var r = []; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (k && k.indexOf(FKEY) === 0) r.push(k); } } catch (e) { /* ignore */ } return r; }
+    // the whole color setup for the account: shared disposition colors + every faction's set
+    function bundle() { var f = {}, any = Object.keys(rd(KEY)).length > 0;
+      fkeys().forEach(function (k) { var o = rd(k); if (Object.keys(o).length) { f[k.slice(FKEY.length)] = o; any = true; } });
+      var t = Number(localStorage.getItem(UKEY)) || 0; return { v: 1, updatedAt: t || (any ? 1 : 0), shared: rd(KEY), f: f }; }
+    function clean(o) { var r = {}; if (!o || typeof o !== "object") return r;
+      for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k) && k.length < 40) { var v = o[k];
+        if (/_b$/.test(k) ? typeof v === "number" && isFinite(v) : ok(v)) r[k] = v; } return r; }
+    // replace this device's colors with a bundle from the account (no stamp/onChange: it is already in sync)
+    function setBundle(b) { if (!b || typeof b !== "object") return false;
+      fkeys().forEach(function (k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } });
+      wr(KEY, pick(clean(b.shared), true));
+      var f = b.f && typeof b.f === "object" ? b.f : {};
+      for (var id in f) if (Object.prototype.hasOwnProperty.call(f, id) && /^[a-z0-9-]{1,60}$/.test(id)) wr(FKEY + id, pick(clean(f[id]), false));
+      try { localStorage.setItem(UKEY, String(Number(b.updatedAt) || 0)); localStorage.setItem("muster.colors.v", "2"); } catch (e) { /* ignore */ }
+      apply(); return true; }
     function setScope(id) { id = id || null; if (id === scope) return false; scope = id; apply(); return true; }
     // set(k, null) = Reset: drops the color and its brightness
     function set(k, v) { var o = load(); if (ok(v)) o[k] = v.toLowerCase(); else { delete o[k]; delete o[k + "_b"]; } save(o); }
@@ -93,9 +112,10 @@
     function get(k) { var v = load()[k]; return ok(v) ? v.toLowerCase() : null; }
     function cat(k) { for (var i = 0; i < CATS.length; i++) if (CATS[i].k === k) return CATS[i]; return null; }
     try { migrate(); scope = scopeOfHash(location.hash); apply(); } catch (e) { /* ignore */ }
-    return { KEY: KEY, CATS: CATS, load: load, apply: apply, set: set, get: get, cat: cat, fg: fg, ok: ok, setB: setB, shade: shade,
+    return api = { KEY: KEY, CATS: CATS, load: load, apply: apply, set: set, get: get, cat: cat, fg: fg, ok: ok, setB: setB, shade: shade,
       getB: function (k) { return bOf(load(), k); }, base: function (k) { return base(load(), cat(k)); }, effective: function (k) { return eff(load(), cat(k)); }, // Reset all: this faction's colors (dispositions keep theirs); with no list open, the shared disposition colors
-      resetAll: function () { if (scope) wr(FKEY + scope, {}); else wr(KEY, {}); apply(); },
+      resetAll: function () { if (scope) wr(FKEY + scope, {}); else wr(KEY, {}); apply(); touch(); },
+      bundle: bundle, setBundle: setBundle, UKEY: UKEY, onChange: null,
       setScope: setScope, scope: function () { return scope; }, scopeOfHash: scopeOfHash, FKEY: FKEY, isDisp: isDisp };
   })();
 </script>

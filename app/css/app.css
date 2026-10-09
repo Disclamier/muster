@@ -866,3 +866,21 @@ details.cset .cs-t small { margin: 0; }
 
 /* Colors preview for "Attached units" */
 .att-prev { display: inline-block; padding: 1px 7px; border: 2px solid; border-radius: 5px; font-size: 12px; font-weight: 700; }
+
+/* Refresh button always on screen: header items may shrink (brand first), the blue Refresh never does */
+#hdr { min-width: 0; }
+#hdr .brand { min-width: 0; overflow: hidden; flex-shrink: 1; }
+#hdr .brand > span, #hdr .brand small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#hdr .hbtn { flex-shrink: 0; }
+#hdr .hbtn.reload { flex: none; }
+/* touch tablets (wide, no mouse): finger-sized header buttons like phones, labels kept */
+@media (min-width: 761px) and (hover: none), (min-width: 761px) and (pointer: coarse) {
+  #hdr { height: 54px; gap: 4px; }
+  #hdr .brand img { width: 30px; height: 30px; }
+  .hbtn { min-width: 48px; min-height: 46px; justify-content: center; font-size: 11px; padding: 4px 8px; gap: 2px; }
+  .hbtn svg.i { width: 22px; height: 22px; }
+  .hbtn.reload { min-width: 64px; }
+}
+@media (min-width: 761px) and (max-width: 900px) and (hover: none), (min-width: 761px) and (max-width: 900px) and (pointer: coarse) {
+  #hdr .brand small { display: none; }
+}

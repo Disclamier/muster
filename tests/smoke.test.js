@@ -975,7 +975,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v24/);
+  assert.match(read("sw.js"), /muster-shell-v25/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -999,6 +999,14 @@ function mockSupabase(o) {
     if (u.pathname === "/auth/v1/signup") {
       const id = `u-${Object.keys(sb.users).length + 1}`; sb.users[body.email] = { pw: body.password, id };
       return res(200, sb.confirm ? { id, email: body.email } : sess(id, body.email));
+    }
+    if (u.pathname === "/auth/v1/user" && /^Bearer at-/.test(h.Authorization || "")) {
+      // auth user + user_metadata (Colors sync); PUT merges data into user_metadata like GoTrue
+      const uid = h.Authorization.split("-")[1] + "-" + h.Authorization.split("-")[2];
+      sb.meta = sb.meta || {}; const m = sb.meta[uid] = sb.meta[uid] || {};
+      if (init.method === "PUT" && body && body.data) Object.assign(m, JSON.parse(JSON.stringify(body.data)));
+      const email = Object.keys(sb.users).find((e) => sb.users[e].id === uid);
+      return res(200, { id: uid, email, user_metadata: m });
     }
     if (u.pathname === "/auth/v1/logout") return res(204);
     if (u.pathname === "/auth/v1/recover") return res(200, {});
@@ -1723,4 +1731,88 @@ test("attached units: one colored border around the character row(s) + bodyguard
   change(w, d.querySelector("[data-testid=leaders-own]"), true);
   assert.equal(d.querySelector(".roster [data-testid=attached-group]"), null);
   assert.match(d.querySelector(`.roster .urow[data-uid="${loj.uid}"]`).textContent, /Attached to/);
+});
+
+/* ---------------------------------------------------------------- Colors sync through the account (user_metadata) */
+function colorsAccountApp(sb, extra) {
+  const auth = { access_token: "at-u-1-0", refresh_token: "rt-u-1", expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: "u-1", email: "james@example.com" } };
+  const we = { id: "we1", name: "Khorne", faction: "world-eaters", sub: "world-eaters", size: "strikeforce", dets: [], entries: [], app: "muster", schema: 1, updated: "2026-10-02T00:00:00.000Z" };
+  sb.rows.push({ id: "we1", user_id: "u-1", updated_at: we.updated, deleted: false, data: we });
+  return makeApp({ config: CFG, supabase: sb, url: "http://localhost:8765/#/list/we1",
+    storage: { "muster.auth": JSON.stringify(auth), "muster.sync.owner": "u-1", "muster.lists": JSON.stringify([we]), "muster.sync.known": JSON.stringify({ we1: we.updated }), "muster.colors.v": "2", ...extra } });
+}
+const userPuts = (sb) => sb.calls.filter((c) => c.path === "/auth/v1/user" && c.method === "PUT");
+
+test("Colors sync: a newer bundle in the account replaces this device's colors (all factions + dispositions) and re-applies live", async () => {
+  const sb = mockSupabase(); const T = Date.now();
+  sb.meta = { "u-1": { musterColors: { v: 1, updatedAt: T, shared: { "disp-disruption": "#c25e00" }, f: { "world-eaters": { det: "#ff4d6d", det_b: -10 }, "space-marines": { cat: "#00e5ff" } } } } };
+  const { dom, w, d } = colorsAccountApp(sb, { "muster.colors.f.world-eaters": JSON.stringify({ det: "#00e5ff" }), "muster.colors.f.orks": JSON.stringify({ strat: "#ff9f1c" }), "muster.colors.updatedAt": String(T - 60000) });
+  const root = d.documentElement, MC = w.MusterColors;
+  assert.equal(root.style.getPropertyValue("--c-det"), "#00e5ff", "local colors before paint");
+  await until(() => w.localStorage.getItem("muster.colors.syncedAt") === String(T));
+  assert.equal(root.style.getPropertyValue("--c-det"), MC.shade("#ff4d6d", -10), "remote applied live");
+  assert.equal(root.style.getPropertyValue("--c-disp-disruption"), "#c25e00");
+  assert.deepEqual(JSON.parse(w.localStorage.getItem("muster.colors.f.space-marines")), { cat: "#00e5ff" });
+  assert.equal(w.localStorage.getItem("muster.colors.f.orks"), null, "whole bundle replaced");
+  assert.equal(w.localStorage.getItem("muster.colors.updatedAt"), String(T));
+  assert.equal(userPuts(sb).length, 0, "older local colors are not pushed");
+  // the request carries the user's token + anon key only
+  const get = sb.calls.find((c) => c.path === "/auth/v1/user");
+  assert.match(get.headers.Authorization, /^Bearer at-u-1/); assert.equal(get.headers.apikey, "anon-key");
+  dom.window.close();
+});
+
+test("Colors sync: newer local colors push to the account; a change pushes (debounced) and another device picks it up", async () => {
+  const sb = mockSupabase(); const T = Date.now();
+  sb.meta = { "u-1": { other: 1, musterColors: { v: 1, updatedAt: T - 60000, shared: {}, f: { "world-eaters": { det: "#ff4d6d" } } } } };
+  const a = colorsAccountApp(sb, { "muster.colors.f.world-eaters": JSON.stringify({ det: "#00e5ff" }), "muster.colors.updatedAt": String(T) });
+  await until(() => userPuts(sb).length === 1);
+  const pushed = userPuts(sb)[0].body.data.musterColors;
+  assert.equal(pushed.updatedAt, T); assert.deepEqual(pushed.f, { "world-eaters": { det: "#00e5ff" } });
+  assert.equal(sb.meta["u-1"].other, 1, "other metadata kept");
+  assert.equal(a.d.documentElement.style.getPropertyValue("--c-det"), "#00e5ff", "local kept");
+  // change a color here -> pushed after the debounce
+  await until(() => a.w.localStorage.getItem("muster.colors.syncedAt") === String(T));
+  a.w.MusterColors.set("strat", "#ff9f1c");
+  await until(() => userPuts(sb).length === 2, 5000);
+  assert.equal(sb.meta["u-1"].musterColors.f["world-eaters"].strat, "#ff9f1c");
+  // a second device (phone) with no colors pulls it on start
+  const b = colorsAccountApp(sb, {});
+  await until(() => b.d.documentElement.style.getPropertyValue("--c-strat") === "#ff9f1c");
+  assert.equal(b.d.documentElement.style.getPropertyValue("--c-det"), "#00e5ff");
+  a.dom.window.close(); b.dom.window.close();
+});
+
+test("Colors sync: guests (no account) stay local, nothing sent; colors from before the first sign-in upload", async () => {
+  const sb = mockSupabase();
+  const { dom, w, d } = makeApp({ config: CFG, supabase: sb, storage: { "muster.guest": "1" } });
+  await until(() => d.querySelector(".lists-page"));
+  w.MusterColors.set("disp-disruption", "#c25e00");
+  await tick(1300);
+  assert.ok(!sb.calls.some((c) => c.path === "/auth/v1/user"), "guest: no account calls");
+  assert.equal(d.documentElement.style.getPropertyValue("--c-disp-disruption"), "#c25e00");
+  dom.window.close();
+  // an existing device with colors but no stamp (made before sync) and an empty account -> uploaded
+  const sb2 = mockSupabase();
+  const a = colorsAccountApp(sb2, { "muster.colors.f.world-eaters": JSON.stringify({ det: "#00e5ff" }) });
+  await until(() => userPuts(sb2).length === 1);
+  assert.deepEqual(sb2.meta["u-1"].musterColors.f, { "world-eaters": { det: "#00e5ff" } });
+  a.dom.window.close();
+});
+
+test("Refresh button: visible on PC, phones and touch tablets (portrait + landscape); never shrinks out of the header", async () => {
+  const css = read("css/app.css"); const html = read("index.html");
+  assert.match(html, /<button class="hbtn reload" data-action="reload-page"[^>]*>.*<\/button>\s*<\/header>/, "last item in the header (top right)");
+  assert.match(css, /#hdr \.hbtn\.reload \{ flex: none; \}/);
+  assert.match(css, /#hdr \.brand \{ min-width: 0; overflow: hidden; flex-shrink: 1; \}/);
+  assert.match(css, /@media \(min-width: 761px\) and \(hover: none\), \(min-width: 761px\) and \(pointer: coarse\) \{\s*#hdr \{ height: 54px;/);
+  // no rule anywhere hides it
+  assert.ok(!/\.reload[^{]*\{[^}]*display:\s*none/.test(css) && !/\[data-action=reload-page\][^{]*\{[^}]*display:\s*none/.test(css));
+  for (const o of [{}, { phone: true }, { tablet: true }]) {
+    const { w, d } = makeApp(o);
+    await until(() => d.querySelector(".lists-page"));
+    const b = d.querySelector("#hdr [data-action=reload-page]");
+    assert.ok(b && !b.hidden && w.getComputedStyle(b).display !== "none", JSON.stringify(o));
+    w.close();
+  }
 });

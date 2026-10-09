@@ -93,10 +93,15 @@
   /* ------------------------------------------------------------------ accounts + cloud sync (Supabase; js/sync.js) */
   const SY = window.MusterSync ? window.MusterSync.create(window.MUSTER_CONFIG || {}, {
     getLocal: () => ({ lists: S.lists, tombs: S.tombs }),
+    // Colors follow the account (all factions + shared dispositions, newest wins); guests stay local
+    getColors: () => window.MusterColors && window.MusterColors.bundle(),
+    applyColors: (b) => { if (window.MusterColors && window.MusterColors.setBundle(b) && $("#modal [data-testid=colors]")) openColors(); },
     apply: (res) => applyMerge(res),
     onStatus: (i) => { S.sync = i; renderAcct(); },
     onSignedOut: (reason) => { if (reason === "expired") { AUTH.msg = { err: true, text: "Your session expired – please sign in again. Your lists are safe on this device." }; route(); } },
   }) : null;
+  // a color change on this device -> pushed to the account (debounced with the list sync); guests: no session, nothing sent
+  if (window.MusterColors) window.MusterColors.onChange = () => { if (SY && SY.configured && SY.session()) SY.schedulePush(); };
   /* guest mode ("Try it without an account"): the whole app, lists saved only on this device, nothing syncs, max GUEST_MAX list(s) */
   const GUEST_MAX = 1;
   const nLists = (n) => `${n} list${n === 1 ? "" : "s"}`;
@@ -149,7 +154,9 @@
   }
   function clearLocalAccountData() {
     S.lists = []; S.tombs = {}; CUR = null;
-    for (const k of [LS_LISTS, LS_TOMBS, LS_OWNER, SY.LS_KNOWN]) localStorage.removeItem(k);
+    for (const k of [LS_LISTS, LS_TOMBS, LS_OWNER, SY.LS_KNOWN, SY.LS_CSYNC]) localStorage.removeItem(k);
+    // colors stay on the device, but the next account's saved colors win over them
+    try { localStorage.removeItem(window.MusterColors.UKEY); } catch (e) { /* ignore */ }
   }
   function afterSignIn() {
     adoptAccount(SY.user());   // guest lists have no owner, so they are kept and uploaded into the account
