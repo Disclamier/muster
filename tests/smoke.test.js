@@ -2133,21 +2133,27 @@ test("Core Rules: header tab, data loaded, ranked + highlighted search, jump to 
   assert.ok(RULES.sections.some((s) => /<table/.test(s.h)) && RULES.sections.some((s) => /class="faq"/.test(s.h)), "tables + FAQ/errata in data");
 });
 
-test("Core Rules on phones: reachable from the Meta button + switch, header not widened", async () => {
+test("Core Rules on phones: reachable from the Lists page switch (not Meta), header not widened", async () => {
   const { w, d } = makeApp({ phone: true });
   await until(() => d.querySelector(".lists-page"));
   const navs = [...d.querySelectorAll("#hdr [data-nav]")].map((a) => a.getAttribute("data-nav"));
   const rulesBtn = d.querySelector('#hdr a[href="#/rules"]');
   assert.ok(rulesBtn.classList.contains("nophone"), "header Rules button is hidden on phones (CSS)");
   assert.match(read("css/app.css"), /@media \(max-width: 760px\) \{\s*\.hbtn\.nophone \{ display: none; \}/);
-  assert.ok(navs.includes("#/meta"));
-  await go(w, "#/meta");
-  const sw = await until(() => d.querySelector("[data-testid=view-tabs] [data-testid=rules-tab-phone]"));
+  assert.ok(navs.includes("#/list"));
+  const sw = await until(() => d.querySelector(".lists-page [data-testid=view-tabs] [data-testid=rules-tab-phone]"));
   assert.equal(sw.getAttribute("href"), "#/rules");
+  assert.ok(d.querySelector("[data-testid=view-tabs] a.on[href='#/lists']"), "switch shows My Lists on the Lists page");
+  await go(w, "#/meta");
+  await until(() => d.querySelector(".meta-page"));
+  assert.equal(d.querySelector(".meta-page [data-testid=view-tabs]"), null, "no Core Rules switch on the Meta page");
+  assert.equal(d.querySelector('.meta-page a[href="#/rules"]'), null);
   await go(w, "#/rules");
   await until(() => d.querySelector("[data-testid=rules-toc]"));
   assert.ok(d.querySelector("[data-testid=view-tabs] a.on[href='#/rules']"), "switch shows Core Rules");
-  assert.ok(d.querySelector('#hdr a[href="#/meta"]').classList.contains("on"), "Meta button highlighted while on Core Rules");
+  assert.ok(d.querySelector('#hdr .hbtn[href="#/lists"]').classList.contains("on"), "Lists button highlighted while on Core Rules");
+  assert.ok(!d.querySelector('#hdr a[href="#/meta"]').classList.contains("on"), "Meta not highlighted");
+  assert.equal(d.querySelector("[data-testid=lists-tab-phone]").getAttribute("href"), "#/lists", "way back to My Lists");
   await typeRules(w, d, "deep strike");
   assert.match(d.querySelector("[data-testid=rules-hit] .rt").textContent, /DEEP STRIKE/);
 });

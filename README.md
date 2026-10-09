@@ -83,7 +83,7 @@ box (keyword-filtered by their TARGET line, like detachment stratagems).
 rule numbers) holding sanitized HTML (lists, tables, rule boxes, FAQ/errata Q&A), plus source URLs, the GW "last
 updated" date, fetch time and a content hash. The daily refresh rewrites it only when the hash changes and keeps the
 previous copy when a scrape fails or looks incomplete (needs 250+ sections, 150k+ characters and key rules such as
-Lethal Hits / Deep Strike / Fire Overwatch). The Core Rules view (`#/rules`; on phones via the Meta button's switch)
+Lethal Hits / Deep Strike / Fire Overwatch). The Core Rules view (`#/rules`; on phones via the "My Lists | Core Rules" switch on the Lists page)
 searches it in the browser with ranked heading matches, highlighted snippets and a collapsible table of contents; the
 service worker precaches it for offline use.
 

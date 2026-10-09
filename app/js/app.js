@@ -473,7 +473,7 @@
     const cl = parts[0] === "list" && parts[1] ? findList(decodeURIComponent(parts[1])) : null;
     if (MC.setScope(cl ? cl.sub || cl.faction : null) && $("#modal [data-testid=colors]")) openColors();
     if (parts[0] === "list" && parts[1]) renderEditor(decodeURIComponent(parts[1]));
-    else if (parts[0] === "meta") { renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null); const mp = $("#main .meta-page"); if (mp && !parts[1]) mp.insertAdjacentHTML("afterbegin", viewTabs("meta")); }
+    else if (parts[0] === "meta") { renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null); }
     else if (parts[0] === "rules") renderRules(parts[1] ? decodeURIComponent(parts[1]) : null);
     else if (parts[0] === "share" && parts[1]) openShared(parts.slice(1).join("/"));
     else renderLists();
@@ -494,7 +494,7 @@
     const groups = {};
     for (const l of lists) { const k = (subOf(l) || {}).name || l.faction; (groups[k] = groups[k] || []).push(l); }
     const names = Object.keys(groups).sort();
-    $("#main").innerHTML = `<div class="lists-page">
+    $("#main").innerHTML = `<div class="lists-page">${viewTabs("lists")}
       <div class="toolbar">
         <button class="tbtn create" data-action="new-list">${icon("plus")}Create List</button>
         <button class="tbtn" data-action="import-file">${icon("import")}Import file</button>
@@ -1356,8 +1356,8 @@
   }
   const mtabs = (tabs, cur, scope) => `<div class="metatabs" role="tablist">${tabs.map(([k, l, n]) => `<button role="tab" class="${cur === k ? "on" : ""}" data-action="meta-tab" data-scope="${scope}" data-tab="${k}">${esc(l)}${n !== undefined && n !== null ? ` <span class="cnt">${esc(n)}</span>` : ""}</button>`).join("")}</div>`;
   /* ------------------------------------------------------------------ Core Rules (searchable 11th-edition core rules) */
-  /* phones: the header is full, so Meta Win Rates and Core Rules share the Meta button with a switch at the top */
-  const viewTabs = (on) => `<div class="viewtabs" data-testid="view-tabs"><a href="#/meta" class="${on === "meta" ? "on" : ""}">Meta Win Rates</a><a href="#/rules" class="${on === "rules" ? "on" : ""}" data-testid="rules-tab-phone">Core Rules</a></div>`;
+  /* phones: the header is full, so My Lists and Core Rules share the Lists button with a switch at the top (CSS: phones only) */
+  const viewTabs = (on) => `<div class="viewtabs" data-testid="view-tabs"><a href="#/lists" class="${on === "lists" ? "on" : ""}" data-testid="lists-tab-phone">My Lists</a><a href="#/rules" class="${on === "rules" ? "on" : ""}" data-testid="rules-tab-phone">Core Rules</a></div>`;
   let rulesFetch = null;
   function setRules(doc) { if (!doc || !Array.isArray(doc.sections) || !doc.sections.length) return false; S.rules = doc; S.rulesIx = C.rulesIndex(doc); return true; }
   /* saved copy first (instant, offline), then the published file once per session (service worker: network-first) */
