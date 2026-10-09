@@ -510,28 +510,31 @@
   /* ------------------------------------------------------------------ modals */
   function modal(titleText, body, opts) {
     const m = $("#modal");
-    const fl = opts && opts.float;
-    m.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}${fl ? " floatwrap" : ""}"${fl ? "" : ` data-action="modal-bg"`}><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}${fl ? " float" : ""}" role="dialog" aria-label="${esc(titleText)}">
+    const fl = opts && opts.float, fk = fl === true ? "colors" : fl;   // float: true (Colors) or a window key, e.g. "ds"
+    m.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}${fl ? " floatwrap" : ""}"${fl ? "" : ` data-action="modal-bg"`}><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}${fl ? ` float float-${fk}` : ""}" role="dialog" aria-label="${esc(titleText)}">
       <div class="mtitle"><span>${esc(titleText)}</span><button class="ibtn" data-action="close-modal" title="Close">${icon("x")}</button></div>
       <div class="mbody">${body}</div></div></div>`;
     const f = $(".modal input[autofocus], .modal textarea[autofocus]", m); if (f) setTimeout(() => f.focus(), 0);
-    if (fl) makeDraggable($(".modal", m));
+    if (fl) makeDraggable($(".modal", m), fk);
     return $(".modal", m);
   }
-  // desktop floating window (Colors): no dim, the page behind stays usable; drag it by the title bar, kept inside the viewport
-  let FLOAT_POS = null;
+  // desktop floating windows (Colors, datasheets): no dim, the page behind stays usable; drag by the title bar,
+  // kept inside the viewport and below the header; each window remembers its own position
+  const FLOAT_POS = {};
+  const floatOpts = (key) => (isPhone() ? { wide: true, sheet: true } : { wide: true, float: key });
   function clampFloat(el, x, y) {
     const r = el.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
     const hb = $("#hdr"), top = hb ? hb.getBoundingClientRect().bottom : 0;   // never over the header (Refresh, Colors stay reachable)
     x = Math.max(0, Math.min(x, W - r.width)); y = Math.max(top, Math.min(y, H - r.height));
     el.style.left = x + "px"; el.style.top = y + "px"; return { x, y };
   }
-  function makeDraggable(el) {
+  function makeDraggable(el, key) {
     if (!el) return;
     const bar = $(".mtitle", el);
     el.style.position = "fixed";
     const r = el.getBoundingClientRect();
-    FLOAT_POS = clampFloat(el, FLOAT_POS ? FLOAT_POS.x : (window.innerWidth - r.width) / 2, FLOAT_POS ? FLOAT_POS.y : Math.max(48, (window.innerHeight - r.height) / 2));
+    const p0 = FLOAT_POS[key];
+    FLOAT_POS[key] = clampFloat(el, p0 ? p0.x : (window.innerWidth - r.width) / 2, p0 ? p0.y : Math.max(48, (window.innerHeight - r.height) / 2));
     let d = null;
     bar.addEventListener("pointerdown", (ev) => {
       if (ev.button !== 0 || ev.target.closest("button")) return;
@@ -539,11 +542,12 @@
       try { bar.setPointerCapture(ev.pointerId); } catch (e) { /* ignore */ }
       el.classList.add("dragging"); ev.preventDefault();
     });
-    bar.addEventListener("pointermove", (ev) => { if (d) FLOAT_POS = clampFloat(el, ev.clientX - d.dx, ev.clientY - d.dy); });
+    bar.addEventListener("pointermove", (ev) => { if (d) FLOAT_POS[key] = clampFloat(el, ev.clientX - d.dx, ev.clientY - d.dy); });
     const end = () => { d = null; el.classList.remove("dragging"); };
     bar.addEventListener("pointerup", end); bar.addEventListener("pointercancel", end);
   }
-  window.addEventListener("resize", () => { const el = $("#modal .modal.float"); if (el && FLOAT_POS) FLOAT_POS = clampFloat(el, FLOAT_POS.x, FLOAT_POS.y); });
+  window.addEventListener("resize", () => { const el = $("#modal .modal.float"); if (!el) return; const k = [...el.classList].find((c) => c.startsWith("float-")).slice(6);
+    if (FLOAT_POS[k]) FLOAT_POS[k] = clampFloat(el, FLOAT_POS[k].x, FLOAT_POS[k].y); });
   function closeModal() { $("#modal").innerHTML = ""; }
   function confirmModal(text, okLabel, onOk) {
     const m = modal("Please confirm", `<p>${text}</p><div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button>
@@ -1402,7 +1406,7 @@
   const MC = window.MusterColors;
   const SW_TEXT = ["#39ff14", "#ffd60a", "#ff9f1c", "#ff4d6d", "#ff5cf0", "#b388ff", "#4d8dff", "#00e5ff"];
   const SW_DISP = ["#1e8a2e", "#0b5fa5", "#b3261e", "#c9a100", "#0b8a80", "#6a3fb5", "#c25e00", "#3c4043"];
-  const SAMPLE = { det: "Gladius Task Force", strat: "Armour of Contempt", cat: "Intercessor Squad", abil: "Deep Strike", aura: "Aura", enh: "Artificer Armour" };
+  const SAMPLE = { det: "Gladius Task Force", strat: "Armour of Contempt", cat: "Intercessor Squad", list: "Bloodletters", abil: "Deep Strike", aura: "Aura", enh: "Artificer Armour" };
   const isDark = () => document.documentElement.getAttribute("data-theme") === "dark";
   // what the picker shows when a category is still on its default
   const colorDefault = (c) => c.def || (c.k === "aura" ? "#8a5cd1" : isDark() ? "#e8e8e8" : "#000000");
@@ -1519,11 +1523,11 @@
       const F = C.getFaction(S.idx, CUR); if (!F) return;
       if (t.dataset.uid) {
         const c = C.calcList(CUR, S.idx); const r = c.entries.find((x) => x.uid === t.dataset.uid); if (!r || !r.unit) return;
-        modal(r.attached && r.attached.length ? `${r.attached.map((x) => x.name).join(" + ")} + ${r.name}` : r.name, combinedDatasheet(F, r), { wide: true, sheet: true });
+        modal(r.attached && r.attached.length ? `${r.attached.map((x) => x.name).join(" + ")} + ${r.name}` : r.name, combinedDatasheet(F, r), floatOpts("ds"));
       } else {
         const u = F.units[t.dataset.unit]; if (!u) return;
         const c = C.calcList(CUR, S.idx); const r = S.ui.panel && S.ui.panel.uid ? c.entries.find((x) => x.uid === S.ui.panel.uid && x.unit === u) : null;
-        modal(t.dataset.item ? `${t.dataset.title || t.dataset.item} – ${u.n}` : u.n, datasheetHtml(F, u, r || null, { item: t.dataset.item || null }), { wide: true, sheet: true });
+        modal(t.dataset.item ? `${t.dataset.title || t.dataset.item} – ${u.n}` : u.n, datasheetHtml(F, u, r || null, { item: t.dataset.item || null }), floatOpts("ds"));
       }
     },
     "unlink": (t, ev) => { if (ev) ev.stopPropagation(); const uid = t.dataset.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (e) delete e.attach; }); toast("Detached"); },

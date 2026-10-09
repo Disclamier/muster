@@ -862,7 +862,7 @@ test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highli
   assert.match(d.querySelector(".roster [data-testid=combo-pts]").textContent, new RegExp(`Σ ${rk.total + rl.total} pts`));
   // roster eye icon -> popup sheet with the combined datasheet
   click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
-  const m = d.querySelector("#modal .modal.sheet"); assert.ok(m); assert.match(m.textContent, /Lord on Juggernaut \+ Khorne Berzerkers/);
+  const m = d.querySelector("#modal .modal.float-ds"); assert.ok(m); assert.match(m.textContent, /Lord on Juggernaut \+ Khorne Berzerkers/);
   { const jn = m.querySelector("[data-testid=ds-joined]"), bg = m.querySelector("[data-testid=ds-bodyguard]");
     assert.ok(jn && bg && (jn.compareDocumentPosition(bg) & w.Node.DOCUMENT_POSITION_FOLLOWING), "Leader datasheet above the bodyguard's");
     assert.match(jn.querySelector(".ds-jh").textContent, /Lord on Juggernaut/); assert.match(bg.querySelector(".ds-jh").textContent, /Khorne Berzerkers/); }
@@ -873,7 +873,7 @@ test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highli
   const eye = [...d.querySelectorAll(".panel [data-action=ds-pop][data-item]")].find((b) => /eviscerator/i.test(b.dataset.item) && !/Chainblade/i.test(b.dataset.item));
   assert.ok(eye, "eye icon next to loadout options");
   click(w, eye);
-  const m2 = d.querySelector("#modal .modal.sheet"); assert.ok(m2.querySelector('tr[data-weapon="Khornate eviscerator"]'));
+  const m2 = d.querySelector("#modal .modal.float-ds"); assert.ok(m2.querySelector('tr[data-weapon="Khornate eviscerator"]'));
   assert.equal(m2.querySelector('tr[data-weapon="Chainblade"]'), null);
   // catalog eye -> preview with Profiles
   click(w, d.querySelector("#modal [data-action=close-modal]"));
@@ -952,7 +952,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.equal(ab.querySelectorAll("[data-testid=ab-datasheet] .ab-card").length, plain.length);
   // combined card: attached Leader + bodyguard each get their own structured sections
   click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
-  const m = d.querySelector("#modal .modal.sheet");
+  const m = d.querySelector("#modal .modal.float-ds");
   const secs = [...m.querySelectorAll("[data-testid=ds-abilities]")];
   assert.equal(secs.length, 2);
   // character above the unit: the attached Leader's sections come first, the bodyguard's second
@@ -960,7 +960,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v19/);
+  assert.match(read("sw.js"), /muster-shell-v20/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1315,7 +1315,7 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   // open the Colors screen from the header: every category has a row with a picker
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const rows = [...d.querySelectorAll("#modal [data-testid=color-row]")].map((r) => r.dataset.ck);
-  assert.deepEqual(rows, ["det", "strat", "cat", "abil", "aura", "enh", "disp-take-and-hold", "disp-disruption", "disp-purge-the-foe", "disp-priority-assets", "disp-reconnaissance"]);
+  assert.deepEqual(rows, ["det", "strat", "cat", "list", "abil", "aura", "enh", "disp-take-and-hold", "disp-disruption", "disp-purge-the-foe", "disp-priority-assets", "disp-reconnaissance"]);
   // pick a swatch -> saved + applied right away
   click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
   assert.equal(JSON.parse(w.localStorage.getItem("muster.colors")).strat, "#ff9f1c");
@@ -1431,4 +1431,66 @@ test("Colors on phones: full-screen sheet, not a floating window", async () => {
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const m = d.querySelector("#modal .modal");
   assert.ok(m.classList.contains("sheet") && !m.classList.contains("float"));
+});
+
+test("datasheet popup: floating, draggable window on desktop (remembers position, no backdrop); full-screen sheet on phones", async () => {
+  for (const phone of [false, true]) {
+    const { w, d } = makeApp({ phone });
+    await until(() => d.querySelector(".lists-page"));
+    const C = w.MusterCore; const SM = POINTS.factions.find((f) => f.id === "space-marines");
+    const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
+    l.entries.push(C.newEntry(SM.units.find((u) => u.n === "Intercessor Squad")));
+    w.Muster.S.lists.push(l);
+    await go(w, "#/list/" + l.id);
+    await until(() => d.querySelector(".editor"));
+    const open = () => click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${l.entries[0].uid}"]`));
+    open();
+    const m = d.querySelector("#modal .modal"), wrap = d.querySelector("#modal .modal-wrap");
+    assert.match(m.textContent, /Intercessor Squad/);
+    if (phone) {
+      assert.ok(m.classList.contains("sheet") && !m.classList.contains("float"), "phone: unchanged full-screen sheet");
+      assert.equal(wrap.dataset.action, "modal-bg");
+      continue;
+    }
+    assert.ok(m.classList.contains("float") && m.classList.contains("float-ds") && !m.classList.contains("sheet"));
+    assert.ok(wrap.classList.contains("floatwrap") && !wrap.hasAttribute("data-action"), "no click-to-close backdrop");
+    // drag by the title bar; clamped below the header and inside the viewport
+    const bar = m.querySelector(".mtitle");
+    const P = (type, x, y) => bar.dispatchEvent(new w.MouseEvent(type, { bubbles: true, clientX: x, clientY: y, button: 0 }));
+    P("pointerdown", 10, 10); P("pointermove", 210, 160); P("pointerup", 210, 160);
+    const pos = [m.style.left, m.style.top];
+    assert.ok(parseFloat(m.style.left) > 0 && parseFloat(m.style.top) > 0, pos.join(","));
+    P("pointerdown", 10, 10); P("pointermove", -5000, -5000); P("pointerup", -5000, -5000);
+    assert.equal(m.style.left, "0px"); assert.ok(parseFloat(m.style.top) >= 0);
+    P("pointerdown", 10, 10); P("pointermove", 210, 160); P("pointerup", 210, 160);
+    // closes with X, reopens at the remembered spot
+    click(w, m.querySelector("[data-action=close-modal]"));
+    assert.equal(d.querySelector("#modal").innerHTML, "");
+    open();
+    const m2 = d.querySelector("#modal .modal");
+    assert.deepEqual([m2.style.left, m2.style.top], pos);
+    // Esc closes too
+    d.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    assert.equal(d.querySelector("#modal").innerHTML, "");
+  }
+});
+
+test("Colors: 'Units in your list' is its own color, separate from the Unit catalog", async () => {
+  const css = read("css/app.css");
+  assert.match(css, /html\[data-c-cat\] \.crow \.cname \{ color: var\(--c-cat\); \}/);
+  assert.match(css, /html\[data-c-list\] \.urow \.line \.n:not\(\.err\) \{ color: var\(--c-list\); \}/);
+  assert.ok(!/html\[data-c-cat\][^{]*\.urow/.test(css), "catalog color no longer reaches list units");
+  const { w, d } = makeApp({ storage: { "muster.colors": JSON.stringify({ cat: "#00e5ff", list: "#ff9f1c", list_b: 10 }) } });
+  await until(() => d.querySelector(".lists-page"));
+  const root = d.documentElement, MC = w.MusterColors;
+  assert.equal(root.style.getPropertyValue("--c-cat"), "#00e5ff");
+  assert.equal(root.style.getPropertyValue("--c-list"), MC.shade("#ff9f1c", 10));
+  assert.ok(root.hasAttribute("data-c-cat") && root.hasAttribute("data-c-list"));
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const row = d.querySelector('#modal .cset[data-ck=list]');
+  assert.match(row.textContent, /Units in your list/); assert.match(row.textContent, /Unit names in the list you're building/);
+  assert.match(d.querySelector('#modal .cset[data-ck=cat]').textContent, /Unit names in the catalog where you pick units/);
+  assert.ok(row.querySelector("input[type=range]") && row.querySelector("input[type=color]") && row.querySelectorAll(".sw").length);
+  click(w, row.querySelector("[data-action=color-reset]"));
+  assert.ok(!root.hasAttribute("data-c-list")); assert.ok(root.hasAttribute("data-c-cat"), "resetting list leaves catalog alone");
 });

@@ -705,7 +705,8 @@ html[data-c-strat] .strat { border-left: 3px solid var(--c-strat); padding-left:
 
 /* Unit catalog: unit names where you pick units */
 html[data-c-cat] .crow .cname { color: var(--c-cat); }
-html[data-c-cat] .urow .line .n:not(.err) { color: var(--c-cat); }
+/* Units in your list (roster): separate from the catalog color */
+html[data-c-list] .urow .line .n:not(.err) { color: var(--c-list); }
 
 /* Abilities (datasheet): names + colored edge (Damaged keeps red, Leader keeps green) */
 html[data-c-abil] .ab-card:not(.aura) .ab-n,
@@ -818,3 +819,8 @@ html[data-theme="dark"] .dispc.chosen { box-shadow: 0 0 0 2px var(--surface), 0 
 .modal.float .mtitle::after { content: "drag to move"; font-weight: 400; font-size: 11px; color: var(--gray); margin-left: auto; margin-right: 8px; }
 .modal.float .mtitle > span { flex: none; }
 .modal.float .mtitle::after { order: 1; } .modal.float .mtitle > button { order: 2; }
+
+/* Datasheet popup on desktop: floating, draggable window like Colors (phones keep the full-screen sheet) */
+.modal.float.float-ds { width: min(640px, calc(100vw - 24px)); max-height: min(76vh, calc(100vh - 56px)); }
+.modal.float .mtitle > span { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modal.float .mtitle::after { flex: none; }
