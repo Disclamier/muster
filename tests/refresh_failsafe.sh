@@ -25,6 +25,7 @@ case "\$1" in
   scraper/fetch_grimslate.py) [[ "$2" == good ]] && { cp "$W/gs.good.json" "\$3"; exit 0; }; echo "simulated GrimSlate failure" >&2; exit 1;;
   scraper/fetch_images.py) exit 0;;
   scraper/fetch_winrates.py) echo "simulated listhammer failure" >&2; exit 1;;
+  scraper/fetch_core_strats.py) echo "simulated Wahapedia failure" >&2; exit 1;;
 esac
 exec /usr/bin/env python3 "\$@"
 PY

@@ -415,6 +415,21 @@ def apply_detachment_restrictions(mf, units, dets, stats):
         print(f"  restricted: {mf['id']}: {g} ({len(outsiders)} units) -> only with {', '.join(unlock)}", file=sys.stderr)
 
 
+def load_core_strats():
+    """Core Stratagems (11th-ed Core Rules s.15): fresh data/core_stratagems.json from scraper/fetch_core_strats.py when it
+    looks right, else the transcribed copy in scraper/overrides/core_stratagems.json. -> {src, st: [[NAME, CP, phase,
+    "Core Stratagem", turn, text]]}"""
+    for p in (os.path.join(ROOT, "data", "core_stratagems.json"), os.path.join(HERE, "overrides", "core_stratagems.json")):
+        try:
+            d = json.load(open(p, encoding="utf-8"))
+            st = d.get("stratagems") or []
+            if len(st) >= 8 and all("TARGET:" in x[5] for x in st):
+                return {"src": d.get("source"), "st": st}
+        except Exception:  # noqa: BLE001
+            continue
+    return {"src": None, "st": []}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--mfm", default=os.path.join(ROOT, "data", "mfm.json"))
@@ -535,7 +550,7 @@ def main():
     # datasheets (GrimSlate profiles/abilities) - separate file so rules-text changes never touch the points hash
     dsb = {"source": "GrimSlate (profiles, abilities, keywords); Codex: Space Marines 11th ed. override (scraper/overrides)", "gs_fetched_at": gs.get("fetched_at"),
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
-           "weapon_keywords": gs.get("weapon_keywords") or {}, "factions": merge.datasheets}
+           "weapon_keywords": gs.get("weapon_keywords") or {}, "core_st": load_core_strats(), "factions": merge.datasheets}
     # hash the content only (not the fetch time) so an unchanged GrimSlate isn't republished every day
     dsc = json.dumps({k: v for k, v in dsb.items() if k != "gs_fetched_at"}, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     dsh = hashlib.sha256(dsc.encode()).hexdigest()[:16]

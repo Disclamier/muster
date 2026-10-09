@@ -67,6 +67,14 @@ The daily workflow runs it after the tests; any mismatch fails the run before th
 Known, reported-only: Imperial Agents' second price list "Every model has the Imperium keyword" (allied Agents) is not
 used because Muster has no allied-Agents mode; GrimSlate-only detachments (not in the MFM) are flagged in the app.
 
+### Core stratagems
+
+`scraper/fetch_core_strats.py` reads the ten 11th-edition Core Stratagems (Core Rules section 15) from Wahapedia's
+reproduction of the GW Core Rules (https://wahapedia.ru/wh40k11ed/the-rules/core-rules/); the refresh keeps the last
+good copy and falls back to the transcribed `scraper/overrides/core_stratagems.json`. They ship in
+`app/data/datasheets.json` as `core_st` and show in the Stratagems card and in each unit's "Stratagems for this unit"
+box (keyword-filtered by their TARGET line, like detachment stratagems).
+
 ## In the app: loadouts
 Unit options panel shows a New Recruit-style tree from GrimSlate compositions: each model type with its count
 (upgrade models such as "Intercessor w/ Grenade Launcher" trade with their base model, min/max incl. size-dependent

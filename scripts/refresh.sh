@@ -70,6 +70,13 @@ else
   echo "!! win-rate fetch failed or looks incomplete - keeping previous winrates.json" >&2
 fi
 
+echo "== Core stratagems (11th-ed Core Rules via Wahapedia, non-fatal; else the transcribed copy in scraper/overrides)"
+if "$PY" scraper/fetch_core_strats.py --out "$TMP/core_stratagems.json"; then
+  cp "$TMP/core_stratagems.json" data/core_stratagems.json
+else
+  echo "!! core stratagems fetch failed - using the previous / transcribed copy" >&2
+fi
+
 echo "== Build app/data"
 if "$PY" scraper/build_data.py --outdir "$TMP/appdata" && check "$TMP/appdata/points.json" "$MIN_FACTIONS" "$MIN_UNITS" && \
    "$PY" - "$TMP/appdata/points.json" "$MIN_LOADOUT_UNITS" <<'PYEOF'

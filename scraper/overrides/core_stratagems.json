@@ -1,0 +1,86 @@
+{
+ "source": "Warhammer 40,000 Core Rules (11th edition), section 15 Core Stratagems – via Wahapedia https://wahapedia.ru/wh40k11ed/the-rules/core-rules/",
+ "fetched_at": "2026-10-09T03:07:15+00:00",
+ "stratagems": [
+  [
+   "COMMAND RE-ROLL",
+   1,
+   "Any phase",
+   "Core Stratagem",
+   "Either player’s turn",
+   "WHEN: Any phase, just after you make one of the following rolls for a friendly unit or model: • Advance roll • Charge roll • Damage roll • Hazard roll • Hit roll • Save roll • Wound roll • A roll to determine the number of attacks generated with a weapon.\nTARGET: That unit or model.\nEFFECT: You re-roll that roll. If you are rolling more than one dice together, select one of those dice to re-roll (excluding charge rolls, which you must re-roll in full)."
+  ],
+  [
+   "EPIC CHALLENGE",
+   1,
+   "Fight phase",
+   "Core Stratagem",
+   "Either player’s turn",
+   "WHEN: Fight phase, just after a friendly CHARACTER unit is selected to fight.\nTARGET: That CHARACTER unit.\nEFFECT: Select one CHARACTER model in your unit. Until the end of the phase, that model’s melee weapons have the [PRECISION] ability."
+  ],
+  [
+   "INSANE BRAVERY",
+   1,
+   "Command phase",
+   "Core Stratagem",
+   "Your turn",
+   "WHEN: Battle-shock step of your Command phase, just before you make a battle-shock roll for a friendly unit.\nTARGET: That unit.\nEFFECT: That battle-shock roll is automatically successful.\nRESTRICTIONS: You cannot use this stratagem more than once per battle."
+  ],
+  [
+   "EXPLOSIVES",
+   1,
+   "Shooting phase",
+   "Core Stratagem",
+   "Your turn",
+   "WHEN: Your Shooting phase.\nTARGET: One friendly unengaged EXPLOSIVES/GRENADES unit that is eligible to shoot and did not make an advance move this turn.\nEFFECT: Resolve the following sequence: • Select one EXPLOSIVES/GRENADES model in your unit. • Select one unengaged enemy unit within 8\" of and visible to that model. • Roll six D6: for each 4+, that enemy unit suffers 1 mortal wound (06.02)."
+  ],
+  [
+   "CRUSHING IMPACT",
+   1,
+   "Charge phase",
+   "Core Stratagem",
+   "Your turn",
+   "WHEN: Your Charge phase, just after a friendly MONSTER/VEHICLE unit ends a charge move.\nTARGET: That MONSTER/VEHICLE unit.\nEFFECT: Resolve the following sequence: • Select one enemy unit engaged with your unit. • Select one model in your unit engaged with that enemy unit. • Roll a number of D6 equal to the T characteristic of that model: for each 1, your unit suffers 1 mortal wound; for each 5+, that enemy unit suffers 1 mortal wound (to a maximum of 6 mortal wounds per unit)."
+  ],
+  [
+   "RAPID INGRESS",
+   1,
+   "Movement phase",
+   "Core Stratagem",
+   "Opponent’s turn",
+   "WHEN: End of your opponent’s Movement phase.\nTARGET: One friendly unit that is in strategic reserves (excluding AIRCRAFT).\nEFFECT: Your unit makes an ingress move (20.04).\nRESTRICTIONS: You cannot use this stratagem during the first battle round."
+  ],
+  [
+   "FIRE OVERWATCH",
+   1,
+   "Movement phase",
+   "Core Stratagem",
+   "Opponent’s turn",
+   "WHEN: End of your opponent’s Movement phase.\nTARGET: One friendly unengaged unit (excluding TITANIC units).\nEFFECT: Your unit shoots using snap shooting."
+  ],
+  [
+   "SMOKESCREEN",
+   1,
+   "Shooting phase",
+   "Core Stratagem",
+   "Opponent’s turn",
+   "WHEN: Start of your opponent’s Shooting phase.\nTARGET: One friendly SMOKE unit.\nEFFECT: Until the end of the phase, each time an attack targets either your SMOKE unit, or a unit that is not fully visible to the attacking model because of one or more models in your SMOKE unit, the target has the benefit of cover against that attack (13.08)."
+  ],
+  [
+   "HEROIC INTERVENTION",
+   1,
+   "Charge phase",
+   "Core Stratagem",
+   "Opponent’s turn",
+   "WHEN: End of your opponent’s Charge phase.\nTARGET: One friendly unengaged unit within 12\" of one or more enemy units. You can only select a VEHICLE unit if it is a CHARACTER/WALKER unit.\nEFFECT: Resolve a charge with your unit (11.02). While doing so, before making the charge roll, you must select one of the following modes: • Leap to Defend: When selecting charge targets, you can only select enemy units that made a charge move this phase and are within the maximum distance. • Into the Fray (+1CP): When making the charge roll, if the result is greater than 6 (after modifiers), change it to 6. • When selecting charge targets, you can select any enemy units that are within 6\" of your unit and within the maximum distance."
+  ],
+  [
+   "COUNTEROFFENSIVE",
+   2,
+   "Fight phase",
+   "Core Stratagem",
+   "Opponent’s turn",
+   "WHEN: Fight step of your opponent’s Fight phase, just after an enemy unit has resolved its attacks.\nTARGET: One friendly unit that is eligible to fight.\nEFFECT: Until the end of the phase, your unit has the Fights First ability and it must be the next unit you select to fight (12.04)."
+  ]
+ ]
+}

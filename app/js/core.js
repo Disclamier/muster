@@ -26,6 +26,10 @@
       for (const d of f.dets) dets[d.n] = d;
       factions[f.id] = { f, units, dets };
     }
+    // every faction keyword / faction name in the data (stratagem targets naming another faction's keyword)
+    const fall = new Set();
+    for (const f of data.factions || []) { fall.add(stNorm(f.name)); for (const u of f.units) if (u.fk) fall.add(stNorm(u.fk)); }
+    for (const k in factions) Object.defineProperty(factions[k], "_fall", { value: fall, enumerable: false });
     const subs = {};
     for (const g of data.groups || []) for (const s of g.factions) subs[s.id] = { ...s, group: g.name };
     const sizes = {};
@@ -1080,6 +1084,133 @@
     return l;
   }
 
+
+  /* ---------------------------------------------------------------- stratagems a unit can be targeted by */
+  /* Reads a stratagem's TARGET text ("One WORLD EATERS INFANTRY unit from your army that ...") and checks it against
+     the unit's keywords (GrimSlate keywords + faction keyword + unit name + role). Conditions after the subject
+     ("that has not been selected to fight", "within 6\"") are game-state and ignored; exclusions ("excluding X",
+     "that is not X", "other than X", "non-X", "you can only select a X unit if it is a Y") are applied.
+     -> { ok, any, why }: any = the target names no keyword (any unit / "That unit"). */
+  const ST_KW = ["infantry", "vehicle", "monster", "mounted", "character", "epic hero", "battleline", "transport", "dedicated transport",
+    "fly", "walker", "titanic", "towering", "aircraft", "psyker", "grenades", "smoke", "explosives", "daemon", "beast", "swarm",
+    "fortification", "terminator", "jump pack", "leader", "imperium", "chaos"];
+  const ST_STOP = new Set(["one", "two", "three", "four", "up", "to", "friendly", "unengaged", "engaged", "other", "another", "the", "a", "an",
+    "your", "unit", "units", "model", "models", "that", "this", "those", "these", "each", "any", "battleshocked", "battle", "shocked",
+    "selected", "destroyed", "just", "attached", "of", "same", "eligible", "visible", "more", "number", "army", "armys", "least", "at", "s", "it", "its", "by", "hit", "affected", "from", "attacks", "shot", "just"]);
+  const stNorm = (x) => String(x || "").toLowerCase().replace(/[’‘]/g, "'").replace(/'s\b/g, "s").replace(/[^a-z0-9]+/g, " ").trim();
+  const stSing = (w) => (/(ss|us|is)$/.test(w) ? w : w.replace(/ies$/, "y").replace(/(ch|sh|x)es$/, "$1").replace(/s$/, ""));
+  function stratTargetText(s) {
+    const m = /TARGET:\s*([^\n]*)/i.exec((s && s[5]) || "");
+    return m ? m[1].trim() : "";
+  }
+  function unitKeywords(u, F) {
+    const k = new Set();
+    const add = (x) => { const n = stNorm(x); if (n) { k.add(n); k.add(n.split(" ").map(stSing).join(" ")); } };
+    for (const x of u.kw || []) add(x);
+    add(u.fk); add(u.n); add(String(u.n).replace(/\s*\[Legends\]$/i, ""));
+    if (u.r === "Battleline") add("Battleline");
+    if (u.r === "Character" || u.r === "Epic Hero") add("Character");
+    if (u.r === "Epic Hero") add("Epic Hero");
+    if (u.r === "Dedicated Transport") { add("Dedicated Transport"); add("Transport"); }
+    // Space Marine chapters: units on a chapter page carry the chapter keyword (BLOOD ANGELS, SPACE WOLVES...)
+    if (F && u.fk === "Adeptus Astartes" && !u.sg) add(F.f.name);
+    return k;
+  }
+  function stratVocab(F) {
+    if (F && F._stv) return F._stv;
+    const v = new Set();
+    const add = (x) => { const n = stNorm(x); if (n) { v.add(n); v.add(n.split(" ").map(stSing).join(" ")); } };
+    ST_KW.forEach(add);
+    if (F) { add(F.f.name); for (const u of F.f.units) { (u.kw || []).forEach(add); add(u.fk); add(u.n); } }
+    if (F) Object.defineProperty(F, "_stv", { value: v, enumerable: false });
+    return v;
+  }
+  /* "World Eaters Infantry" -> { kws: ["world eaters", "infantry"], unknown: [] } (longest keyword match first) */
+  function kwPhrase(text, V) {
+    const toks = stNorm(text).split(" ").filter(Boolean);
+    const kws = [], unknown = [];
+    for (let i = 0; i < toks.length;) {
+      let hit = null;
+      for (let n = Math.min(6, toks.length - i); n >= 1 && !hit; n--) {
+        const g = toks.slice(i, i + n).join(" "), gs = toks.slice(i, i + n).map(stSing).join(" ");
+        if (V.has(g)) hit = [g, n]; else if (V.has(gs)) hit = [gs, n];
+      }
+      if (hit) { kws.push(hit[0]); i += hit[1]; continue; }
+      if (!ST_STOP.has(toks[i]) && !/^\d+(cp)?$/.test(toks[i])) unknown.push(toks[i]);
+      i++;
+    }
+    return { kws, unknown };
+  }
+  const stHas = (K, k) => K.has(k) || K.has(k.split(" ").map(stSing).join(" "));
+  function unitStratMatch(u, F, s) {
+    const t0 = stratTargetText(s);
+    if (!t0) return { ok: true, any: true, unsure: false, why: "no target text" };
+    let t = t0.replace(/[’‘]/g, "'").replace(/\s+/g, " ");
+    // targets that aren't one of your units (an enemy unit, an objective, a marker)
+    if (/^\s*(?:that|one|the)\s+enemy\b/i.test(t) || (!/\b(?:units?|models?|warlord)\b/i.test(t) && /\b(?:markers?|objectives?)\b/i.test(t))) return { ok: false, any: false, unsure: false, why: "does not target your units", target: t0 };
+    const V = stratVocab(F), K = unitKeywords(u, F), FALL = (F && F._fall) || new Set();
+    const excl = [];
+    // "You can only select a VEHICLE unit if it is a CHARACTER/WALKER unit."
+    const only = /only select (?:an? )?([^.]*?) units? if (?:it|that unit) (?:is|has) (?:an? )?([^.]*?) units?\b/i.exec(t);
+    if (only) t = t.replace(only[0], "");
+    t = t.replace(/\((?:excluding|except) ([^)]*)\)/gi, (m, x) => { excl.push(x); return " "; })
+      .replace(/\b(?:excluding|except(?: for)?|other than) ([^.,;()]*)/gi, (m, x) => { excl.push(x); return " "; })
+      .replace(/\bthat (?:is|are) not (?:an? |part of an? )?([^.,;()]*)/gi, (m, x) => { excl.push(x); return " "; })
+      .replace(/\bnon-([a-z]+(?: [a-z]+)?)/gi, (m, x) => { excl.push(x); return " "; });
+    t = t.split(/\.\s/)[0];
+    // several targets ("One X unit ... and up to one Y unit"): any of them may be this unit
+    const clauses = t.split(/,?\s+and (?:up to |any )?(?:one|two|three)\b/i);
+    const alts = [];
+    for (let c of clauses) {
+      if (/\benemy\b|\bobjective\b|\bmarkers?\b/i.test(c.split(/\b(?:that|which|within|from)\b/i)[0])) continue;   // the enemy / a marker, not your unit
+      c = c.replace(/^\s*(?:that|those|the|this|your)\b\s*/i, "");
+      const subj = c.split(/\.|;|\b(?:from your army|from your|that|which|who|whose|within|wholly|if|in|on|with|while|whilst|is|was|has|have|can|eligible)\b/i)[0];
+      // "ADEPTUS ASTARTES INFANTRY/MOUNTED", "HERETIC ASTARTES PSYKER/DAEMON": a lone keyword after the first
+      // alternative shares its leading keywords
+      let prefix = null;
+      for (const a of subj.split(/\s*(?:,|\/|\bor\b|\band\/or\b)\s*/i)) {
+        const p = kwPhrase(a, V);
+        if (!p.kws.length && !p.unknown.length) continue;
+        if (prefix === null) prefix = p.kws.slice(0, -1);
+        else if (p.kws.length === 1 && !p.unknown.length && prefix.length && !prefix.includes(p.kws[0]) && !FALL.has(p.kws[0])) p.kws = prefix.concat(p.kws);
+        alts.push(p);
+      }
+    }
+    const why = [];
+    let ok = false, any = false, unsure = false;
+    if (!alts.length) { ok = true; any = true; why.push("any unit"); }
+    else {
+      for (const a of alts) {
+        let kws = a.kws, unk = a.unknown;
+        if (unk.includes("warlord")) { unk = unk.filter((x) => x !== "warlord"); kws = kws.concat(["character"]); }
+        if (!kws.every((k) => stHas(K, k))) continue;
+        if (!unk.length) { ok = true; unsure = a.unknown.includes("warlord"); why.push(a.kws.join(" ").toUpperCase() + (unsure ? " WARLORD" : "")); break; }
+        // a keyword no datasheet in this faction carries: another faction's keyword -> no; else most likely granted by
+        // the detachment/army rules (TANK ACE, KILLER, SOUL FORGE...) -> shown as "check"
+        const u2 = unk.join(" ");
+        if (FALL.has(u2) || unk.some((x) => FALL.has(x))) continue;
+        ok = true; unsure = true; why.push(`${u2.toUpperCase()} (keyword from rules, check)`);
+      }
+    }
+    if (ok) for (const x of excl) {
+      for (const part of x.split(/\s*(?:,|\/|\bor\b|\band\b)\s*/i)) {
+        const p = kwPhrase(part, V);
+        if (p.kws.length && !p.unknown.length && p.kws.every((k) => stHas(K, k))) { ok = false; why.push(`excluded: ${p.kws.join(" ").toUpperCase()}`); break; }
+      }
+      if (!ok) break;
+    }
+    if (ok && only) {
+      const a = kwPhrase(only[1], V), b = only[2].split(/\s*(?:\/|\bor\b|,)\s*/i).map((x) => kwPhrase(x, V));
+      if (a.kws.length && a.kws.every((k) => stHas(K, k)) && !b.some((x) => x.kws.length && x.kws.every((k) => stHas(K, k)))) { ok = false; why.push(`only ${only[2].toUpperCase()} ${only[1].toUpperCase()}`); }
+    }
+    return { ok, any: ok && any, unsure: ok && unsure, why: why.join("; "), target: t0 };
+  }
+  /* the list's detachment stratagems (detachments first, in list order) then the Core stratagems, filtered for one unit */
+  function unitStratagems(u, F, dets, core) {
+    const pick = (st) => st.map((s) => ({ s, m: unitStratMatch(u, F, s) })).filter((x) => x.m.ok);
+    const groups = (dets || []).map((d) => ({ det: d, items: pick(d.st || []), total: (d.st || []).length }));
+    return { groups, core: { items: pick(core || []), total: (core || []).length } };
+  }
   /* ---------------------------------------------------------------- import/export */
   function exportLists(lists) { return JSON.stringify({ app: "muster", schema: 1, exported: new Date().toISOString(), lists }, null, 1); }
   function importLists(text) {
@@ -1204,7 +1335,7 @@
     return { ...merged, known, changed, added, replaced, removed, push: pendingPush(merged, known) };
   }
 
-  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, addonOptions, defaultModels,
+  return { syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

@@ -774,6 +774,7 @@
           ${gsDets.length ? `<div class="dd-sub muted">Not in current MFM (GrimSlate)</div>${gsDets.map(detOpt).join("")}` : ""}
           <button class="dd-more" data-action="open-panel" data-panel="dets" data-testid="det-details">Rules, enhancements &amp; stratagems…</button>
         </div></details>
+      ${dets.length ? `<div class="detrules" data-testid="det-rules">${dets.map(detRuleRow).join("")}</div>` : ""}
       <details class="cfg-dd disp-dd" data-dd="disp" data-testid="disp-dd"${ddOpen("disp")}><summary class="cfgrow disprow" data-testid="cfg-disp"><span class="dd-l">${!l.disposition && ds.length ? `<span class="need warn" title="Warning: select a Force Disposition">!</span> ` : ""}Force Disposition</span><span class="dd-v">${l.disposition ? dispChip(l.disposition) : `<span class="dd-vn muted">${ds.length ? "Select…" : "—"}</span>`}${caret}</span></summary>
         <div class="dd-list" role="radiogroup" aria-label="Force Disposition">${ds.length ? `<label class="opt${!l.disposition ? " sel" : ""}"><input type="radio" name="disp" value="" ${!l.disposition ? "checked" : ""} data-change="disp"><span class="on muted">None</span></label>` +
           ds.map((d) => `<label class="opt${l.disposition === d ? " sel" : ""}" data-testid="disp-opt"><input type="radio" name="disp" value="${esc(d)}" ${l.disposition === d ? "checked" : ""} data-change="disp"><span class="on">${dispChip(d)}</span></label>`).join("")
@@ -785,10 +786,13 @@
           <div class="cfgnote" data-testid="cfg-note">Enhancements ${c.enhCount}${c.enhLimit != null ? " / " + c.enhLimit : ""} · Units ${c.units} pts · Enhancements ${c.enhancements} pts</div>
         </div></details>
     </div></div>`;
-    // after the units: detachment rules & stratagems, one collapsed row per detachment
-    const cfgMore = !dets.length ? "" : `<div class="card cfgmore${collKey("cfgx")}" data-testid="cfg-more"><div class="sect-h" data-action="toggle-sect" data-key="cfgx">${icon("text")} Detachment rules &amp; stratagems<span class="tri"></span></div><div class="sect-body">
-      ${dets.map((d) => `<details class="coll cfgdet" data-testid="cfg-det" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ""} <span class="muted">· ${d.st.length} stratagem${d.st.length === 1 ? "" : "s"} · ${d.enh.length} enhancement${d.enh.length === 1 ? "" : "s"}</span></summary>
-        <div class="cb">${d.rule ? `<div class="rules"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
+    // after the units: Stratagems - one collapsed row per picked detachment, then the Core stratagems
+    const core = coreStrats();
+    const cfgMore = !dets.length && !core.length ? "" : `<div class="card cfgmore${collKey("cfgx")}" data-testid="cfg-more"><div class="sect-h" data-action="toggle-sect" data-key="cfgx">${icon("text")} Stratagems<span class="tri"></span></div><div class="sect-body">
+      ${dets.map((d) => `<details class="coll cfgdet" data-testid="cfg-det" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b> <span class="muted">· ${d.st.length} stratagem${d.st.length === 1 ? "" : "s"}</span></summary>
+        <div class="cb">${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div></details>`).join("")}
+      ${core.length ? `<details class="coll cfgdet corest" data-testid="cfg-core"><summary><b>Core stratagems</b> <span class="muted">· ${core.length} stratagems</span></summary>
+        <div class="cb">${core.map(stratHtml).join("")}<div class="muted small">Source: ${esc(coreSrc())}</div></div></details>` : ""}
     </div></div>`;
     const rowHtml = (r, nested) => {
       const errs = errsFor(r.uid); const bits = entrySummary(r);
@@ -839,6 +843,30 @@
     if (P.type === "disp") return dispPanel(l, c);
     if (P.type === "errors") return errorsPanel(l, c);
     return phead("");
+  }
+  const coreStrats = () => (S.ds && S.ds.core_st && S.ds.core_st.st) || [];
+  const coreSrc = () => (S.ds && S.ds.core_st && S.ds.core_st.src) || "";
+  /* detachment rule (+ its enhancements) shown right under the Detachments row of the Configuration card */
+  function detRuleRow(d) {
+    return `<details class="coll cfgdet detrule" data-testid="det-rule-row" data-det="${esc(d.n)}"><summary><b>${esc(d.n)}</b>${d.rule ? ` – ${esc(d.rule[0])}` : ` <span class="muted">– no rule text</span>`}</summary>
+      <div class="cb">${d.rule ? `<div class="rules" data-testid="det-rule-text"><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}
+        ${d.enh.length ? `<div class="enhs" data-testid="det-rule-enh"><div class="enhs-h">Enhancements</div>${d.enh.map((e) => `<div class="opt"><span class="on"><b class="enh-n">${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("")}</div>` : ""}</div></details>`;
+  }
+  /* "Stratagems for this unit": the picked detachments' stratagems (first, per detachment) then Core, filtered by the
+     stratagem's TARGET text vs the unit's keywords (C.unitStratMatch) */
+  function unitStratsHtml(F, u, dets, o) {
+    o = o || {};
+    const res = C.unitStratagems(u, F, dets, coreStrats());
+    const n = res.groups.reduce((a, g) => a + g.items.length, 0) + res.core.items.length;
+    const item = ({ s, m }) => `<details class="ust" data-testid="ust" data-st="${esc(s[0])}"><summary><span class="cp">${esc(s[1])} CP</span><span class="n">${esc(s[0])}</span><span class="ph">${esc(s[2] || "")}</span>${m.any ? `<span class="tag" title="The target names no keyword – any of your units">any unit</span>` : ""}${m.unsure ? `<span class="tag warn" title="${esc(m.why)}">check</span>` : ""}</summary>
+      <div class="meta">${[s[3], s[4]].filter(Boolean).map(esc).join(" · ")}</div><div class="txt">${esc(clean(s[5]))}</div></details>`;
+    const grp = (h, items, total, attrs) => `<div class="stgrp" ${attrs}><div class="stgrp-h">${h} <span class="muted">· ${items.length} of ${total}</span></div>${items.length ? items.map(item).join("") : `<div class="muted small">None of these target this unit.</div>`}</div>`;
+    const body = res.groups.map((g) => grp(esc(g.det.n), g.items, g.total, `data-det="${esc(g.det.n)}"`)).join("") +
+      (res.core.total ? grp(`<span class="core-h">Core stratagems</span>`, res.core.items, res.core.total, `data-core="1"`) : "");
+    if (!res.groups.length && !res.core.total) return "";
+    return `<details class="coll ustrats" data-testid="unit-strats" open><summary>Stratagems for this unit <span class="muted">(${n})</span></summary><div class="cb">
+      ${!dets.length ? `<div class="muted small">Pick a detachment to add its stratagems.</div>` : ""}${body}
+      <div class="muted small ust-note">Matched on each stratagem's TARGET keywords; conditions like "that made a charge move" are not checked.${coreSrc() ? ` Core: ${esc(coreSrc().split(" – ")[0])}.` : ""}</div></div></details>`;
   }
   function stratHtml(s) {
     return `<div class="strat"><div class="sh"><span class="n">${esc(s[0])}</span><span class="cp">${esc(s[1])} CP</span></div>
@@ -1006,7 +1034,6 @@
         ${!targets.length ? `<div class="muted">Add a unit it can join: ${esc(can.join(", "))}.</div>` : ""}</div></div>`;
     }
     const attachedHere = (r.attached || []).length ? `<div class="grp"><div class="gb"><div class="opt"><span class="on"><b>Attached:</b> ${esc(r.attached.map((x) => `${x.name} (${x.attachKind === "support" ? "Support" : "Leader"})`).join(", "))}</span></div></div></div>` : "";
-    const strats = dets.flatMap((d) => d.st);
     const linked = C.linkedWargear(u);
     return phead(esc(u.n), `${pts(r.total, "big")} <span class="muted">${esc(u.r)}</span>`,
       `<button class="ibtn" data-action="dup-entry" data-uid="${esc(uid)}" title="Duplicate">${icon("copy")}</button><button class="ibtn danger" data-action="del-entry" data-uid="${esc(uid)}" title="Remove">${icon("trash")}</button>`) +
@@ -1023,7 +1050,7 @@
         ${enhHtml}
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
         <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(led by ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : ""}</summary><div class="cb">${combinedDatasheet(F, r)}</div></details>
-        ${dets.length ? `<details class="coll" data-testid="unit-strats"><summary>Stratagems (${strats.length})${dets.length > 1 ? ` <span class="muted">– ${dets.length} detachments</span>` : ""}</summary><div class="cb">${dets.map((d) => `<div class="stgrp" data-det="${esc(d.n)}"><div class="stgrp-h">${esc(d.n)}${d.rule ? ` <span class="muted">– ${esc(d.rule[0])}</span>` : ""}</div>${d.rule ? `<div class="rules small">${esc(clean(d.rule[1]))}</div>` : ""}${d.st.length ? d.st.map(stratHtml).join("") : `<span class="muted">No stratagem data for this detachment.</span>`}</div>`).join("")}</div></details>` : ""}
+        ${unitStratsHtml(F, u, dets)}
       </div>`;
   }
   /* New Recruit-style options tree: model types with counts, fixed weapons, weapon choices per slot */
@@ -1068,7 +1095,8 @@
     const n = l.entries.filter((e) => e.unit === name).length;
     return phead(esc(u.n), `${pts(C.minCost(u, n + 1), "big")} <span class="muted">${esc(u.r)}</span>`) + `<div class="pbody scroll" data-sk="panel">
       ${C.unitAllowed(u, l).ok ? `<button class="btn" data-action="add-unit" data-unit="${esc(u.n)}">${icon("plus")} Add to roster</button>` : `<div class="warn">🔒 ${esc(C.unitAllowed(u, l).reason)}</div>`}
-      <details class="coll profiles" open data-testid="profiles"><summary>Profiles</summary><div class="cb">${datasheetHtml(F, u, null)}</div></details></div>`;
+      <details class="coll profiles" open data-testid="profiles"><summary>Profiles</summary><div class="cb">${datasheetHtml(F, u, null)}</div></details>
+      ${unitStratsHtml(F, u, (l.dets || []).map((n) => F.dets[n]).filter(Boolean))}</div>`;
   }
   function metaChip(l, detName) {
     const md = C.metaDetachment(C.metaFaction(S.wr, l.faction, l.sub), detName);
@@ -1605,7 +1633,8 @@
       const F = C.getFaction(S.idx, CUR); if (!F) return;
       if (t.dataset.uid) {
         const c = C.calcList(CUR, S.idx); const r = c.entries.find((x) => x.uid === t.dataset.uid); if (!r || !r.unit) return;
-        modal(r.attached && r.attached.length ? `${r.attached.map((x) => x.name).join(" + ")} + ${r.name}` : r.name, combinedDatasheet(F, r), floatOpts("ds"));
+        const dets = (CUR.dets || []).map((n) => F.dets[n]).filter(Boolean);
+        modal(r.attached && r.attached.length ? `${r.attached.map((x) => x.name).join(" + ")} + ${r.name}` : r.name, combinedDatasheet(F, r) + unitStratsHtml(F, r.unit, dets), floatOpts("ds"));
       } else {
         const u = F.units[t.dataset.unit]; if (!u) return;
         const c = C.calcList(CUR, S.idx); const r = S.ui.panel && S.ui.panel.uid ? c.entries.find((x) => x.uid === S.ui.panel.uid && x.unit === u) : null;

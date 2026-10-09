@@ -53,6 +53,7 @@ jobs:
             data/mfm.json
             data/grimslate.json
             data/winrates.json
+            data/core_stratagems.json
           key: scraped-${{ github.run_id }}
           restore-keys: scraped-
       - name: Install image tooling (faction artwork) + points-audit deps

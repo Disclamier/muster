@@ -662,13 +662,27 @@ test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath sh
   const b2 = [...d.querySelectorAll(".panel [data-testid=det-block]")];
   assert.deepEqual(b2.map((b) => b.dataset.det), [BW.n, VW.n, other.n]);
   assert.ok(b2[2].classList.contains("preview"));
-  // Configuration card: one entry per detachment with rule + its stratagems
+  // Configuration card: each detachment's rule (+ enhancements) right under the Detachments row, collapsed
+  const rules = [...d.querySelectorAll(".roster .cfgcard [data-testid=det-rule-row]")];
+  assert.deepEqual(rules.map((x) => x.dataset.det), [BW.n, VW.n]);
+  assert.ok(rules.every((x) => !x.open), "collapsed by default");
+  assert.match(rules[0].querySelector("summary").textContent, /Berzerker Warband – Relentless Rage/);
+  assert.match(rules[1].querySelector("summary").textContent, /Vessels of Wrath – Wrath of Khorne/);
+  assert.match(rules[1].querySelector("[data-testid=det-rule-text]").textContent, new RegExp(VW.rule[1].slice(0, 20).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.equal(rules[0].querySelectorAll("[data-testid=det-rule-enh] .opt").length, BW.enh.length);
+  const detsRow = d.querySelector(".roster .cfgcard [data-testid=det-dd]");
+  assert.equal(detsRow.nextElementSibling.dataset.testid, "det-rules", "rules sit right below the Detachments row");
+  // bottom Stratagems card: one row per detachment (stratagems only), then Core
   const cfg = [...d.querySelectorAll(".roster [data-testid=cfg-det]")];
   assert.deepEqual(cfg.map((x) => x.dataset.det), [BW.n, VW.n]);
-  assert.match(cfg[0].querySelector("summary").textContent, /Relentless Rage/);
-  assert.match(cfg[1].querySelector("summary").textContent, /Wrath of Khorne/);
+  assert.match(d.querySelector("[data-testid=cfg-more] .sect-h").textContent, /^\s*Stratagems/);
+  assert.match(cfg[0].querySelector("summary").textContent, /6 stratagems|\d+ stratagems/);
   assert.equal(cfg[0].querySelectorAll(".strat").length, BW.st.length);
   assert.equal(cfg[1].querySelectorAll(".strat").length, VW.st.length);
+  const coreRow = d.querySelector("[data-testid=cfg-more] [data-testid=cfg-core]");
+  assert.ok(coreRow && coreRow.compareDocumentPosition(cfg[1]) & w.Node.DOCUMENT_POSITION_PRECEDING, "Core after the detachments");
+  assert.equal(coreRow.querySelectorAll(".strat").length, 10);
+  assert.match(coreRow.textContent, /COUNTEROFFENSIVE/);
   // unit panel: enhancements from BOTH detachments, stratagems grouped under each detachment
   click(w, [...d.querySelectorAll(".roster .urow")].find((x) => x.textContent.includes(charU.n)));
   const enhVals = [...d.querySelectorAll(".panel input[data-change=enh]")].map((x) => x.value).filter(Boolean);
@@ -676,11 +690,13 @@ test("multiple detachments: World Eaters Berzerker Warband + Vessels of Wrath sh
   change(w, d.querySelector(`.panel input[data-change=enh][value="${VW.n}||${VW.enh[0][0]}"]`), true);
   assert.deepEqual({ ...l.entries[0].enh }, { det: VW.n, name: VW.enh[0][0] });
   assert.equal(C.calcList(l, w.Muster.S.idx).enhancements, VW.enh[0][1]);
+  // Stratagems for this unit: per detachment first (only those whose TARGET fits this unit), then Core
   const groups = [...d.querySelectorAll(".panel [data-testid=unit-strats] .stgrp")];
-  assert.deepEqual(groups.map((g) => g.dataset.det), [BW.n, VW.n]);
-  assert.equal(groups[0].querySelectorAll(".strat").length, BW.st.length);
-  assert.equal(groups[1].querySelectorAll(".strat").length, VW.st.length);
-  assert.match(groups[1].textContent, /Wrath of Khorne/);
+  assert.deepEqual(groups.map((g) => g.dataset.det || "core"), [BW.n, VW.n, "core"]);
+  const exp = C.unitStratagems(charU, w.Muster.S.idx.factions["world-eaters"], [BW, VW], w.Muster.S.ds.core_st.st);
+  assert.equal(groups[0].querySelectorAll("[data-testid=ust]").length, exp.groups[0].items.length);
+  assert.equal(groups[1].querySelectorAll("[data-testid=ust]").length, exp.groups[1].items.length);
+  assert.equal(groups[2].querySelectorAll("[data-testid=ust]").length, exp.core.items.length);
   // Stratagems export: both detachments, each with its rule and all its stratagems, grouped
   const txt = C.exportStratagems ? C.exportStratagems(l, w.Muster.S.idx, w.Muster.S.meta) : C.EXPORT_FORMATS.find((f) => f.id === "stratagems").fn(l, w.Muster.S.idx, w.Muster.S.meta);
   const iB = txt.indexOf("== BERZERKER WARBAND"), iV = txt.indexOf("== VESSELS OF WRATH");
@@ -973,7 +989,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v28/);
+  assert.match(read("sw.js"), /muster-shell-v29/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1316,7 +1332,7 @@ test("codex override in the UI: Space Marines datasheet popup (codex source, ext
   assert.match(d.querySelector("#modal .modal [data-testid=ab-psychic]").textContent, /Prescience/);
   click(w, d.querySelector("[data-action=close-modal]"));
   // detachment view: codex rule + stratagems
-  const txt = [...d.querySelectorAll("[data-testid=det-strats], [data-testid=cfg-det]")].map((x) => x.textContent).join(" ");
+  const txt = [...d.querySelectorAll("[data-testid=det-strats], [data-testid=cfg-det], [data-testid=det-rule-row]")].map((x) => x.textContent).join(" ");
   assert.match(txt, /Codex Discipline/);
   assert.match(txt, /Armour of Contempt/);
   assert.match(txt, /Responsive Tactics/);
@@ -1823,8 +1839,8 @@ test("compact Configuration: Battle Size / Detachment / Force Disposition / Opti
   assert.deepEqual([...card.querySelectorAll(":scope > .sect-body > details.cfg-dd")].map((x) => x.dataset.dd), ["size", "det", "disp", "opts"]);
   assert.ok([...card.querySelectorAll("details.cfg-dd")].every((x) => !x.open), "all collapsed");
   assert.equal(card.querySelectorAll("[data-action=open-panel]").length, 1, "only the detachment details link opens a panel");
-  assert.ok(!card.querySelector("[data-testid=cfg-det]"), "no rules expander between the config and the units");
-  assert.equal(d.querySelector("[data-testid=cfg-more]"), null, "no rules card before a detachment is picked");
+  assert.ok(!card.querySelector("[data-testid=cfg-det], [data-testid=det-rule-row]"), "no rule rows before a detachment is picked");
+  assert.deepEqual([...d.querySelectorAll("[data-testid=cfg-more] [data-testid=cfg-det]")], [], "only Core stratagems before a detachment is picked");
   // no detachment: red ! in the Detachment row
   assert.ok(d.querySelector("[data-testid=cfg-dets] .need"));
   // open the Detachment dropdown (stays open while ticking several), DP budget shown

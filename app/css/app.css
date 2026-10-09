@@ -933,3 +933,30 @@ details.cfg-dd.det-dd > summary.multi .detchips { align-items: flex-start; }
 details.cfg-dd.det-dd > summary.multi .detchip { justify-content: flex-start; }
 details.cfg-dd.det-dd > summary.multi .detchip .dn { text-align: left; }
 details.cfg-dd.det-dd .detchip .dpchip { color: var(--cost); }
+
+/* Detachment rules right under the Detachments row (Configuration card), collapsed by default */
+.detrules { margin: 0 0 4px; }
+details.detrule { margin: 0 0 2px 10px; }
+details.detrule > summary { padding: 6px 4px; }
+details.detrule .enhs { margin-top: 6px; }
+details.detrule .enhs-h { font-weight: 700; font-size: 12px; color: var(--gray); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+details.detrule .enhs .opt { padding: 3px 0; }
+details.cfgdet.corest > summary, html[data-theme] details.cfgdet.corest > summary b { color: var(--text); }
+/* Stratagems for this unit (unit panel + datasheet popup): detachments first, then Core */
+details.ustrats .stgrp { margin-bottom: 6px; }
+details.ustrats .stgrp-h .core-h { color: var(--text); }
+details.ust { border-bottom: 1px solid var(--border); }
+details.ust:last-child { border-bottom: 0; }
+details.ust > summary { display: flex; align-items: baseline; gap: 6px; padding: 6px 0; cursor: pointer; list-style: none; flex-wrap: wrap; }
+details.ust > summary::-webkit-details-marker { display: none; }
+details.ust > summary .cp { flex: none; min-width: 34px; text-align: center; font-weight: 700; font-size: 11px; border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; }
+details.ust > summary .n { font-weight: 700; font-size: 12.5px; flex: 1 1 auto; min-width: 0; }
+details.ust > summary .ph { color: var(--gray); font-size: 11px; }
+details.ust > summary .tag { font-size: 10px; }
+details.ust > summary .tag.warn { color: var(--warn, #e6a700); border-color: currentColor; }
+details.ust .meta { color: var(--gray); font-size: 11px; margin: 0 0 2px; }
+details.ust .txt { font-size: 12px; white-space: pre-line; padding-bottom: 6px; }
+.ust-note { margin-top: 4px; }
+html[data-c-strat] details.ust > summary .n,
+html[data-c-strat] details.ustrats > summary { color: var(--c-strat); }
+html[data-c-strat] details.ust { border-left: 3px solid var(--c-strat); padding-left: 7px; }
