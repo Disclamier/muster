@@ -857,3 +857,7 @@ details.cset .cs-t small { margin: 0; }
   .modal.sheet .colors { max-width: 720px; margin: 0 auto; }
   details.cset > summary.cs-sum { min-height: 48px; box-sizing: border-box; }
 }
+
+/* Per-faction colors: which faction the Colors window edits */
+.cs-scope { margin: 2px 0 8px; padding: 7px 10px; border: 1px solid var(--border); border-left: 4px solid var(--blue); border-radius: 6px; background: var(--sect); font-size: 13px; }
+.cs-h .cs-shared { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 11px; margin-left: 6px; color: var(--gray); }

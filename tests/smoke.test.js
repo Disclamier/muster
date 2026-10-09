@@ -20,7 +20,7 @@ function makeApp(opts) {
   opts = opts || {};
   const server = { version: { ...VERSION }, points: POINTS, winrates: WR, datasheets: opts.noDatasheets ? null : DS, offline: false, requests: [] };
   const dom = new JSDOM(HTML, {
-    url: "http://localhost:8765/", runScripts: "dangerously", pretendToBeVisual: true,
+    url: opts.url || "http://localhost:8765/", runScripts: "dangerously", pretendToBeVisual: true,
     beforeParse(w) {
       if (opts.storage) for (const [k, v] of Object.entries(opts.storage)) w.localStorage.setItem(k, v);
       // viewport emulation: desktop PC (default, mouse), phone (narrow, touch) or touch tablet (wide, touch)
@@ -54,6 +54,18 @@ function makeApp(opts) {
   w.eval(read("js/sync.js"));
   w.eval(read("js/app.js"));
   return { dom, w, d: w.document, server };
+}
+// per-faction colors: open a list of the given (sub-)faction so the Colors window edits that faction's set
+async function openFactionList(w, d, sub, faction, name) {
+  const C = w.MusterCore; const l = C.newList({ name: name || sub, faction: faction || sub, sub, size: "strikeforce" });
+  w.Muster.S.lists.push(l); await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor")); return l;
+}
+// storage for a fresh page load straight into a list of that faction (colors applied before first paint)
+function factionBoot(sub, colors, shared) {
+  const st = { "muster.lists": JSON.stringify([{ id: "boot1", name: "Boot", faction: sub, sub, size: "strikeforce", entries: [], dets: [], updated: "2026-10-08T00:00:00Z" }]),
+    ["muster.colors.f." + sub]: JSON.stringify(colors), "muster.colors.v": "2" };
+  if (shared) st["muster.colors"] = JSON.stringify(shared);
+  return { storage: st, url: "http://localhost:8765/#/list/boot1" };
 }
 const tick = (ms) => new Promise((r) => setTimeout(r, ms || 0));
 async function until(fn, ms) { const t0 = Date.now(); while (Date.now() - t0 < (ms || 4000)) { const v = fn(); if (v) return v; await tick(10); } throw new Error("timeout waiting for condition"); }
@@ -963,7 +975,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v22/);
+  assert.match(read("sw.js"), /muster-shell-v23/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1315,13 +1327,16 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   assert.match(css, /var\(--c-det, #39ff14\)/);
   assert.match(css, /html\[data-c-strat\] \.strat \.sh \.n/);
   for (const k of ["take-and-hold", "disruption", "purge-the-foe", "priority-assets", "reconnaissance"]) assert.match(css, new RegExp(`\\[data-disp=${k}\\] \\{ --dc: var\\(--c-disp-${k}, #[0-9a-f]{6}\\)`));
+  await openFactionList(w, d, "space-marines");
+  const FK = "muster.colors.f.space-marines";
   // open the Colors screen from the header: every category has a row with a picker
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const rows = [...d.querySelectorAll("#modal [data-testid=color-row]")].map((r) => r.dataset.ck);
   assert.deepEqual(rows, ["det", "strat", "cat", "list", "abil", "aura", "enh", "disp-take-and-hold", "disp-disruption", "disp-purge-the-foe", "disp-priority-assets", "disp-reconnaissance"]);
   // pick a swatch -> saved + applied right away
   click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
-  assert.equal(JSON.parse(w.localStorage.getItem("muster.colors")).strat, "#ff9f1c");
+  assert.equal(JSON.parse(w.localStorage.getItem(FK)).strat, "#ff9f1c");
+  assert.equal(w.localStorage.getItem("muster.colors"), null, "faction colors are not in the shared set");
   assert.equal(root.style.getPropertyValue("--c-strat"), "#ff9f1c");
   assert.ok(root.hasAttribute("data-c-strat"));
   assert.ok(d.querySelector('#modal .cset[data-ck=strat]').classList.contains("custom"));
@@ -1331,7 +1346,7 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   assert.equal(root.style.getPropertyValue("--c-disp-priority-assets"), "#ffee88");
   assert.equal(root.style.getPropertyValue("--c-disp-priority-assets-fg"), "#000");
   // a fresh page load applies saved colors before the app scripts run (no flash)
-  const b = makeApp({ storage: { "muster.colors": JSON.stringify({ cat: "#00e5ff", det: "#ff0000", bogus: "#123456", enh: "red" }) } });
+  const b = makeApp(factionBoot("space-marines", { cat: "#00e5ff", det: "#ff0000", bogus: "#123456", enh: "red" }));
   assert.equal(b.d.documentElement.style.getPropertyValue("--c-cat"), "#00e5ff");
   assert.equal(b.d.documentElement.style.getPropertyValue("--c-det"), "#ff0000");
   assert.equal(b.d.documentElement.style.getPropertyValue("--c-enh"), "", "invalid values are ignored");
@@ -1339,10 +1354,17 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   click(w, d.querySelector("#modal [data-action=color-reset][data-k=strat]"));
   assert.equal(root.style.getPropertyValue("--c-strat"), "");
   assert.ok(!root.hasAttribute("data-c-strat"));
-  assert.equal(JSON.parse(w.localStorage.getItem("muster.colors")).strat, undefined);
+  assert.equal(w.localStorage.getItem(FK), null);
+  click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
+  // Reset all clears this faction's colors; the shared disposition color keeps its own Reset
   click(w, d.querySelector("#modal [data-action=color-reset-all]"));
+  assert.equal(w.localStorage.getItem(FK), null);
+  assert.equal(root.style.getPropertyValue("--c-strat"), "");
+  assert.equal(root.style.getPropertyValue("--c-disp-priority-assets"), "#ffee88");
+  click(w, d.querySelector('#modal [data-action=color-reset][data-k="disp-priority-assets"]'));
   assert.equal(w.localStorage.getItem("muster.colors"), null);
   assert.equal(root.style.getPropertyValue("--c-disp-priority-assets"), "");
+  click(w, d.querySelector("#modal [data-action=close-modal]"));
   // dispositions render as colored chips in the builder
   const C = w.MusterCore; const SM = POINTS.factions.find((f) => f.id === "space-marines");
   const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
@@ -1368,7 +1390,7 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   // a user override reaches the builder through the same variable
   w.MusterColors.set("disp-" + slug, "#ff00aa");
   assert.equal(root.style.getPropertyValue("--c-disp-" + slug), "#ff00aa");
-  w.MusterColors.resetAll();
+  w.MusterColors.set("disp-" + slug, null);
   // Lists page: colored edge + chip on the list's row; lists without a disposition stay plain
   const l2 = C.newList({ name: "Plain", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); w.Muster.S.lists.push(l2);
   await go(w, "#/lists");
@@ -1392,6 +1414,8 @@ test("Colors brightness: shade keeps the hue, slider saves + applies before pain
   assert.equal(MC.shade("#ff0000", -25), "#8c0000");
   assert.equal(MC.shade("#ff0000", 50), "#ffe5e5");
   assert.equal(MC.shade("#ff0000", -50), "#190000");
+  await openFactionList(w, d, "space-marines");
+  const FK = "muster.colors.f.space-marines";
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const m = d.querySelector("#modal .modal");
   assert.ok(m.classList.contains("float"), "desktop: floating window");
@@ -1404,7 +1428,7 @@ test("Colors brightness: shade keeps the hue, slider saves + applies before pain
   click(w, d.querySelector('#modal [data-action=color-pick][data-k=det][data-v="#ff4d6d"]'));
   const sl = d.querySelector('#modal input[type=range][data-k=det]');
   sl.value = "-25"; sl.dispatchEvent(new w.Event("input", { bubbles: true }));
-  const saved = JSON.parse(w.localStorage.getItem("muster.colors"));
+  const saved = JSON.parse(w.localStorage.getItem(FK));
   assert.equal(saved.det, "#ff4d6d"); assert.equal(saved.det_b, -25);
   assert.equal(root.style.getPropertyValue("--c-det"), MC.shade("#ff4d6d", -25));
   assert.notEqual(root.style.getPropertyValue("--c-det"), "#ff4d6d");
@@ -1415,16 +1439,15 @@ test("Colors brightness: shade keeps the hue, slider saves + applies before pain
   s2.value = "20"; s2.dispatchEvent(new w.Event("input", { bubbles: true }));
   assert.equal(root.style.getPropertyValue("--c-disp-take-and-hold"), MC.shade("#196819", 20));
   // applied before paint on the next load
-  const b = makeApp({ storage: { "muster.colors": JSON.stringify({ det: "#ff4d6d", det_b: 30, cat: "#00e5ff" }) } });
+  const b = makeApp(factionBoot("space-marines", { det: "#ff4d6d", det_b: 30, cat: "#00e5ff" }));
   assert.equal(b.d.documentElement.style.getPropertyValue("--c-det"), MC.shade("#ff4d6d", 30));
   assert.equal(b.d.documentElement.style.getPropertyValue("--c-cat"), "#00e5ff");
   // Reset clears the color and its brightness
   click(w, d.querySelector("#modal [data-action=color-reset][data-k=det]"));
-  const after = JSON.parse(w.localStorage.getItem("muster.colors"));
-  assert.equal(after.det, undefined); assert.equal(after.det_b, undefined);
+  assert.equal(w.localStorage.getItem(FK), null, "det was this faction's only color");
   assert.equal(root.style.getPropertyValue("--c-det"), "");
   assert.equal(d.querySelector('#modal input[type=range][data-k=det]').value, "0");
-  click(w, d.querySelector("#modal [data-action=color-reset-all]"));
+  click(w, d.querySelector('#modal [data-action=color-reset][data-k="disp-take-and-hold"]'));
   assert.equal(w.localStorage.getItem("muster.colors"), null);
 });
 
@@ -1483,8 +1506,8 @@ test("Colors: 'Units in your list' is its own color, separate from the Unit cata
   assert.match(css, /html\[data-c-cat\] \.crow \.cname \{ color: var\(--c-cat\); \}/);
   assert.match(css, /html\[data-c-list\] \.urow \.line \.n:not\(\.err\) \{ color: var\(--c-list\); \}/);
   assert.ok(!/html\[data-c-cat\][^{]*\.urow/.test(css), "catalog color no longer reaches list units");
-  const { w, d } = makeApp({ storage: { "muster.colors": JSON.stringify({ cat: "#00e5ff", list: "#ff9f1c", list_b: 10 }) } });
-  await until(() => d.querySelector(".lists-page"));
+  const { w, d } = makeApp(factionBoot("space-marines", { cat: "#00e5ff", list: "#ff9f1c", list_b: 10 }));
+  await until(() => d.querySelector(".editor"));
   const root = d.documentElement, MC = w.MusterColors;
   assert.equal(root.style.getPropertyValue("--c-cat"), "#00e5ff");
   assert.equal(root.style.getPropertyValue("--c-list"), MC.shade("#ff9f1c", 10));
@@ -1501,6 +1524,7 @@ test("Colors: 'Units in your list' is its own color, separate from the Unit cata
 test("Colors accordion: rows start collapsed, open one at a time, collapsed row shows swatch + custom hint", async () => {
   const { w, d } = makeApp();
   await until(() => d.querySelector(".lists-page"));
+  await openFactionList(w, d, "space-marines");
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const rows = [...d.querySelectorAll("#modal details.cset")];
   assert.equal(rows.length, w.MusterColors.CATS.length);
@@ -1582,8 +1606,8 @@ test("touch tablet (wide, no mouse): Colors and datasheet open as full-screen sh
   const m = d.querySelector("#modal .modal");
   assert.ok(m.classList.contains("sheet") && !m.classList.contains("float"), "Colors is a sheet on tablets");
   assert.equal(d.querySelector("#modal > .modal-wrap").dataset.action, "modal-bg");
-  click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
-  assert.equal(d.documentElement.style.getPropertyValue("--c-strat"), "#ff9f1c");
+  click(w, d.querySelector('#modal [data-action=color-pick][data-k="disp-disruption"][data-v="#c25e00"]'));
+  assert.equal(d.documentElement.style.getPropertyValue("--c-disp-disruption"), "#c25e00");
   const C = w.MusterCore; const SM = POINTS.factions.find((f) => f.id === "space-marines");
   const l = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); l.dets = ["Gladius Task Force"];
   l.entries.push(C.newEntry(SM.units.find((u) => u.n === "Intercessor Squad")));
@@ -1596,4 +1620,67 @@ test("touch tablet (wide, no mouse): Colors and datasheet open as full-screen sh
   assert.ok(d.querySelector("#modal .modal.sheet [data-testid=datasheet]") && !d.querySelector("#modal .floatwrap"));
   const css = read("css/app.css");
   assert.match(css, /@media \(min-width: 761px\) and \(hover: none\), \(min-width: 761px\) and \(pointer: coarse\) \{\s*\.modal-wrap\.sheetwrap/);
+});
+
+test("Colors per faction: each faction keeps its own set, switching lists switches colors, dispositions shared, header names the faction", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const root = d.documentElement, MC = w.MusterColors;
+  const pick = (k, v) => click(w, d.querySelector(`#modal [data-action=color-pick][data-k="${k}"][data-v="${v}"]`));
+  const title = () => d.querySelector("#modal .mtitle").textContent;
+  // no list open: the window only edits the shared Force Disposition colors
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  assert.match(title(), /Colors — Force Dispositions/);
+  assert.match(d.querySelector("[data-testid=color-scope]").textContent, /Open a list/);
+  assert.ok(!d.querySelector('#modal .cset[data-ck=det]') && d.querySelector('#modal .cset[data-ck="disp-disruption"]'));
+  pick("disp-disruption", "#c25e00");
+  click(w, d.querySelector("#modal [data-action=close-modal]"));
+  // Khorne list: set its colors
+  const kh = await openFactionList(w, d, "world-eaters", "world-eaters", "Khorne");
+  const khName = POINTS.groups.flatMap((g) => g.factions).find((f) => f.id === "world-eaters").name;
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  assert.equal(d.querySelector("#modal [data-testid=colors]").dataset.scope, "world-eaters");
+  assert.ok(title().includes("Colors — " + khName), title());
+  pick("det", "#ff4d6d"); pick("strat", "#ff9f1c");
+  assert.equal(root.style.getPropertyValue("--c-det"), "#ff4d6d");
+  assert.deepEqual(JSON.parse(w.localStorage.getItem("muster.colors.f.world-eaters")), { det: "#ff4d6d", strat: "#ff9f1c" });
+  // the open Colors window follows when you switch to a Space Marines list (desktop float stays open)
+  const sm = await openFactionList(w, d, "space-marines", "space-marines", "SM");
+  assert.equal(MC.scope(), "space-marines");
+  assert.match(title(), /Colors — Space Marines/);
+  assert.equal(root.style.getPropertyValue("--c-det"), "", "SM: built-in defaults, Khorne colors not carried over");
+  assert.ok(!root.hasAttribute("data-c-strat"));
+  assert.equal(root.style.getPropertyValue("--c-disp-disruption"), "#c25e00", "dispositions shared by every faction");
+  assert.ok(!d.querySelector('#modal .cset[data-ck=det]').classList.contains("custom"));
+  pick("cat", "#00e5ff");
+  // back to Khorne: its own set, SM catalog color not applied
+  await go(w, "#/list/" + kh.id); await until(() => d.querySelector(".editor"));
+  assert.equal(root.style.getPropertyValue("--c-det"), "#ff4d6d");
+  assert.equal(root.style.getPropertyValue("--c-strat"), "#ff9f1c");
+  assert.equal(root.style.getPropertyValue("--c-cat"), "");
+  // two lists of the same faction share one set
+  const kh2 = await openFactionList(w, d, "world-eaters", "world-eaters", "Khorne 2");
+  assert.equal(root.style.getPropertyValue("--c-det"), "#ff4d6d");
+  // Lists page: faction colors off, shared disposition colors still on
+  await go(w, "#/lists"); await until(() => d.querySelector(".lists-page"));
+  assert.equal(MC.scope(), null);
+  assert.equal(root.style.getPropertyValue("--c-det"), ""); assert.equal(root.style.getPropertyValue("--c-disp-disruption"), "#c25e00");
+  // before first paint: loading straight into a list applies that faction's colors
+  const st = {}; for (let i = 0; i < w.localStorage.length; i++) { const k = w.localStorage.key(i); st[k] = w.localStorage.getItem(k); }
+  st["muster.lists"] = JSON.stringify(w.Muster.S.lists);
+  for (const [id, want] of [[kh2.id, "#ff4d6d"], [sm.id, ""]]) {
+    const b = makeApp({ storage: st, url: "http://localhost:8765/#/list/" + id });
+    assert.equal(b.d.documentElement.style.getPropertyValue("--c-det"), want);
+    assert.equal(b.d.documentElement.style.getPropertyValue("--c-disp-disruption"), "#c25e00");
+  }
+});
+
+test("Colors per faction: the old single color set moves to the faction of the most recently edited list (once)", async () => {
+  const lists = [{ id: "a", name: "Old", faction: "space-marines", sub: "space-marines", entries: [], updated: "2026-10-01T00:00:00Z" },
+    { id: "b", name: "Khorne", faction: "world-eaters", sub: "world-eaters", entries: [], updated: "2026-10-08T00:00:00Z" }];
+  const { w } = makeApp({ storage: { "muster.lists": JSON.stringify(lists), "muster.colors": JSON.stringify({ det: "#ff4d6d", det_b: -10, "disp-disruption": "#ff9f1c" }) } });
+  assert.deepEqual(JSON.parse(w.localStorage.getItem("muster.colors.f.world-eaters")), { det: "#ff4d6d", det_b: -10 });
+  assert.deepEqual(JSON.parse(w.localStorage.getItem("muster.colors")), { "disp-disruption": "#ff9f1c" });
+  assert.equal(w.localStorage.getItem("muster.colors.f.space-marines"), null);
+  assert.equal(w.localStorage.getItem("muster.colors.v"), "2");
 });

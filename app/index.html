@@ -36,7 +36,29 @@
       { k: "disp-reconnaissance", label: "Reconnaissance", def: "#056863", disp: 1 }
     ];
     var ok = function (v) { return typeof v === "string" && /^#[0-9a-f]{6}$/i.test(v); };
-    function load() { try { var o = JSON.parse(localStorage.getItem(KEY) || "{}"); return o && typeof o === "object" ? o : {}; } catch (e) { return {}; } }
+    // Per-faction colors (James, Oct 8): each faction (sub-faction id of the open list, e.g. "chaos-daemons",
+    // "blood-angels") has its own set in "muster.colors.f.<id>"; faction without a set = built-in defaults.
+    // Force Disposition colors ("disp-*") are GW's official ones and stay shared by all factions in "muster.colors".
+    var FKEY = "muster.colors.f.", scope = null;
+    var isDisp = function (k) { return k.indexOf("disp-") === 0; };
+    function rd(k) { try { var o = JSON.parse(localStorage.getItem(k) || "{}"); return o && typeof o === "object" && !Array.isArray(o) ? o : {}; } catch (e) { return {}; } }
+    function wr(k, o) { try { if (Object.keys(o).length) localStorage.setItem(k, JSON.stringify(o)); else localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+    function pick(o, disp) { var r = {}; for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k) && isDisp(k) === disp) r[k] = o[k]; return r; }
+    // effective settings for the current scope: shared dispositions + this faction's own colors
+    function load() { var o = pick(rd(KEY), true), f = scope ? pick(rd(FKEY + scope), false) : {}; for (var k in f) o[k] = f[k]; return o; }
+    // faction of a list from the URL (#/list/<id>) using the saved lists, so colors apply before first paint
+    function scopeOfHash(h) { var m = /^#\/list\/([^/?#]+)/.exec(h || ""); if (!m) return null; var id = decodeURIComponent(m[1]);
+      try { var ls = JSON.parse(localStorage.getItem("muster.lists") || "[]"); for (var i = 0; i < ls.length; i++) if (ls[i] && ls[i].id === id) return ls[i].sub || ls[i].faction || null; } catch (e) { /* ignore */ }
+      return null; }
+    // one-time move of the old single (global) set: its non-disposition colors go to the faction of the most recently
+    // edited list (where they were being set up); dispositions stay shared
+    function migrate() {
+      try { if (localStorage.getItem("muster.colors.v") === "2") return; var g = rd(KEY), own = pick(g, false);
+        if (Object.keys(own).length) { var ls = JSON.parse(localStorage.getItem("muster.lists") || "[]").filter(function (l) { return l && (l.sub || l.faction); })
+            .sort(function (a, b) { return String(b.updated || "").localeCompare(String(a.updated || "")); });
+          if (ls.length) { var fk = FKEY + (ls[0].sub || ls[0].faction); if (!localStorage.getItem(fk)) wr(fk, own); }
+          wr(KEY, pick(g, true)); }
+        localStorage.setItem("muster.colors.v", "2"); } catch (e) { /* ignore */ } }
     // readable text on top of a color: black on light colors, white on dark ones
     function fg(hex) { var n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(function (x) { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); });
       return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2] > 0.25 ? "#000" : "#fff"; }
@@ -61,15 +83,19 @@
         if (ok(v)) { r.style.setProperty("--c-" + c.k, v); r.style.setProperty("--c-" + c.k + "-fg", fg(v)); r.setAttribute("data-c-" + c.k, ""); }
         else { r.style.removeProperty("--c-" + c.k); r.style.removeProperty("--c-" + c.k + "-fg"); r.removeAttribute("data-c-" + c.k); } });
     }
-    function save(o) { try { if (Object.keys(o).length) localStorage.setItem(KEY, JSON.stringify(o)); else localStorage.removeItem(KEY); } catch (e) { /* ignore */ } apply(o); }
+    function save(o) { wr(KEY, pick(o, true));
+      if (scope) wr(FKEY + scope, pick(o, false)); apply(); }
+    function setScope(id) { id = id || null; if (id === scope) return false; scope = id; apply(); return true; }
     // set(k, null) = Reset: drops the color and its brightness
     function set(k, v) { var o = load(); if (ok(v)) o[k] = v.toLowerCase(); else { delete o[k]; delete o[k + "_b"]; } save(o); }
     function setB(k, b) { var o = load(); b = Math.max(-50, Math.min(50, Math.round(Number(b) || 0))); if (b) o[k + "_b"] = b; else delete o[k + "_b"]; save(o); }
     function get(k) { var v = load()[k]; return ok(v) ? v.toLowerCase() : null; }
     function cat(k) { for (var i = 0; i < CATS.length; i++) if (CATS[i].k === k) return CATS[i]; return null; }
-    try { apply(); } catch (e) { /* ignore */ }
+    try { migrate(); scope = scopeOfHash(location.hash); apply(); } catch (e) { /* ignore */ }
     return { KEY: KEY, CATS: CATS, load: load, apply: apply, set: set, get: get, cat: cat, fg: fg, ok: ok, setB: setB, shade: shade,
-      getB: function (k) { return bOf(load(), k); }, base: function (k) { return base(load(), cat(k)); }, effective: function (k) { return eff(load(), cat(k)); }, resetAll: function () { save({}); } };
+      getB: function (k) { return bOf(load(), k); }, base: function (k) { return base(load(), cat(k)); }, effective: function (k) { return eff(load(), cat(k)); }, // Reset all: this faction's colors (dispositions keep theirs); with no list open, the shared disposition colors
+      resetAll: function () { if (scope) wr(FKEY + scope, {}); else wr(KEY, {}); apply(); },
+      setScope: setScope, scope: function () { return scope; }, scopeOfHash: scopeOfHash, FKEY: FKEY, isDisp: isDisp };
   })();
 </script>
 </head>

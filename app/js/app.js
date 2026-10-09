@@ -454,6 +454,9 @@
     closeMenus();
     // the editor is a fixed-height app view (header/title row stay put, each column scrolls on its own)
     document.body.classList.toggle("app-fixed", parts[0] === "list" && !!parts[1]);
+    // per-faction colors: the open list's faction picks the color set (no list open = only the shared disposition colors)
+    const cl = parts[0] === "list" && parts[1] ? findList(decodeURIComponent(parts[1])) : null;
+    if (MC.setScope(cl ? cl.sub || cl.faction : null) && $("#modal [data-testid=colors]")) openColors();
     if (parts[0] === "list" && parts[1]) renderEditor(decodeURIComponent(parts[1]));
     else if (parts[0] === "meta") renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null);
     else if (parts[0] === "share" && parts[1]) openShared(parts.slice(1).join("/"));
@@ -1473,12 +1476,21 @@
         <label class="cs-pick" title="Custom color: pick any color"><input type="color" value="${esc(val)}" data-input="color" data-k="${esc(c.k)}" aria-label="${esc(c.label)}: custom color"></label></span></div>
       ${brightRow(c)}</div></details>`;
   }
+  // name of the faction whose colors are being edited (the open list's sub-faction), or null on Lists / Meta pages
+  function colorScopeName() {
+    const id = MC.scope(); if (!id) return null;
+    const l = CUR && (CUR.sub || CUR.faction) === id ? CUR : S.lists.find((x) => (x.sub || x.faction) === id);
+    const sub = l && subOf(l); return (sub && sub.name) || (S.idx && S.idx.factions[id] && S.idx.factions[id].f.name) || title(id.replace(/-/g, " "));
+  }
   function openColors() {
-    const txt = MC.CATS.filter((c) => !c.disp), disp = MC.CATS.filter((c) => c.disp);
-    modal("Colors", `<div class="colors" data-testid="colors">
+    const fname = colorScopeName();
+    const txt = fname ? MC.CATS.filter((c) => !c.disp) : [], disp = MC.CATS.filter((c) => c.disp);
+    modal(fname ? `Colors — ${fname}` : "Colors — Force Dispositions", `<div class="colors" data-testid="colors" data-scope="${esc(MC.scope() || "")}">
+      ${fname ? `<p class="cs-scope" data-testid="color-scope">Editing colors for <b>${esc(fname)}</b>. Every ${esc(fname)} list uses these; other factions keep their own.</p>`
+        : `<p class="cs-scope" data-testid="color-scope">Open a list to choose colors for its faction. Each faction keeps its own colors. Force Disposition colors below are shared by all factions.</p>`}
       <p class="muted cs-intro">Tap a row to change its color. Changes show right away and are saved on this device. Each preview shows light mode on the left and dark mode on the right.</p>
       ${txt.map(colorRow).join("")}
-      <div class="cs-h">Force Dispositions</div>
+      <div class="cs-h">Force Dispositions <span class="cs-shared">shared by all factions</span></div>
       <p class="muted cs-intro">Defaults are the colors Games Workshop uses on the 11th edition Force Disposition icons.</p>
       ${disp.map(colorRow).join("")}
       <div class="mfoot"><button class="btn secondary" data-action="color-reset-all" data-testid="color-reset-all">Reset all</button><button class="btn" data-action="close-modal">Done</button></div></div>`, isPC() ? { float: true } : { sheet: true });
