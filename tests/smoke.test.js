@@ -975,7 +975,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v23/);
+  assert.match(read("sw.js"), /muster-shell-v24/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1332,7 +1332,7 @@ test("Colors setting: save a color, apply it as a CSS variable before paint, res
   // open the Colors screen from the header: every category has a row with a picker
   click(w, d.querySelector("#hdr [data-action=colors]"));
   const rows = [...d.querySelectorAll("#modal [data-testid=color-row]")].map((r) => r.dataset.ck);
-  assert.deepEqual(rows, ["det", "strat", "cat", "list", "abil", "aura", "enh", "disp-take-and-hold", "disp-disruption", "disp-purge-the-foe", "disp-priority-assets", "disp-reconnaissance"]);
+  assert.deepEqual(rows, ["det", "strat", "cat", "list", "attach", "abil", "aura", "enh", "disp-take-and-hold", "disp-disruption", "disp-purge-the-foe", "disp-priority-assets", "disp-reconnaissance"]);
   // pick a swatch -> saved + applied right away
   click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
   assert.equal(JSON.parse(w.localStorage.getItem(FK)).strat, "#ff9f1c");
@@ -1683,4 +1683,44 @@ test("Colors per faction: the old single color set moves to the faction of the m
   assert.deepEqual(JSON.parse(w.localStorage.getItem("muster.colors")), { "disp-disruption": "#ff9f1c" });
   assert.equal(w.localStorage.getItem("muster.colors.f.space-marines"), null);
   assert.equal(w.localStorage.getItem("muster.colors.v"), "2");
+});
+
+test("attached units: one colored border around the character row(s) + bodyguard (summaries inside), per-faction 'Attached units' color; none in own-category mode", async () => {
+  const { w, d, l, rowOf } = await weEditor(["Berzerker Warband"], ["Khorne Berzerkers", "Lord on Juggernaut", "Master of Executions", "Khorne Berzerkers"]);
+  const [kb, loj, moe, kb2] = l.entries; loj.warlord = true; loj.attach = kb.uid; w.Muster.route();
+  await until(() => d.querySelector(".editor"));
+  const css = read("css/app.css");
+  assert.match(css, /\.ugroup \{ border: 2px solid var\(--c-attach, #e0a526\);/);
+  const grps = [...d.querySelectorAll(".roster [data-testid=attached-group]")];
+  assert.equal(grps.length, 1, "only the joined unit is boxed");
+  const g = grps[0];
+  // the whole group sits inside the one box: Leader row (with its summary line) then the bodyguard row (with its summary)
+  assert.deepEqual([...g.children].map((x) => x.dataset.uid), [loj.uid, kb.uid]);
+  assert.ok(g.querySelector(`.urow[data-uid="${loj.uid}"] .sum, .urow[data-uid="${loj.uid}"] .line`));
+  assert.match(g.textContent, /Lord on Juggernaut/); assert.match(g.textContent, /Khorne Berzerkers/);
+  assert.match(g.getAttribute("title"), /Lord on Juggernaut \+ Khorne Berzerkers/);
+  assert.ok(!g.contains(rowOf(2)) && !g.contains(rowOf(3)), "unattached units stay outside");
+  // selecting a row inside the box still opens it
+  click(w, rowOf(0)); assert.ok(rowOf(0).classList.contains("sel"));
+  // Colors: 'Attached units' row, default amber, per faction
+  const MC = w.MusterColors, root = d.documentElement;
+  assert.equal(MC.cat("attach").def, "#e0a526"); assert.equal(MC.cat("attach").label, "Attached units");
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const row = d.querySelector('#modal .cset[data-ck=attach]');
+  assert.match(row.textContent, /Border around a character and the unit it leads/);
+  assert.ok(row.querySelector("input[type=color]") && row.querySelector("input[type=range]") && !row.querySelector("input[type=range]").disabled, "default can be shaded");
+  click(w, row.querySelector('[data-action=color-pick][data-v="#00e5ff"]'));
+  assert.equal(root.style.getPropertyValue("--c-attach"), "#00e5ff");
+  assert.equal(JSON.parse(w.localStorage.getItem("muster.colors.f.world-eaters")).attach, "#00e5ff");
+  click(w, d.querySelector("#modal [data-action=close-modal]"));
+  // another faction: default border again
+  const C = w.MusterCore; const l2 = C.newList({ name: "SM", faction: "space-marines", sub: "space-marines", size: "strikeforce" }); w.Muster.S.lists.push(l2);
+  await go(w, "#/list/" + l2.id); await until(() => d.querySelector(".editor"));
+  assert.equal(root.style.getPropertyValue("--c-attach"), "");
+  await go(w, "#/list/" + l.id); await until(() => d.querySelector(".roster [data-testid=attached-group]"));
+  assert.equal(root.style.getPropertyValue("--c-attach"), "#00e5ff");
+  // 'Attached characters in their own category': rows are in different sections, so no box (the row says "Attached to")
+  change(w, d.querySelector("[data-testid=leaders-own]"), true);
+  assert.equal(d.querySelector(".roster [data-testid=attached-group]"), null);
+  assert.match(d.querySelector(`.roster .urow[data-uid="${loj.uid}"]`).textContent, /Attached to/);
 });

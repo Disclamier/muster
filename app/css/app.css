@@ -391,7 +391,9 @@ details.cfgdet .rules { font-size: 12px; margin-bottom: 4px; white-space: pre-li
 .opt .why.err { color: var(--red); }
 .locktoggle { display: flex; gap: 6px; align-items: center; padding: 6px 8px; font-size: 12px; border-bottom: 1px solid var(--border); }
 /* ---- attached leaders nested under their bodyguard */
-.ugroup { border-left: 3px solid var(--blue); margin: 2px 0; }
+/* attached unit: one border around the character row(s) + the bodyguard they lead (Colors: "Attached units", per faction) */
+.ugroup { border: 2px solid var(--c-attach, #e0a526); border-radius: 6px; margin: 4px 0; overflow: hidden; }
+.ugroup > .urow:last-child { margin-bottom: 0; }
 .urow.attached { margin-left: 18px; border-left: 1px dashed var(--border); }
 .ugroup > .urow.attached + .urow:not(.attached) { border-top: 1px dashed var(--border); }
 .urow .att { color: var(--blue); font-weight: 700; margin-right: 2px; }
@@ -861,3 +863,7 @@ details.cset .cs-t small { margin: 0; }
 /* Per-faction colors: which faction the Colors window edits */
 .cs-scope { margin: 2px 0 8px; padding: 7px 10px; border: 1px solid var(--border); border-left: 4px solid var(--blue); border-radius: 6px; background: var(--sect); font-size: 13px; }
 .cs-h .cs-shared { text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 11px; margin-left: 6px; color: var(--gray); }
+
+/* Colors preview for "Attached units" */
+.att-prev { display: inline-block; padding: 1px 7px; border: 2px solid; border-radius: 5px; font-size: 12px; font-weight: 700; }
+.cprev .pl .att-prev { color: #111; } .cprev .pd .att-prev { color: #e8e8e8; }

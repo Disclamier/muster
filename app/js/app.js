@@ -779,7 +779,7 @@
       const top = R.entries.filter((x) => own || !x.attachedTo);
       const ptsSum = own ? top.reduce((a, r) => a + r.total, 0) : top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total, 0), 0);
       return `<div class="card${collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}">${esc(role)} ${pts(ptsSum)}<span class="tri"></span></div><div class="sect-body">
-        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group">${r.attached.map((x) => rowHtml(x, true)).join("")}${rowHtml(r, false)}</div>` : rowHtml(r, false))).join("")}</div></div>`;
+        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group" title="${esc([...r.attached.map((x) => x.name), r.name].join(" + "))}: attached unit">${r.attached.map((x) => rowHtml(x, true)).join("")}${rowHtml(r, false)}</div>` : rowHtml(r, false))).join("")}</div></div>`;
     }).join("");
     const missing = c.entries.filter((r) => r.missing);
     const miss = missing.length ? `<div class="card"><div class="sect-h">Not in current data</div>${missing.map((r) => `<div class="urow" data-uid="${esc(r.uid)}"><div class="line"><span class="n err">${esc(r.name)}</span>
@@ -1447,6 +1447,7 @@
   function colorPreview(c) {
     const v = `--c-${c.k}`;
     if (c.disp) return `<span class="cprev disp"><span class="pl"><span class="dispc" data-disp="${esc(c.k.slice(5))}">${esc(c.label)}</span></span><span class="pd"><span class="dispc" data-disp="${esc(c.k.slice(5))}">${esc(c.label)}</span></span></span>`;
+    if (c.k === "attach") return `<span class="cprev"><span class="pl"><span class="att-prev" style="border-color:var(${v}, ${c.def})">Leader + Unit</span></span><span class="pd"><span class="att-prev" style="border-color:var(${v}, ${c.def})">Leader + Unit</span></span></span>`;
     if (c.k === "aura") return `<span class="cprev"><span class="pl"><span class="aura-badge" style="background:var(${v}, #8a5cd1);color:var(${v}-fg, #fff)">Aura</span></span><span class="pd"><span class="aura-badge" style="background:var(${v}, #7a4fc4);color:var(${v}-fg, #fff)">Aura</span></span></span>`;
     return `<span class="cprev"><span class="pl" style="color:var(${v}, ${c.def || "#000"})">${esc(SAMPLE[c.k] || c.label)}</span><span class="pd" style="color:var(${v}, ${c.def || "#e8e8e8"})">${esc(SAMPLE[c.k] || c.label)}</span></span>`;
   }
