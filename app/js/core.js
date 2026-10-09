@@ -213,13 +213,14 @@
 
   /* ---------------------------------------------------------------- loadouts (GrimSlate composition; points stay MFM-only)
      unit.lo = { m: [[name, min, max, fixed[], slots[], upgradesFrom, maxAtSize[[size,max]], addOn]], u: slots[], mn, mx }
-     slot    = [name, opts[[name, max, text, wargearIdx, maxAtSize]], defaults[], minTotal, maxTotal, optional]
+     slot    = [name, opts[[name, max, text, wargearIdx, maxAtSize, wargearCount?]], defaults[], minTotal, maxTotal, optional]
+               wargearCount: copies of the MFM per-item priced wargear one pick gives (e.g. "2 ectoplasma cannons" = 2)
      entry.lo = { c: {modelName: count}, p: {"model|slot": {option: count}} }   ("*|slot" = unit-level) */
   const _lom = new WeakMap();
   function loModel(u) {
     if (!u || !u.lo || !u.lo.m || !u.lo.m.length) return null;
     if (_lom.has(u)) return _lom.get(u);
-    const slot = (s) => ({ name: s[0], opts: s[1].map((o) => ({ name: o[0], max: o[1], text: o[2], w: o[3], mas: o[4] })),
+    const slot = (s) => ({ name: s[0], opts: s[1].map((o) => ({ name: o[0], max: o[1], text: o[2], w: o[3], mas: o[4], wn: o[5] || 1 })),
       defaults: s[2] || [], minT: s[3], maxT: s[4], optional: !!s[5] });
     const M = { types: u.lo.m.map((m) => ({ name: m[0], min: m[1] || 0, max: m[2], fixed: m[3] || [], slots: (m[4] || []).map(slot),
       up: m[5] || null, mas: m[6] || null, addOn: !!m[7] })), unit: (u.lo.u || []).map(slot), mn: u.lo.mn, mx: u.lo.mx };
@@ -351,7 +352,7 @@
   /* priced-wargear counts implied by the loadout (MFM wargear index -> count) */
   function loadoutWargear(u, lo) {
     const M = loModel(u); const out = {}; if (!M || !lo) return out;
-    const add = (s, key) => { for (const o of s.opts) if (o.w !== null && o.w !== undefined) { const v = (lo.p[key] || {})[o.name] || 0; if (v) out[o.w] = (out[o.w] || 0) + v; } };
+    const add = (s, key) => { for (const o of s.opts) if (o.w !== null && o.w !== undefined) { const v = ((lo.p[key] || {})[o.name] || 0) * o.wn; if (v) out[o.w] = (out[o.w] || 0) + v; } };
     for (const t of M.types) for (const s of t.slots) add(s, `${t.name}|${s.name}`);
     for (const s of M.unit) add(s, `*|${s.name}`);
     return out;

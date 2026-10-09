@@ -973,7 +973,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v26/);
+  assert.match(read("sw.js"), /muster-shell-v27/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1879,4 +1879,17 @@ test("compact Configuration: Battle Size / Detachment / Force Disposition / Opti
   // detachment details link still opens the full panel
   click(w, d.querySelector("[data-testid=det-details]"));
   assert.equal(d.querySelectorAll(".panel [data-testid=det-block]").length, 2);
+});
+
+test("loadout picker: an option with 2 of a per-item priced weapon shows and adds 2 x the MFM cost (World Eaters Forgefiend)", async () => {
+  const { w, d, l } = await weEditor(["Berzerker Warband"], ["Forgefiend"]);
+  await until(() => d.querySelector(".editor"));
+  const u = WE().units.find((x) => x.n === "Forgefiend"), base = u.t[0][2][0][1];
+  l.entries[0].lo = { c: { Forgefiend: 1 }, p: { "Forgefiend|Arm weapons": { "2 ectoplasma cannons": 1 }, "Forgefiend|Head weapons": { "Forgefiend jaws": 1 } } };
+  w.Muster.route();
+  click(w, d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"]`));
+  const opt = (n) => [...d.querySelectorAll(".panel label, .panel .opt")].find((x) => x.textContent.includes(n));
+  assert.match(opt("2 ectoplasma cannons").textContent, /10 pts/);
+  assert.match(opt("Ectoplasma cannon and claws").textContent, /5 pts/);
+  assert.match(d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"] .pts`).textContent, new RegExp(`${base + 10} pts`));
 });

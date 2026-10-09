@@ -101,6 +101,15 @@ def compile_slot(sl, wnames):
             1 if sl.get("optional") else 0]
 
 
+def wcount(opt):
+    """how many copies of its granted wargear one pick of a GrimSlate option gives (1 if unknown)."""
+    gc = opt.get("grants_count")
+    if isinstance(gc, int) and gc > 0:
+        return gc
+    m = re.match(r"^\s*(\d+)\s*(?:x\s+)?\S", str(opt.get("name") or ""), flags=re.I)
+    return int(m.group(1)) if m and 1 < int(m.group(1)) <= 10 else 1
+
+
 def compile_loadout(gu, wargear_costs):
     """GrimSlate composition/wargear options -> compact loadout model (points stay MFM-only)."""
     comp = (gu or {}).get("composition") or []
@@ -122,6 +131,12 @@ def compile_loadout(gu, wargear_costs):
         for o, src in zip(res[1], [x for x in sl.get("options") or [] if x.get("name")]):
             keys = {norm(src["name"])} | {norm(g) for g in (src.get("grants") or [])}
             o[3] = next((i for i, wn in enumerate(wflat) if wn & keys), None)
+            # one pick can grant several of the MFM-priced item ("2 ectoplasma cannons" = 2 x "Per Ectoplasma cannon"):
+            # GrimSlate's grants_count (else a leading "N " in the option name) multiplies the per-item cost
+            if o[3] is not None and (wargear_costs[o[3]].get("per_item", True)):
+                n = wcount(src)
+                if n > 1:
+                    o.append(n)
         return res
 
     models = []

@@ -390,3 +390,30 @@ test("sync merge: lists made before the first sign-in (local-only) are uploaded,
   local.lists[1].updated = T2;
   assert.deepEqual(C.pendingPush(local, known), ["pc2"]);
 });
+
+test("real data: an option granting N of an MFM per-item priced weapon costs N x (Forgefiend 2 ectoplasma cannons = +10)", { skip: !fs.existsSync(path.join(__dirname, "../app/data/points.json")) }, () => {
+  const d = JSON.parse(fs.readFileSync(path.join(__dirname, "../app/data/points.json"), "utf8"));
+  const I = C.indexData(d);
+  for (const fid of ["world-eaters", "chaos-space-marines", "thousand-sons"]) {
+    const u = I.factions[fid].units.Forgefiend;
+    assert.deepEqual(u.w, [["Ectoplasma cannon", 5]], `${fid}: MFM "Per Ectoplasma cannon +5"`);
+    const base = C.modelOptions(u, 1)[0].points;
+    const cost = (p) => {
+      const l = C.newList({ name: "T", faction: fid, sub: fid, size: "strikeforce" }); const e = C.newEntry(u);
+      e.lo = { c: { Forgefiend: 1 }, p }; l.entries.push(e);
+      const r = C.calcList(l, I).entries[0]; return r.total - base;
+    };
+    assert.equal(cost({ "Forgefiend|Arm weapons": { "2 Hades autocannons": 1 }, "Forgefiend|Head weapons": { "Forgefiend jaws": 1 } }), 0, fid);
+    assert.equal(cost({ "Forgefiend|Arm weapons": { "2 ectoplasma cannons": 1 }, "Forgefiend|Head weapons": { "Forgefiend jaws": 1 } }), 10, `${fid}: 2 cannons`);
+    assert.equal(cost({ "Forgefiend|Arm weapons": { "2 Hades autocannons": 1 }, "Forgefiend|Head weapons": { [fid === "chaos-space-marines" ? "Ectoplasma cannon and limbs" : "Ectoplasma cannon and claws"]: 1 } }), 5, `${fid}: cannon + claws`);
+    assert.equal(cost({ "Forgefiend|Arm weapons": { "2 ectoplasma cannons": 1 }, "Forgefiend|Head weapons": { [fid === "chaos-space-marines" ? "Ectoplasma cannon and limbs" : "Ectoplasma cannon and claws"]: 1 } }), 15, `${fid}: all three`);
+  }
+  // same rule everywhere: every "N x item" option of a per-item MFM price carries its count
+  const am = I.factions["astra-militarum"].units["Leman Russ Battle Tank"];
+  const sp = am.lo.u.flatMap((s) => s[1]).filter((o) => /^2 (Multi-meltas|Plasma Cannons)$/i.test(o[0]));
+  assert.equal(sp.length, 2); assert.ok(sp.every((o) => o[5] === 2));
+  for (const f of d.factions) for (const u of f.units) for (const s of [...((u.lo && u.lo.m) || []).flatMap((m) => m[4]), ...((u.lo && u.lo.u) || [])]) for (const o of s[1]) {
+    const m = /^(\d+)\s+\S/.exec(o[0]);
+    if (o[3] != null && m && +m[1] > 1) assert.equal(o[5], +m[1], `${f.id} ${u.n}: ${o[0]}`);
+  }
+});

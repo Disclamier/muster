@@ -1,6 +1,10 @@
 """
 Codex override layer (applied by build_data.py on top of GrimSlate; MFM points always win).
 
+POINTS SOURCE (James's rule): the Munitorum Field Manual is the only points source for every faction, Space Marines
+and chapters included: unit costs, wargear costs, enhancement points and detachment DP. This layer never touches
+points (the transcribed codex has none); it only replaces datasheets, loadout options, rules and text.
+
 scraper/overrides/space_marines_codex.json (compiled by codex_parse.py from the transcribed codex) replaces, for the
 Adeptus Astartes factions listed in its "factions" field:
   * datasheets (stats, weapons, abilities, keywords, composition, wargear options) of units with the same name
@@ -181,6 +185,16 @@ def codex_loadout(ds, wargear_costs):
                 return wn.index(norm(n))
         return None
 
+    def opt(name, mx, names, mas):
+        """[name, max, text, wIdx, maxAtSize(, count)]: count = copies of the MFM-priced item one pick gives
+        (e.g. '2 Multi-meltas' -> 2 x the per-item cost)."""
+        i = widx(names)
+        o = [name, mx, None, i, mas]
+        n = sum(1 for x in names if i is not None and norm(x) == wn[i])
+        if n > 1:
+            o.append(n)
+        return o
+
     J = " + ".join
 
     def build_slots(t):
@@ -201,14 +215,14 @@ def codex_loadout(ds, wargear_costs):
                 continue
             for x in U:
                 t["fixed"].remove(next(y for y in t["fixed"] if norm(y) == norm(x)))
-            opts = {J(U): [J(U), None, None, widx(U), None]}
+            opts = {J(U): opt(J(U), None, U, None)}
             if len({r[0] for r in comp}) == 1 and set(comp[0][0]) == set(U):
                 for r in comp:
                     for o in r[1]:
                         k = J(o)
                         cur = opts.get(k)
                         if cur is None:
-                            opts[k] = [k, r[2], None, widx(o), r[3]]
+                            opts[k] = opt(k, r[2], o, r[3])
                         elif cur[1] is not None and (r[2] is None or r[2] > cur[1]):
                             cur[1], cur[4] = r[2], r[3]
             else:  # overlapping / chained replacements on one model: every reachable combination is one choice
@@ -225,7 +239,7 @@ def codex_loadout(ds, wargear_costs):
                                     if n not in configs and len(configs) < 60:
                                         configs.append(n)
                 for c in configs[1:]:
-                    opts.setdefault(J(c), [J(c), None, None, widx(c), None])
+                    opts.setdefault(J(c), opt(J(c), None, c, None))
             slots.append([J(U), list(opts.values()), [J(U)], 1, 1, 0])
         for x in list(t["fixed"]):
             if widx([x]) is not None:
@@ -235,7 +249,7 @@ def codex_loadout(ds, wargear_costs):
             if not opts:
                 continue
             nm = opts[0][0] if len(opts) == 1 else "Optional wargear"
-            slots.append([nm, [[J(o), mx, None, widx(o), mas] for o in opts], [], 0, 1, 1])
+            slots.append([nm, [opt(J(o), mx, o, mas) for o in opts], [], 0, 1, 1])
         return slots
 
     m_out = []
@@ -246,7 +260,7 @@ def codex_loadout(ds, wargear_costs):
         row[3] = list(t["fixed"])
     lo = {"m": m_out}
     if unit_slots:
-        lo["u"] = [[(opts[0][0] if len(opts) == 1 else "Optional wargear"), [[J(o), 1 if re.match(r"^1 model", L) else None, None, widx(o), None] for o in opts], [], 0, 1, 1]
+        lo["u"] = [[(opts[0][0] if len(opts) == 1 else "Optional wargear"), [opt(J(o), 1 if re.match(r"^1 model", L) else None, o, None) for o in opts], [], 0, 1, 1]
                    for opts, L in unit_slots]
     lo["mn"] = sum(t["min"] for t in types)
     lo["mx"] = total_max

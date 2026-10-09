@@ -1029,7 +1029,7 @@
   /* New Recruit-style options tree: model types with counts, fixed weapons, weapon choices per slot */
   function loadoutTree(u, r) {
     const M = C.loModel(u), lo = r.lo, N = C.loN(M, (C.modelOptions(u, r.copy).find((o) => o.models === r.entry.models) || C.modelOptions(u, r.copy)[0] || { models: 1 }).models);
-    const priceOf = (o) => o.w !== null && o.w !== undefined && u.w && u.w[o.w] ? ` ${pts(u.w[o.w][1])}` : "";
+    const priceOf = (o) => o.w !== null && o.w !== undefined && u.w && u.w[o.w] ? ` ${pts(u.w[o.w][1] * (o.wn || 1))}` : "";   // e.g. "2 ectoplasma cannons" = 2 x the MFM per-item cost
     const slotHtml = (s, key, k) => {
       if (!k) return "";
       const picks = lo.p[key] || {}; const [a, b] = C.slotRange(s, k);
