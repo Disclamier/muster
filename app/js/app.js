@@ -1429,18 +1429,23 @@
   }
   function colorRow(c) {
     const cur = MC.get(c.k), val = cur || colorDefault(c), custom = cur || MC.getB(c.k);
-    return `<div class="cset${custom ? " custom" : ""}" data-ck="${esc(c.k)}" data-testid="color-row">
-      <div class="cs-top"><div class="cs-t"><b>${esc(c.label)}</b>${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</div>
+    // accordion row: collapsed = label + current (adjusted) color swatch + chevron; tap to open (one at a time)
+    const dotBg = `var(--c-${c.k}, ${c.def || c.dflt || "var(--text)"})`;
+    return `<details class="cset${custom ? " custom" : ""}" data-ck="${esc(c.k)}" data-testid="color-row">
+      <summary class="cs-sum" data-testid="color-sum"><span class="cs-dot" style="background:${dotBg}" aria-hidden="true"></span><b class="cs-lbl">${esc(c.label)}</b>
+        <span class="cs-hint">custom</span><span class="cs-chev" aria-hidden="true"></span></summary>
+      <div class="cs-body">
+      <div class="cs-top"><div class="cs-t">${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</div>
         <button class="btn secondary sm cs-reset" data-action="color-reset" data-k="${esc(c.k)}" title="Back to the default color">Reset</button></div>
       <div class="cs-ctl">${colorPreview(c)}</div>
       <div class="cs-ctl"><span class="cs-sw">${(c.disp ? SW_DISP : SW_TEXT).map((x) => `<button class="sw${cur === x ? " on" : ""}" data-action="color-pick" data-k="${esc(c.k)}" data-v="${x}" style="background:${x}" title="${x}" aria-label="${esc(c.label)}: ${x}"></button>`).join("")}
         <label class="cs-pick" title="Custom color: pick any color"><input type="color" value="${esc(val)}" data-input="color" data-k="${esc(c.k)}" aria-label="${esc(c.label)}: custom color"></label></span></div>
-      ${brightRow(c)}</div>`;
+      ${brightRow(c)}</div></details>`;
   }
   function openColors() {
     const txt = MC.CATS.filter((c) => !c.disp), disp = MC.CATS.filter((c) => c.disp);
     modal("Colors", `<div class="colors" data-testid="colors">
-      <p class="muted cs-intro">Pick a color for each part of the list builder. Changes show right away and are saved on this device. Each preview shows light mode on the left and dark mode on the right.</p>
+      <p class="muted cs-intro">Tap a row to change its color. Changes show right away and are saved on this device. Each preview shows light mode on the left and dark mode on the right.</p>
       ${txt.map(colorRow).join("")}
       <div class="cs-h">Force Dispositions</div>
       <p class="muted cs-intro">Defaults are the colors Games Workshop uses on the 11th edition Force Disposition icons.</p>
@@ -1668,6 +1673,9 @@
   document.addEventListener("change", (ev) => { const t = ev.target.closest("[data-change]"); if (t && changes[t.dataset.change]) changes[t.dataset.change](t, ev); });
   document.addEventListener("input", (ev) => { const t = ev.target.closest("[data-input]"); if (t && inputs[t.dataset.input]) inputs[t.dataset.input](t, ev); });
   // enhancement dropdown: remember which one is open so background re-renders (sync, data refresh) don't snap it shut
+  // Colors accordion: opening one color row closes the others
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cset") || !d.open) return;
+    $$("#modal details.cset[open]").forEach((x) => { if (x !== d) x.open = false; }); }, true);
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("enh-dd")) return;
     if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
     const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);

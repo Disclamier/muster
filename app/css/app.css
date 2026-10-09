@@ -824,3 +824,25 @@ html[data-theme="dark"] .dispc.chosen { box-shadow: 0 0 0 2px var(--surface), 0 
 .modal.float.float-ds { width: min(640px, calc(100vw - 24px)); max-height: min(76vh, calc(100vh - 56px)); }
 .modal.float .mtitle > span { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .modal.float .mtitle::after { flex: none; }
+
+/* Colors accordion: each category collapses to one compact row (James, Oct 8) */
+details.cset { padding: 0; margin: 0 0 6px; }
+details.cset > summary.cs-sum { list-style: none; display: flex; align-items: center; gap: 10px; padding: 9px 10px; cursor: pointer; user-select: none; border-radius: 8px; }
+details.cset > summary.cs-sum::-webkit-details-marker { display: none; }
+details.cset > summary.cs-sum:hover { background: var(--row-hover); }
+details.cset > summary.cs-sum:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+details.cset[open] > summary.cs-sum { border-bottom: 1px solid var(--border); border-radius: 8px 8px 0 0; background: var(--sect); }
+.cs-dot { width: 22px; height: 22px; border-radius: 50%; flex: none; border: 2px solid var(--border); box-shadow: inset 0 0 0 2px var(--surface); }
+.cs-lbl { flex: 1; min-width: 0; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cs-hint { display: none; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--blue); border: 1px solid var(--blue); border-radius: 9px; padding: 0 6px; line-height: 16px; }
+details.cset.custom .cs-hint { display: inline-block; }
+.cs-chev { width: 9px; height: 9px; border-right: 2px solid var(--gray); border-bottom: 2px solid var(--gray); transform: rotate(45deg); margin: -4px 4px 0 2px; transition: transform .15s; flex: none; }
+details.cset[open] .cs-chev { transform: rotate(-135deg); margin-top: 4px; }
+details.cset .cs-body { padding: 8px 10px 10px; }
+details.cset .cs-top { align-items: center; }
+details.cset .cs-t small { margin: 0; }
+@media (max-width: 760px) {
+  details.cset > summary.cs-sum { padding: 11px 10px; min-height: 48px; box-sizing: border-box; }
+  .cs-dot { width: 26px; height: 26px; }
+  .cs-lbl { font-size: 15.5px; }
+}

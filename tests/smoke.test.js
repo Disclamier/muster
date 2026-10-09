@@ -960,7 +960,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v20/);
+  assert.match(read("sw.js"), /muster-shell-v21/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1493,4 +1493,33 @@ test("Colors: 'Units in your list' is its own color, separate from the Unit cata
   assert.ok(row.querySelector("input[type=range]") && row.querySelector("input[type=color]") && row.querySelectorAll(".sw").length);
   click(w, row.querySelector("[data-action=color-reset]"));
   assert.ok(!root.hasAttribute("data-c-list")); assert.ok(root.hasAttribute("data-c-cat"), "resetting list leaves catalog alone");
+});
+
+test("Colors accordion: rows start collapsed, open one at a time, collapsed row shows swatch + custom hint", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const rows = [...d.querySelectorAll("#modal details.cset")];
+  assert.equal(rows.length, w.MusterColors.CATS.length);
+  assert.ok(rows.every((r) => !r.open), "all collapsed by default");
+  assert.ok(d.querySelector("#modal .cs-h"), "Force Dispositions heading kept");
+  const sum = (k) => d.querySelector(`#modal details.cset[data-ck="${k}"]`);
+  // collapsed summary: label, swatch of the current color, chevron
+  const s = sum("det").querySelector("summary");
+  assert.match(s.querySelector(".cs-lbl").textContent, /Detachments/);
+  assert.match(s.querySelector(".cs-dot").getAttribute("style"), /var\(--c-det, #39ff14\)/);
+  assert.ok(s.querySelector(".cs-chev"));
+  // one at a time
+  const toggle = (el) => el.dispatchEvent(new w.Event("toggle"));
+  sum("det").open = true; toggle(sum("det"));
+  sum("strat").open = true; toggle(sum("strat"));
+  assert.ok(sum("strat").open && !sum("det").open, "opening Stratagems closed Detachments");
+  // changing a color marks the row custom (the 'custom' hint shows) without collapsing it
+  click(w, d.querySelector('#modal [data-action=color-pick][data-k=strat][data-v="#ff9f1c"]'));
+  assert.ok(sum("strat").classList.contains("custom") && sum("strat").open);
+  assert.equal(d.documentElement.style.getPropertyValue("--c-strat"), "#ff9f1c");
+  click(w, sum("strat").querySelector("[data-action=color-reset]"));
+  assert.ok(!sum("strat").classList.contains("custom"));
+  const css = read("css/app.css");
+  assert.match(css, /details\.cset\.custom \.cs-hint \{ display: inline-block; \}/);
 });
