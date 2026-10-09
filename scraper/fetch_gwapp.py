@@ -1,5 +1,5 @@
 """Fetch the Warhammer 40,000 app detachment pages from 40k.app (see gwapp_compile.py)."""
-import subprocess, time, json, urllib.request, sys, websocket, shutil, os
+import subprocess, time, json, urllib.request, sys, websocket, shutil, os, re
 # usage: python3 scraper/fetch_gwapp.py OUTDIR [slug,slug,...]   (needs google-chrome + websocket-client)
 # Saves every detachment page of the given 40k.app factions as text (OUTDIR/<faction>__<detachment>.txt) for
 # gwapp_compile.py. A real browser is needed: the site sits behind a bot check that blocks plain HTTP clients.
@@ -28,10 +28,15 @@ def get(u, js="document.body ? document.body.innerText : ''"):
     for _ in range(25):
         time.sleep(1.2)
         t=cmd('Runtime.evaluate', expression="document.body ? document.body.innerText : ''", returnByValue=True)['result'].get('value','')
-        if 'verifying' not in t.lower() and len(t)>400 and ('CREATE LIST' in t or '404' in t): break
+        # fully rendered = page body + site footer (a half-loaded page would silently drop stratagems)
+        if 'verifying' not in t.lower() and len(t)>400 and ('CREATE LIST' in t or '404' in t) and 'Become a supporter' in t: break
     return t, cmd('Runtime.evaluate', expression=js, returnByValue=True)['result'].get('value')
 res={}
-import sys
+# the app data version the pages show (latest entry of the site's update log)
+t,_=get('https://www.40k.app/factions/updates')
+m=re.search(r'VERSION (\d+)\s*\nReleased (\d{4}-\d\d-\d\d)', t)
+json.dump({'version': m.group(1) if m else None, 'released': m.group(2) if m else None}, open(f'{OUT}/version.json','w'))
+print('app data version', m.group(1) if m else '?', m.group(2) if m else '?', flush=True)
 for fid in ids:
     if os.path.exists(f'{OUT}/index.json'):
         old=json.load(open(f'{OUT}/index.json'))

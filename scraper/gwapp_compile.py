@@ -5,7 +5,7 @@ stratagems (name, CP, category, WHEN/TARGET/EFFECT). gwapp_override.py applies i
 and the codex override, so the newest published rules text wins on every daily refresh. Text only: points, DP,
 enhancement names/costs and detachment lists stay MFM.
 
-usage: python3 scraper/gwapp_compile.py PAGES_DIR APP_VERSION RELEASED   (pages: <faction>__<detachment>.txt)
+usage: python3 scraper/gwapp_compile.py PAGES_DIR APP_VERSION RELEASED [OUT_JSON]   (pages: <faction>__<detachment>.txt)
 """
 import glob, json, os, re, sys
 
@@ -143,14 +143,15 @@ def parse(path):
 
 def main():
     d, ver, rel = sys.argv[1], sys.argv[2], sys.argv[3]
+    out_path = sys.argv[4] if len(sys.argv) > 4 else OUT
     out = {"source": "Warhammer 40,000 app data (via 40k.app)", "app_version": ver, "released": rel, "factions": {}}
     for p in sorted(glob.glob(os.path.join(d, "*__*.txt"))):
         fid = os.path.basename(p).split("__")[0]
         out["factions"].setdefault(fid, []).append(parse(p))
     for f in out["factions"].values():
         f.sort(key=lambda x: x["name"].lower())
-    json.dump(out, open(OUT, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
-    print(f"{OUT}: {sum(len(v) for v in out['factions'].values())} detachments, {len(out['factions'])} factions")
+    json.dump(out, open(out_path, "w", encoding="utf-8"), indent=1, ensure_ascii=False)
+    print(f"{out_path}: {sum(len(v) for v in out['factions'].values())} detachments, {len(out['factions'])} factions")
 
 
 if __name__ == "__main__":
