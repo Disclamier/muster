@@ -115,18 +115,33 @@
   const ST = MS ? MS.create(window.MUSTER_CONFIG || {}) : null;
   const curUid = () => (SY && SY.session() && SY.user() && SY.user().id) || null;
   const isOwner = () => !!(MS && curUid() && MS.owner() === curUid());
-  let ownerChecked = null;
-  /* ask the database once per page load and account; anything but a clear "true" (no function yet, offline) = not owner */
-  function checkOwner() {
-    const uid = curUid(); if (!uid || !MS || ownerChecked === uid || !SY.rpc) return;
-    ownerChecked = uid;
+  /* Owner check: ask the database (muster_is_owner, with the signed-in token). Only an explicit true/false answer changes
+     the remembered result; a failed check (offline, expired token mid-refresh, server hiccup, function not created yet)
+     keeps what we had and is retried with backoff, and the answer is re-checked when the app comes back to the
+     foreground and when the Account window opens - so an account made owner later, or a session restored on load,
+     always gets its Stats entry without signing out or clearing anything. */
+  const OWN = { uid: null, state: "unknown", at: 0, err: null, busy: false, tries: 0, timer: null };
+  const OWN_RETRY = window.__MUSTER_OWNER_RETRY || [3000, 15000, 60000, 300000], OWN_TTL = { yes: 600000, no: 120000 };
+  function checkOwner(force) {
+    const uid = curUid(); if (!uid || !MS || !SY || !SY.rpc) return;
+    if (OWN.uid !== uid) { clearTimeout(OWN.timer); Object.assign(OWN, { uid, state: "unknown", at: 0, err: null, busy: false, tries: 0, timer: null }); }
+    if (OWN.busy) return;
+    if (!force && OWN.state !== "unknown" && (OWN.state === "error" || Date.now() - OWN.at < OWN_TTL[OWN.state])) return;
+    OWN.busy = true; clearTimeout(OWN.timer);
     SY.rpc("muster_is_owner", {}).then((r) => {
-      if (curUid() !== uid) return;
+      OWN.busy = false; if (curUid() !== uid) return;
       const was = isOwner();
-      if (r === true) { MS.setOwner(uid); if (MS.noCount() === false && localStorage.getItem(MS.LS_NOCOUNT) === null) MS.setNoCount(true); }
+      OWN.state = r === true ? "yes" : "no"; OWN.at = Date.now(); OWN.err = null; OWN.tries = 0;
+      if (r === true) { MS.setOwner(uid); if (localStorage.getItem(MS.LS_NOCOUNT) === null) MS.setNoCount(true); }
       else MS.setOwner(null);
-      if (was !== isOwner()) { renderAcct(); if ((location.hash || "").startsWith("#/stats")) route(); }
-    }, (e) => { if (e && e.kind === "offline") ownerChecked = null; });
+      if (was !== isOwner()) { renderAcct(); if ((location.hash || "").startsWith("#/stats")) route(); if ($("#modal [data-testid=account-info]")) accountModal(); }
+    }, (e) => {
+      OWN.busy = false; if (curUid() !== uid) return;
+      OWN.state = "error"; OWN.err = (e && e.message) || "failed"; OWN.at = Date.now();
+      try { console.warn("[muster] owner check failed – will retry:", OWN.err); } catch (x) { /* ignore */ }
+      const wait = OWN_RETRY[Math.min(OWN.tries++, OWN_RETRY.length - 1)];
+      OWN.timer = setTimeout(() => checkOwner(true), wait);
+    });
   }
   // a color change on this device -> pushed to the account (debounced with the list sync); guests: no session, nothing sent
   if (window.MusterColors) window.MusterColors.onChange = () => { if (SY && SY.configured && SY.session()) SY.schedulePush(); };
@@ -208,7 +223,7 @@
   }
   function renderAcct() {
     const sn = $("#statsnav"); if (sn) sn.hidden = !isOwner();
-    if (curUid() && ownerChecked !== curUid()) checkOwner();
+    if (curUid()) checkOwner();
     if (!curUid() && MS && MS.owner()) MS.setOwner(null);
     const b = $("#acct"); if (!b) return;
     const use = $("use", b), lbl = $(".lbl", b);
@@ -225,10 +240,12 @@
   }
   function accountModal() {
     if (!SY || !SY.session()) return;
+    checkOwner(true);
     const i = SY.info();
     const m = modal("Account", `<table class="ptable" data-testid="account-info"><tr><td>Signed in as</td><td><b>${esc(i.email || "")}</b></td></tr>
       <tr><td>Sync</td><td><span class="sync-pill s-${esc(i.status)}">${esc(SYNC_TXT[i.status] || i.status)}</span> ${esc(syncTooltip({ ...i, email: null }))}</td></tr>
-      <tr><td>Lists</td><td>${S.lists.length} – saved on this device and in your account; changes sync automatically to every device you sign in on.</td></tr></table>
+      <tr><td>Lists</td><td>${S.lists.length} – saved on this device and in your account; changes sync automatically to every device you sign in on.</td></tr>
+      <tr><td>Account ID</td><td><code class="muted" data-testid="acct-uid">${esc(curUid() || "")}</code>${OWN.state === "error" && OWN.uid === curUid() ? `<div class="muted small" data-testid="owner-err">Owner check failed (${esc(OWN.err)}) – retrying</div>` : ""}</td></tr></table>
       <div class="mfoot wrap">${isOwner() ? `<button class="btn secondary" data-action="open-stats" data-testid="acct-stats">Stats</button>` : ""}<button class="btn secondary" data-action="sync-now">${icon("refresh")} Sync now</button><button class="btn danger" data-action="sign-out">Sign out</button><button class="btn" data-action="close-modal">Close</button></div>`);
     return m;
   }
@@ -350,8 +367,8 @@
     }
     if (SY.session()) { try { localStorage.removeItem(LS_GUEST); } catch (e) { /* ignore */ } adoptAccount(SY.user()); renderAcct(); SY.syncNow({ pull: true }); }
     const pullSoon = () => { if (SY.session() && document.visibilityState !== "hidden" && Date.now() - SY.lastPull() > 5000) SY.syncNow({ pull: true }); };
-    window.addEventListener("focus", pullSoon);
-    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") pullSoon(); });
+    window.addEventListener("focus", () => { pullSoon(); checkOwner(); });
+    document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") { pullSoon(); checkOwner(); } });
     window.addEventListener("online", () => { if (SY.session()) SY.syncNow({ pull: true }); });
     window.addEventListener("offline", () => { if (SY.session()) { S.sync = { ...SY.info(), status: "offline" }; renderAcct(); } });
     setInterval(() => { if (SY.session() && document.visibilityState !== "hidden") SY.syncNow({ pull: true }); }, 60000);

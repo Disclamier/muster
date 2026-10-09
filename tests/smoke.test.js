@@ -994,7 +994,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v32/);
+  assert.match(read("sw.js"), /muster-shell-v33/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2190,7 +2190,7 @@ function statsSb(o) {
       if (o.noTable) return res(404, { code: "PGRST202", message: "Could not find the function" });
       const uid = /^Bearer at-/.test(h.Authorization || "") ? h.Authorization.split("-")[1] + "-" + h.Authorization.split("-")[2] : null;
       if (!uid) return res(401, { message: "JWT expired" });
-      if (u.pathname.endsWith("/muster_is_owner")) return res(200, uid === sb.owner);
+      if (u.pathname.endsWith("/muster_is_owner")) { sb.ownerCalls = (sb.ownerCalls || 0) + 1; if (sb.ownerFail > 0) { sb.ownerFail--; return res(503, { message: "upstream timeout" }); } return res(200, uid === sb.owner); }
       if (u.pathname.endsWith("/muster_stats")) {
         if (uid !== sb.owner) return res(403, { code: "42501", message: "not allowed" });
         const b = JSON.parse(init.body); sb.statsArgs = b;
@@ -2320,4 +2320,44 @@ test("stats: Stats page only for the owner account (checked by the database); ow
   assert.match(sql, /if not public\.muster_is_owner\(\) then raise exception/);
   assert.match(sql, /revoke all on function public\.muster_stats\(date, date, text\) from public, anon/);
   assert.doesNotMatch(sql, /\b(ip|user_agent|email)\b\s+text/i);
+});
+
+test("stats regression: already signed in on load (expired token) -> owner check after refresh, Stats shown", async () => {
+  const sb = statsSb({ owner: "u-1" });
+  const st = signedIn("u-1", "james@example.com");
+  const a = JSON.parse(st["muster.auth"]); a.expires_at = Math.floor(Date.now() / 1000) - 600; st["muster.auth"] = JSON.stringify(a);
+  const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: st });
+  await until(() => d.querySelector(".lists-page"));
+  await until(() => !d.querySelector("#statsnav").hidden);
+  assert.ok(sb.calls.some((c) => c.path === "/auth/v1/token"), "token refreshed first");
+  assert.equal(w.localStorage.getItem("muster.stats.owner"), "u-1");
+  click(w, d.querySelector("#acct")); assert.ok(d.querySelector("[data-testid=acct-stats]"));
+  assert.equal(d.querySelector("[data-testid=acct-uid]").textContent, "u-1", "Account window shows the account id");  await tick(150);
+});
+
+test("stats regression: stale cached negative / failed check is retried (no sign-out or cache clearing needed)", async () => {
+  // a cached result for another account + the first check failing (server hiccup / function not visible yet)
+  const sb = statsSb({ owner: "u-1" }); sb.ownerFail = 2;
+  const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: { ...signedIn("u-1", "james@example.com"), "muster.stats.owner": "u-OLD" },
+    beforeParse(win) { win.__MUSTER_OWNER_RETRY = [20, 20, 20]; } });
+  await until(() => d.querySelector(".lists-page"));
+  assert.ok(d.querySelector("#statsnav").hidden, "stale cached owner of another account is not trusted");
+  await until(() => !d.querySelector("#statsnav").hidden, 3000);
+  assert.ok(sb.ownerCalls >= 3, "retried after failures");
+  // an account that was NOT owner when the app loaded (SQL run later): opening the Account window re-checks
+  const sb2 = statsSb({ owner: "nobody" });
+  const b = makeApp({ config: CFG, supabase: sb2, url: LIVE + "#/lists", storage: signedIn("u-1", "james@example.com") });
+  await until(() => b.d.querySelector(".lists-page")); await until(() => sb2.ownerCalls >= 1); await tick(30);
+  assert.ok(b.d.querySelector("#statsnav").hidden);
+  sb2.owner = "u-1";
+  click(b.w, b.d.querySelector("#acct"));
+  await until(() => !b.d.querySelector("#statsnav").hidden);
+  await until(() => b.d.querySelector("[data-testid=acct-stats]"), 2000);
+  // a check that keeps failing shows the reason in the Account window (diagnosable), and never shows Stats
+  const sb3 = statsSb({ owner: "u-1" }); sb3.ownerFail = 99;
+  const c = makeApp({ config: CFG, supabase: sb3, url: LIVE + "#/lists", storage: signedIn("u-1", "james@example.com"), beforeParse(win) { win.__MUSTER_OWNER_RETRY = [5000]; } });
+  await until(() => c.d.querySelector(".lists-page")); await until(() => sb3.ownerCalls >= 1); await tick(30);
+  click(c.w, c.d.querySelector("#acct")); await tick(30); click(c.w, c.d.querySelector("[data-action=close-modal]")); click(c.w, c.d.querySelector("#acct"));
+  await until(() => c.d.querySelector("[data-testid=owner-err]"));
+  assert.ok(c.d.querySelector("#statsnav").hidden);  await tick(150);
 });
