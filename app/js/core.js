@@ -1461,20 +1461,21 @@
   const EM_LONG = "attacks|strength|damage|armour penetration|weapon skill|ballistic skill|range|toughness|wounds|movement|move|leadership|objective control|save";
   const EM_SHORT = "A|S|AP|D|WS|BS|T|W|M|OC|Ld|Sv";
   const EM_COND = /\b(while|if|each time|once per|until|at the start|at the end|when|in your|in the declare|on a critical|that targets?|for every|for each|select one|instead|or:|discard|spend|roll one)\b/i;
-  const EM_SKIP = /\b(enemy|friendly|allocated to|targets? (?:the bearer|this unit|this model|your unit)|saving throw|ignore any or all|transport|attacking model)\b/i;
+  const EM_SKIP = /\b(enemy|friendly|allocated to|targets? (?:the bearer|this unit|this model|your unit)|saving throw|ignore any or all|transport|attacking model|target unit|the target)\b/i;
   function emSentences(text) {
     const out = [];
-    let head = "", gate = "", other = false;
+    let head = "", gate = "", other = false, lastKw = "";
     for (const raw of String(text || "").replace(/\*\*/g, "").split("\n")) {
       const line = raw.trim(); if (!line) continue;
       // sentences; '... of 6+ and, once per battle, ...' starts a separate (conditional) clause
       const parts = line.split(/(?<=\.)\s+(?=[A-Z(])|\s+and,\s+(?=once per|each time|until|at the start)/);
       for (const p of parts) {
         // lines of a 'This unit has:' / 'melee attacks have:' list inherit the header's subject
-        if (head && !/model only|unit only/i.test(p) && (p.length < 80 || /^(?:\+|-|\d+\+|or:|\[|have\b|has\b|can\b)/i.test(p))) out.push({ s: p, ctx: head + " " + p, gate, other });
-        else { head = /:\s*$/.test(p) ? p : ""; out.push({ s: p, ctx: p, gate, other }); }
+        if (head && !/model only|unit only/i.test(p) && (p.length < 80 || /^(?:\+|-|\d+\+|or:|\[|have\b|has\b|can\b|add\b|improve\b|subtract\b|worsen\b|each time\b|this\b|that\b|those\b)/i.test(p))) out.push({ s: p, ctx: head + " " + p, gate, other, lastKw });
+        else { head = /:\s*$/.test(p) ? p : ""; out.push({ s: p, ctx: p, gate, other, lastKw }); }
+        if (emPhrases(p).length) lastKw = p;
         // once-per / use-this-ability / choose-one texts: everything after is conditional
-        if (/\(once per|once per (?:battle|turn|phase|battle round)\b|use this (?:ability|enhancement)|select one of the abilities/i.test(p)) gate = p;
+        if (/\(once per|once per (?:battle|turn|phase|battle round)\b|use this (?:ability|enhancement)|select one of the (?:\w+ )?(?:abilities|bullet points|options)|select which|either select|select one from the list|roll one D6/i.test(p)) gate = gate && !emPhrases(p).length && emPhrases(gate).length ? gate + " " + p : p;
         // effects on another unit the bearer selects ('select one friendly KROOT unit ... that unit has +1 Ld')
         if (/\bselect one (?:friendly )?(?:[A-Z][A-Z'’/ -]*\s)?(?:unit|model)s?\b/.test(p) && !/select one of (?:this|the bearer)/i.test(p)) other = true;
       }
@@ -1512,6 +1513,7 @@
       if (EM_WEAPON.has(m.stat)) { m.filter = emWeaponFilter(sen.ctx); if (pick && !m.filter.name && /that weapon/i.test(sen.ctx)) { m.filter.name = pick; m.pick = true; } }
       m.scope = emScope(sen.ctx, m.stat);
       if (m.stat === "INV" && /against (ranged|melee) attacks/i.test(sen.s)) m.cond = sen.s;
+      Object.defineProperty(m, "_ctx", { value: sen.ctx }); Object.defineProperty(m, "_gate", { value: sen.gate || "" }); Object.defineProperty(m, "_last", { value: sen.lastKw || "" });
       if (!mods.some((x) => x.stat === m.stat && x.v === m.v && x.op === m.op && x.cond === m.cond)) mods.push(m);
     };
     for (const sen of emSentences(text)) {
@@ -1531,7 +1533,7 @@
         for (const w of m[2].toLowerCase().split(/,\s*|\s+and\s+/)) push({ stat: EM_STAT[w], op: "add", v: n }, sen, m.index);
       }
       const reSet = new RegExp(`\\b(${EM_LONG}) characteristic of (\\d+"?\\+?)`, "gi");
-      while ((m = reSet.exec(s))) push({ stat: EM_STAT[m[1].toLowerCase()], op: "set", v: m[2] }, sen, m.index);
+      while ((m = reSet.exec(s))) if (!/^\s*or (?:higher|more|less|lower|fewer)/i.test(s.slice(m.index + m[0].length))) push({ stat: EM_STAT[m[1].toLowerCase()], op: "set", v: m[2] }, sen, m.index);
       const reInv = /\b(\d)\+ (?:invulnerable save|InSv)\b/gi;
       while ((m = reInv.exec(s))) push({ stat: "INV", op: "set", v: m[1] + "+" }, sen, m.index);
       const reSv = /(?:^|\s)(\d)\+ Sv\b/g;
@@ -1568,7 +1570,49 @@
     if (d) { const k = (+(d[2] || 0)) + n; return k > 0 ? `${d[1]}+${k}` : k === 0 ? d[1] : null; }
     return null;
   }
-  function entryStatMods(F, r) {
+  /* detachment rules: the same parser, plus which units a change applies to (keywords named in the sentence, its
+     list header or the choose-one lead-in; 'excluding X' honoured; no keyword named = every unit of the army) */
+  const EM_NOTKW = new Set(["A", "S", "AP", "D", "WS", "BS", "T", "W", "M", "OC", "LD", "SV", "INV", "CP", "D3", "D6", "OR", "AND", "VP", "YP"]);
+  function emPhrases(text) {
+    const t = String(text || "").replace(/\[[^\]]*\]/g, " ");
+    const out = [];
+    // 'Kroot models from your army' (keyword written in title case)
+    const tc = /\b([A-Z][a-z]+(?:\s[A-Z][a-z]+)?) (?:models?|units?) from your army\b/g; let q;
+    while ((q = tc.exec(t))) out.push({ p: q[1].toUpperCase(), excl: false });
+    const re = /\b[A-Z][A-Z'’-]*[A-Z](?:\s+[A-Z][A-Z'’-]*[A-Z])*\b/g; let m;
+    while ((m = re.exec(t))) {
+      if (EM_NOTKW.has(m[0]) || /\b(?:within|your)\s+$/i.test(t.slice(Math.max(0, m.index - 8), m.index))) continue;
+      out.push({ p: m[0], excl: /\bexcluding\b[^.)]*$/i.test(t.slice(0, m.index)) && !/\)/.test(t.slice(t.lastIndexOf("excluding", m.index), m.index)) });
+    }
+    return out;
+  }
+  function kwMatch(phrase, set) {
+    const w = stNorm(phrase).split(" ").map(stSing); const ok = [true];
+    for (let j = 1; j <= w.length; j++) { ok[j] = false; for (let i = 0; i < j && !ok[j]; i++) if (ok[i] && (set.has(w.slice(i, j).join(" ")))) ok[j] = true; }
+    return ok[w.length];
+  }
+  function detModEligible(m, u, F) {
+    const set = unitKeywords(u, F);
+    const grant = m._grant || {};
+    // keywords granted by the rule itself ('SOUL FORGE' <- 'HERETIC ASTARTES VEHICLE ... units gain the SOUL FORGE keyword')
+    const sub = (ph) => ph.flatMap((x) => (grant[x.p] ? grant[x.p].map((p) => ({ p, excl: x.excl })) : grant[x.p] === null ? [] : [x]));
+    let ph = sub(emPhrases(m._ctx));
+    if (!ph.some((x) => !x.excl)) ph = ph.concat(sub(emPhrases(m._gate)));
+    if (!ph.some((x) => !x.excl)) ph = ph.concat(sub(emPhrases(m._last)));
+    if (ph.some((x) => x.excl && kwMatch(x.p, set))) return false;
+    const pos = ph.filter((x) => !x.excl);
+    return !pos.length || pos.some((x) => kwMatch(x.p, set));
+  }
+  function detStatMods(d) {
+    if (!d || !d.rule || !d.rule[1]) return [];
+    const grant = {};
+    for (const line of d.rule[1].split(/\n|(?<=\.)\s+/)) {
+      const g = line.match(/^(.*?)\b(?:units?|models?)\b[^.]*?\b(?:gains?|have|has) the ([A-Z][A-Z'’ -]*[A-Z]) keyword/);
+      if (g && !/BATTLELINE/.test(g[2])) { const subj = emPhrases(g[1]).filter((x) => !x.excl).map((x) => x.p); grant[g[2]] = subj.length ? subj : null; }
+    }
+    return enhStatMods(d.rule[1]).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
+  }
+  function entryStatMods(F, r, dets) {
     const out = [];
     const of = (x, unitOnly) => {
       const en = x && x.entry && x.entry.enh; if (!en || !F) return;
@@ -1577,6 +1621,10 @@
     };
     of(r, false);
     for (const x of (r && r.attached) || []) of(x, true);
+    for (const dn of dets || []) {
+      const d = F && F.dets[dn]; if (!d || !r || !r.unit) continue;
+      for (const m of detStatMods(d)) if (detModEligible(m, r.unit, F)) out.push(Object.assign({ enh: `${d.n} – ${d.rule[0]}`, src: "det", via: null }, m, { scope: "unit" }));
+    }
     return out;
   }
   /* value of one characteristic after the mods that touch it: {v, base, cond, mods} or null (no change) */
@@ -1602,7 +1650,7 @@
     return true;
   }
 
-  return { pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

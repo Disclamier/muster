@@ -994,7 +994,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v36/);
+  assert.match(read("sw.js"), /muster-shell-v37/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2429,4 +2429,35 @@ test("enhancement stat changes are highlighted in the unit panel and datasheet (
   assert.equal(d.querySelector('.panel [data-testid=ds-joined] [data-testid=ds-stats] [data-testid=emod][data-stat="T"]').firstChild.textContent, "4");
   // no enhancement -> no highlight; exports unchanged (display only)
   assert.equal(C.calcList(l3, S.idx).total, C.calcList(Object.assign({}, l3, { entries: l3.entries }), S.idx).total);
+});
+
+test("detachment-rule stat changes: Detachments-colored box, dashed when conditional, combined with the enhancement", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, S = w.Muster.S;
+  const mk = (fid, det, units) => {
+    const F = S.idx.factions[fid];
+    const l = C.newList({ name: fid, faction: fid, sub: fid, size: "strikeforce" }); l.dets = [det];
+    for (const [n, en] of units) { const e = C.newEntry(F.units[n]); if (en) e.enh = { det, name: en }; l.entries.push(e); }
+    S.lists.push(l); return l;
+  };
+  const open = async (l, i) => { await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor"));
+    click(w, d.querySelector(`[data-action=select-entry][data-uid="${l.entries[i || 0].uid}"]`)); return until(() => d.querySelector(".panel [data-testid=profiles]")); };
+  // Cursed Legion: DESTROYER CULT weapons +2 S (unconditional, detachment color)
+  let p = await open(mk("necrons", "Cursed Legion", [["Skorpekh Lord", null]]));
+  const s = p.querySelector('[data-testid=ds-melee] [data-testid=emod][data-stat="S"]');
+  assert.ok(s.classList.contains("det") && !s.classList.contains("cond")); assert.match(s.title, /Cursed Legion – /);
+  assert.match(p.querySelector("[data-testid=emod-note]").textContent, /Detachment rule: Cursed Legion/);
+  // not eligible: Necron Warriors get nothing
+  const l2 = mk("necrons", "Cursed Legion", [["Necron Warriors", null]]);
+  p = await open(l2); assert.equal(p.querySelector("[data-testid=emod]"), null);
+  // choose-one: Creations of Bile -> dashed, options in the note
+  p = await open(mk("chaos-space-marines", "Creations of Bile", [["Chaos Lord", null]]));
+  const t = p.querySelector('[data-testid=ds-stats] [data-testid=emod][data-stat="T"]');
+  assert.ok(t.classList.contains("det") && t.classList.contains("cond"));
+  assert.match(p.querySelector("[data-testid=emod-note]").textContent, /Supracutaneous Chitination/);
+  // enhancement + detachment on the same stat
+  p = await open(mk("emperors-children", "Court of the Phoenician", [["Daemon Prince of Slaanesh", "Spiritsliver"]]));
+  const both = p.querySelector('[data-testid=ds-melee] [data-testid=emod][data-stat="S"]');
+  assert.ok(both.classList.contains("both")); assert.match(both.title, /Spiritsliver/); assert.match(both.title, /Court of the Phoenician/);
 });

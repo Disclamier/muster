@@ -966,14 +966,22 @@
     const lines = [`${STAT_LBL[stat] || stat}: ${x.base || "-"} → ${x.v}`];
     for (const m of x.mods) lines.push(`${m.enh}${m.via ? ` (from ${m.via})` : ""}: ${desc(m)}${m.pick ? " (one selected weapon)" : ""}${m.cond ? ` – conditional: ${m.cond}` : ""}`);
     const tip = lines.join("\n");
-    const first = x.mods.find((m) => (x.cond ? m.cond && !m.alt : !m.cond)) || x.mods[0];
-    return `<td${extra || ""}><span class="emod${x.cond ? " cond" : ""}" data-testid="emod" data-stat="${esc(stat)}" data-base="${esc(x.base || "-")}" title="${esc(tip)}" data-action="emod-tip" data-tip="${esc(tip)}">${esc(x.v)}<small class="emd">${esc(first.op === "set" ? "★" : desc(first))}</small></span></td>`;
+    const used = x.mods.filter((m) => (x.cond ? m.cond && !m.alt : !m.cond));
+    const first = used[0] || x.mods[0];
+    const srcs = new Set(x.mods.map((m) => m.src || "enh"));
+    const src = srcs.size > 1 ? " both" : srcs.has("det") ? " det" : "";
+    const sum = used.length > 1 && used.every((m) => m.op === "add") ? { op: "add", v: used.reduce((a, m) => a + m.v, 0) } : first;
+    return `<td${extra || ""}><span class="emod${src}${x.cond ? " cond" : ""}" data-testid="emod" data-stat="${esc(stat)}" data-base="${esc(x.base || "-")}" title="${esc(tip)}" data-action="emod-tip" data-tip="${esc(tip)}">${esc(x.v)}<small class="emd">${esc(sum.op === "set" ? "★" : desc(sum))}</small></span></td>`;
   }
   /* legend under the profile: which enhancement changed what; conditional changes listed with their condition */
   function emodNote(mods) {
-    const names = [...new Set(mods.map((m) => m.enh + (m.via ? ` (${m.via})` : "")))];
-    const cond = [...new Set(mods.filter((m) => m.cond).map((m) => m.cond))];
-    return `<div class="ds-emod-note" data-testid="emod-note"><span class="emod-key"></span> Changed by enhancement: <b>${esc(names.join(", "))}</b>${cond.length ? ` · <span class="emod-key cond"></span> dashed = only ${cond.length === 1 ? "when" : "when (see below)"}:<ul>${cond.map((c) => `<li>${esc(c)}</li>`).join("")}</ul>` : ""}</div>`;
+    const nm = (src) => [...new Set(mods.filter((m) => (m.src || "enh") === src).map((m) => m.enh + (m.via ? ` (${m.via})` : "")))];
+    const names = nm("enh"), dnames = nm("det");
+    // conditions; choose-one rules: the lead-in once, then its options
+    const groups = new Map();
+    for (const m of mods.filter((x) => x.cond)) { const [g, o] = m.cond.includes(" … ") ? m.cond.split(" … ") : [m.cond, null]; if (!groups.has(g)) groups.set(g, new Set()); if (o) groups.get(g).add(o); }
+    const cond = [...groups].map(([g, os]) => os.size ? `${g}<ul>${[...os].map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : g);
+    return `<div class="ds-emod-note" data-testid="emod-note">${names.length ? `<span class="emod-key"></span> Changed by enhancement: <b>${esc(names.join(", "))}</b>` : ""}${dnames.length ? `${names.length ? " · " : ""}<span class="emod-key det"></span> Detachment rule: <b>${esc(dnames.join(", "))}</b>` : ""}${cond.length ? ` · <span class="emod-key cond"></span> dashed = only ${cond.length === 1 ? "when" : "when (see below)"}:<ul>${[...groups].map(([g, os]) => `<li>${esc(g)}${os.size ? `<ul>${[...os].map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}</li>`).join("")}</ul>` : ""}</div>`;
   }
   function datasheetHtml(F, u, r, o) {
     o = o || {};
@@ -985,12 +993,12 @@
     let html = "";
     if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "No datasheet available for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
     else {
-      const smods = r ? C.entryStatMods(F, r) : [];
+      const smods = r ? C.entryStatMods(F, r, (CUR && CUR.dets) || []) : [];
       const umods = smods.filter((m) => m.scope === "unit");            // other model types in the unit: unit-wide mods only
       const srow = (name, x, inv, mm, tid) => `<tr${tid || ""}><td class="nm">${esc(name)}</td>${statCell("M", x.M, mm)}${statCell("T", x.T, mm)}${statCell("SV", x.SV || x.Sv, mm)}${statCell("W", x.W, mm)}${statCell("LD", x.LD || x.Ld, mm)}${statCell("OC", x.OC, mm)}${statCell("INV", inv, mm, ' data-testid="ds-inv"')}</tr>`;
       if (!filt) html += `<table class="ds-t ds-unit" data-testid="ds-stats"><tr><th class="nm">Unit</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>
         ${srow(u.n, st, ds.inv, smods)}${(ds.sx || []).map((x) => srow(x[0], x[1], x[2], umods, ' data-testid="ds-sx"')).join("")}</table>${smods.length ? emodNote(smods) : ""}${ds.src === "codex" ? `<div class="ds-src muted" data-testid="ds-codex">Source: Codex: Space Marines (11th edition)</div>` : ""}`;
-      const wmods = (r ? C.entryStatMods(F, r) : []).filter((m) => ["RANGE", "A", "WS", "BS", "S", "AP", "D"].includes(m.stat));
+      const wmods = (r ? C.entryStatMods(F, r, (CUR && CUR.dets) || []) : []).filter((m) => ["RANGE", "A", "WS", "BS", "S", "AP", "D"].includes(m.stat));
       if (filt && wmods.length) html += emodNote(wmods);
       const wtab = (kind, label, skill) => {
         let ws = ds.wp.filter((w) => w[1] === kind && matchItem(w[0]));
