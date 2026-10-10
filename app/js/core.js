@@ -1461,23 +1461,24 @@
   const EM_LONG = "attacks|strength|damage|armour penetration|weapon skill|ballistic skill|range|toughness|wounds|movement|move|leadership|objective control|save";
   const EM_SHORT = "A|S|AP|D|WS|BS|T|W|M|OC|Ld|Sv";
   const EM_COND = /\b(while|if|each time|once per|until|at the start|at the end|when|in your|in the declare|on a critical|that targets?|for every|for each|select one|instead|or:|discard|spend|roll one)\b/i;
+  const EM_SKIP_DET = /\b(enemy|allocated to|targets? (?:the bearer|this unit|this model|your unit)|saving throw|ignore any or all|attacking model|target unit|the target)\b/i;
   const EM_SKIP = /\b(enemy|friendly|allocated to|targets? (?:the bearer|this unit|this model|your unit)|saving throw|ignore any or all|transport|attacking model|target unit|the target)\b/i;
   function emSentences(text) {
     const out = [];
-    let head = "", gate = "", other = false, lastKw = "";
+    let head = "", gate = "", other = false, lastKw = "", otherSen = "";
     for (const raw of String(text || "").replace(/\*\*/g, "").split("\n")) {
       const line = raw.trim(); if (!line) continue;
       // sentences; '... of 6+ and, once per battle, ...' starts a separate (conditional) clause
       const parts = line.split(/(?<=\.)\s+(?=[A-Z(])|\s+and,\s+(?=once per|each time|until|at the start)/);
       for (const p of parts) {
         // lines of a 'This unit has:' / 'melee attacks have:' list inherit the header's subject
-        if (head && !/model only|unit only/i.test(p) && (p.length < 80 || /^(?:\+|-|\d+\+|or:|\[|have\b|has\b|can\b|add\b|improve\b|subtract\b|worsen\b|each time\b|this\b|that\b|those\b)/i.test(p))) out.push({ s: p, ctx: head + " " + p, gate, other, lastKw });
-        else { head = /:\s*$/.test(p) ? p : ""; out.push({ s: p, ctx: p, gate, other, lastKw }); }
+        if (head && !/model only|unit only/i.test(p) && (p.length < 80 || /^(?:\+|-|\d+\+|or:|\[|have\b|has\b|can\b|add\b|improve\b|subtract\b|worsen\b|each time\b|this\b|that\b|those\b)/i.test(p))) out.push({ s: p, ctx: head + " " + p, gate, other, otherSen, lastKw });
+        else { head = /:\s*$/.test(p) ? p : ""; out.push({ s: p, ctx: p, gate, other, otherSen, lastKw }); }
         if (emPhrases(p).length) lastKw = p;
         // once-per / use-this-ability / choose-one texts: everything after is conditional
         if (/\(once per|once per (?:battle|turn|phase|battle round)\b|use this (?:ability|enhancement)|select one of the (?:\w+ )?(?:abilities|bullet points|options)|select which|either select|select one from the list|roll one D6/i.test(p)) gate = gate && !emPhrases(p).length && emPhrases(gate).length ? gate + " " + p : p;
         // effects on another unit the bearer selects ('select one friendly KROOT unit ... that unit has +1 Ld')
-        if (/\bselect one (?:friendly )?(?:[A-Z][A-Z'’/ -]*\s)?(?:unit|model)s?\b/.test(p) && !/select one of (?:this|the bearer)/i.test(p)) other = true;
+        if (/\bselect (?:one|up to \w+|one or more) (?:friendly )?(?:[A-Z][A-Z'’/ -]*\s)?(?:unit|model)s?\b/.test(p) && !/select one of (?:this|the bearer)/i.test(p)) { other = true; otherSen = p; }
       }
     }
     return out;
@@ -1500,10 +1501,12 @@
     if (/models? in (?:that|the bearer's|this|its) unit|equipped by models|\bthis unit\b|bearer's unit (?:have|has)\b/i.test(ctx)) return "unit";
     return "model";
   }
-  function enhStatMods(text) {
+  function enhStatMods(text, opt) {
+    opt = opt || {};
     const mods = [];
     const pick = (String(text || "").match(/select one of this model's ((?:[A-Z][\w'’-]*\s+){0,3}[A-Z][\w'’-]*) weapons/) || [])[1];
     const push = (m, sen, at) => {
+      if (opt.det && sen.other && !sen.gate) sen = Object.assign({}, sen, { gate: sen.otherSen || "a selected unit" });
       // condition: a conditional phrase before the change (same sentence or list header), 'instead', or a gate
       const pre = sen.ctx.slice(0, sen.ctx.length - sen.s.length + (at || 0));
       const cond = EM_COND.test(pre) || /\binstead\b|\bfor every\b/i.test(sen.s) || !!sen.gate;
@@ -1518,7 +1521,10 @@
     };
     for (const sen of emSentences(text)) {
       const s = sen.s;
-      if (sen.other || /\bthe selected (?:[A-Z]+ )?(?:unit|model)\b/i.test(s) || EM_SKIP.test(s) || /\bhit roll|wound roll|advance roll|charge roll\b/i.test(s) && !/characteristic|\+\d+\s*(?:A|S|AP|D)\b/.test(s)) continue;
+      // detachment rules: 'Friendly WORLD EATERS units' = your own army (not another unit as for an enhancement);
+      // a unit the player selects is conditional, not skipped
+      const skip = opt.det ? EM_SKIP_DET : EM_SKIP;
+      if ((sen.other && !opt.det) || /\bthe selected (?:[A-Z]+ )?(?:unit|model)\b/i.test(s) && !opt.det || skip.test(s) || /\bhit roll|wound roll|advance roll|charge roll\b/i.test(s) && !/characteristic|\+\d+\s*(?:A|S|AP|D)\b/.test(s)) continue;
       if (/\bfollowing weapon\b/i.test(sen.ctx)) continue;
       let m;
       // 'Add 3 to the Strength and add 1 to the Attacks characteristics' / 'Add 2" to the Move characteristic'
@@ -1610,7 +1616,7 @@
       const g = line.match(/^(.*?)\b(?:units?|models?)\b[^.]*?\b(?:gains?|have|has) the ([A-Z][A-Z'’ -]*[A-Z]) keyword/);
       if (g && !/BATTLELINE/.test(g[2])) { const subj = emPhrases(g[1]).filter((x) => !x.excl).map((x) => x.p); grant[g[2]] = subj.length ? subj : null; }
     }
-    return enhStatMods(d.rule[1]).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
+    return enhStatMods(d.rule[1], { det: true }).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
   }
   function entryStatMods(F, r, dets) {
     const out = [];

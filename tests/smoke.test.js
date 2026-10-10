@@ -994,7 +994,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v37/);
+  assert.match(read("sw.js"), /muster-shell-v38/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2460,4 +2460,19 @@ test("detachment-rule stat changes: Detachments-colored box, dashed when conditi
   p = await open(mk("emperors-children", "Court of the Phoenician", [["Daemon Prince of Slaanesh", "Spiritsliver"]]));
   const both = p.querySelector('[data-testid=ds-melee] [data-testid=emod][data-stat="S"]');
   assert.ok(both.classList.contains("both")); assert.match(both.title, /Spiritsliver/); assert.match(both.title, /Court of the Phoenician/);
+});
+
+test("Berzerker Warband: +1 A boxed on World Eaters melee weapons (unit panel)", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, S = w.Muster.S, F = S.idx.factions["world-eaters"];
+  const l = C.newList({ name: "BW", faction: "world-eaters", sub: "world-eaters", size: "strikeforce" }); l.dets = ["Berzerker Warband"];
+  l.entries.push(C.newEntry(F.units["Khorne Berzerkers"])); S.lists.push(l);
+  await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor"));
+  click(w, d.querySelector(`[data-action=select-entry][data-uid="${l.entries[0].uid}"]`));
+  const p = await until(() => d.querySelector(".panel [data-testid=profiles]"));
+  const a = [...p.querySelectorAll('[data-testid=ds-melee] [data-testid=emod][data-stat="A"]')];
+  assert.ok(a.length >= 1 && a.every((e) => e.classList.contains("det") && !e.classList.contains("cond")));
+  assert.match(a[0].title, /Berzerker Warband – Relentless Rage/);
+  assert.equal(p.querySelector('[data-testid=ds-ranged] [data-testid=emod]'), null);
 });

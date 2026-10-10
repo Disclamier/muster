@@ -15,7 +15,7 @@ const entry = (fid, det, unit, enh) => { const u = F(fid).units[unit]; return { 
 
 test("unconditional detachment changes, only for the named keywords", () => {
   assert.equal(elig("necrons", "Cursed Legion", "Skorpekh Lord", "S")[0].v, 2);           // DESTROYER CULT weapons +2 S
-  assert.equal(elig("necrons", "Cursed Legion", "Necron Warriors", "S").length, 0);
+  assert.equal(elig("necrons", "Cursed Legion", "Necron Warriors", "S").filter((m) => !m.cond).length, 0);
   assert.equal(elig("chaos-knights", "Lords of Dread", "Knight Abominant", "OC").length, 1);   // CHAOS KNIGHTS CHARACTER +2 OC
   assert.equal(elig("chaos-knights", "Lords of Dread", "War Dog Karnivore", "OC").length, 0);
   const inv = elig("chaos-space-marines", "Cult of the Arkifane", "Lord Discordant on Helstalker", "INV");   // granted SOUL FORGE keyword
@@ -60,5 +60,27 @@ test("entry mods combine enhancement + detachment on the same stat (both sources
 test("count: stat-modifying detachment rules", () => {
   const seen = new Set(); let n = 0;
   for (const f of P.factions) for (const d of f.dets) { const t = (d.rule || [])[1] || ""; if (seen.has(t)) continue; seen.add(t); if (C.detStatMods(d).length) n++; }
-  assert.ok(n >= 38, String(n));
+  assert.ok(n >= 50, String(n));
+});
+
+test("'Friendly X units' detachment rules apply to your own army (Berzerker Warband +1 A on melee weapons)", () => {
+  const bw = mods("world-eaters", "Berzerker Warband");
+  assert.equal(bw.length, 1); assert.equal(bw[0].stat, "A"); assert.equal(bw[0].v, 1); assert.equal(bw[0].cond, null); assert.equal(bw[0].filter.kind, "m");
+  for (const u of ["Khorne Berzerkers", "Jakhals", "Lord on Juggernaut", "Eightbound", "Exalted Eightbound", "Angron"])
+    assert.equal(elig("world-eaters", "Berzerker Warband", u, "A").length, 1, u);
+  assert.equal(elig("world-eaters", "Berzerker Warband", "Bloodletters", "A").length, 0, "Blood Legions daemons are not WORLD EATERS");
+  const r = entry("world-eaters", "Berzerker Warband", "Khorne Berzerkers");
+  const m = C.entryStatMods(F("world-eaters"), r, ["Berzerker Warband"]);
+  assert.ok(C.weaponMatches(m[0], "m", "Berzerker chainblade", []) && !C.weaponMatches(m[0], "r", "Bolt pistol", []));
+  assert.equal(C.statWithMods("A", "4", m).v, "5");
+  // same wording elsewhere
+  assert.equal(elig("black-templars", "Stormlance Task Force", "Outrider Squad", "M")[0].v, 2);
+  assert.equal(elig("chaos-daemons", "Lords of the Warp", "Bloodmaster", "OC").length, 1);
+  assert.equal(elig("chaos-daemons", "Lords of the Warp", "Bloodthirster", "OC").length, 0, "excluding MONSTER");
+  assert.ok(elig("black-templars", "Marshal's Household", "Sword Brethren Squad", "A")[0].cond);
+  assert.ok(elig("orks", "Da Big Hunt", "Beast Snagga Boyz", "AP")[0].cond);
+  // conditional bonus to other units excludes the named ones (Cursed Legion 2nd clause)
+  assert.equal(elig("necrons", "Cursed Legion", "Necron Warriors", "S").length, 1);
+  assert.ok(elig("necrons", "Cursed Legion", "Necron Warriors", "S")[0].cond);
+  assert.equal(elig("necrons", "Cursed Legion", "Skorpekh Lord", "S").filter((x) => x.cond).length, 0);
 });
