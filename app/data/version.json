@@ -7,9 +7,9 @@
  "built_at": "2026-10-09T14:33:35+00:00",
  "factions": 30,
  "units": 1763,
- "winrates_fetched_at": "2026-10-11T09:56:33Z",
+ "winrates_fetched_at": "2026-10-12T10:02:36Z",
  "winrates_range": "8 Oct - 13 Oct 2026",
- "winrates_hash": "8e63fac8436c04bd",
+ "winrates_hash": "2aad50b34d645cf6",
  "datasheets_hash": "96420bd9f929303b",
  "datasheets_version": "2026-10-09"
 }
