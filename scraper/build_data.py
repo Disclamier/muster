@@ -512,6 +512,24 @@ def main():
         sizes.append({"id": "onslaught", "name": "Onslaught", "points": 3000, "dp": None, "enh": None,
                       "unit_limit": None, "undefined_limits": True})
 
+    # held factions: keep the previously published data (points + datasheets) until the hold is lifted
+    hold = (json.load(open(os.path.join(HERE, "overrides", "hold.json"))).get("factions") or {}) if os.path.exists(os.path.join(HERE, "overrides", "hold.json")) else {}
+    if hold:
+        try:
+            prev_p = json.load(open(os.path.join(a.outdir, "points.json")))
+            prev_d = json.load(open(os.path.join(a.outdir, "datasheets.json")))
+        except Exception:  # noqa: BLE001
+            prev_p = prev_d = None
+        for fid, h in hold.items():
+            old = next((f for f in (prev_p or {}).get("factions", []) if f["id"] == fid), None)
+            if not old:
+                print(f"warn: hold {fid}: no previously published data - publishing the new build", file=sys.stderr); continue
+            old = {**old, "held": h.get("held_at") or old.get("held") or True}
+            factions[:] = [old if f["id"] == fid else f for f in factions]
+            if fid in (prev_d or {}).get("factions", {}):
+                merge.datasheets[fid] = prev_d["factions"][fid]
+            print(f"  hold: {fid} kept at previously published data ({old['held']})", file=sys.stderr)
+
     body = {"battle_sizes": sizes, "rules_text": (mfm.get("muster") or {}).get("rules_text", []),
             "groups": groups, "factions": factions}
     content = json.dumps(body, ensure_ascii=False, separators=(",", ":"), sort_keys=True)

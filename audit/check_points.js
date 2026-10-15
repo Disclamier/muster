@@ -46,6 +46,8 @@ function entryList(fid, u, n, set) {
 }
 
 for (const [fid, mf] of Object.entries(M.factions)) {
+  const hf = D.factions.find((f) => f.id === fid);
+  if (hf && hf.held) { info.push(`${fid}: HELD at ${hf.held} (scraper/overrides/hold.json) - not audited against the current MFM`); continue; }
   const AF = I.factions[fid];
   if (!AF) { bad(fid, "faction page in the MFM but not in the app"); continue; }
   counts.factions++;
