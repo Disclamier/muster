@@ -1104,3 +1104,7 @@ html[data-theme="dark"] .emod.det .emd { color: var(--c-det, #39ff14); }
 /* detachment that would exceed the DP limit with the current picks */
 .det-dd .opt.dis, .detrow.dis { opacity: .4; }
 .det-dd .opt.dis input, .detrow.dis input { cursor: not-allowed; }
+.exp-rules-box{display:flex;align-items:center;gap:10px;margin:8px 0;padding:10px 12px;min-height:44px;border:1.5px solid var(--accent,#4c8dff);border-radius:8px;background:rgba(76,141,255,.08);cursor:pointer;user-select:none}
+.exp-rules-box:hover{background:rgba(76,141,255,.16)}
+.exp-rules-box input{width:22px;height:22px;flex:none;cursor:pointer;accent-color:var(--accent,#4c8dff)}
+.exp-rules-box .on{display:flex;flex-direction:column}.exp-rules-box small{opacity:.7;font-size:.82em}

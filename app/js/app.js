@@ -1311,7 +1311,7 @@
     const m = modal("Export", `<div class="exp">
       <div class="expfmts">${C.EXPORT_FORMATS.map((f) => `<label class="opt"><input type="radio" name="fmt" value="${f.id}" ${f.id === fmt ? "checked" : ""} data-change="fmt"><span class="on"><b>${esc(f.name)}</b><span class="desc">${esc(f.desc)}</span></span></label>`).join("")}
         <label class="opt"><input type="checkbox" ${EXP.md ? "checked" : ""} data-change="md"><span class="on">Markdown formatting</span></label>
-        <label class="opt"><input type="checkbox" ${EXP.rules ? "checked" : ""} data-change="exp-rules" data-testid="exp-rules"><span class="on">Include detachment rules &amp; stratagems</span></label></div>
+        <label class="opt exp-rules-box" data-testid="exp-rules-box"><input type="checkbox" ${EXP.rules ? "checked" : ""} data-change="exp-rules" data-testid="exp-rules"><span class="on"><b>Include detachment rules &amp; stratagems</b><small>Adds the detachment rule and stratagem text to the exported list</small></span></label></div>
       <textarea readonly data-testid="export-text">${esc(text)}</textarea></div>
       <div class="ys-box" data-testid="ys-box"><div class="ys-txt"><b>Tabletop Simulator (Yellowscribe)</b><span class="muted">Download a roster file, upload it at
         <a href="${YS_URL}" target="_blank" rel="noopener">yellowscribe.link</a>, then paste the code it gives you into the Yellowscribe mod in Tabletop Simulator.</span></div>

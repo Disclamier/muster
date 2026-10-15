@@ -42,3 +42,8 @@ test("export: rules appendix on request, attached units say who leads them", () 
 test("touch devices: list-creation modal does not autofocus", () => {
   const src = fs.readFileSync(__dirname + "/../app/js/app.js", "utf8"); assert.match(src, /isTouch\(\)/);
 });
+test("export box: rules checkbox is a large labelled control next to the unchanged options", () => {
+  const src = fs.readFileSync(__dirname + "/../app/js/app.js", "utf8"), css = fs.readFileSync(__dirname + "/../app/css/app.css", "utf8");
+  assert.match(src, /exp-rules-box[\s\S]*data-change="exp-rules"/); assert.match(src, /data-change="md"/);
+  assert.match(css, /\.exp-rules-box\{[^}]*min-height:44px[^}]*cursor:pointer/);
+});
