@@ -22,6 +22,7 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gwapp_override  # noqa: E402  newest rules text (Warhammer 40,000 app detachments), applied last
+import gwapp_datasheets  # noqa: E402  Warhammer 40,000 app datasheets for chapter units the codex does not cover
 import codex_override  # noqa: E402  committed codex override layer (Space Marines 11th-ed codex)
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -187,6 +188,7 @@ def merge(mfm, gs):
     ds_out = merge.datasheets = {}
     merge.codex_report = {}
     merge.gwapp_report = {}
+    merge.gwapp_ds_report = {}
     sing = lambda n: n.replace("s", "")   # spelling variants: 'broodbrothersauxilia' ~ 'broodbrotherauxilia'
     for mf in mfm["factions"]:
         gf = gsf.get(SLUG_MAP.get(mf["id"], mf["id"]))
@@ -356,6 +358,7 @@ def merge(mfm, gs):
                              {x["n"]: [{"name": w[0]} for w in x.get("w") or []] for x in units},
                              stats, merge.codex_report, role_from_keywords)
         gwapp_override.apply(mf["id"], dets, stats, merge.gwapp_report)
+        gwapp_datasheets.apply(mf["id"], units, f_ds, stats, merge.gwapp_ds_report)
         for x in units:
             unique_slot_names(x.get("lo"))
         units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))
@@ -605,6 +608,7 @@ def main():
     print(f"  codex override: {s['codex_datasheets']} datasheets, {s['codex_detachments']} detachments, "
           f"{s['codex_stratagems']} stratagems, {s['codex_enhancements']} enhancement texts", file=sys.stderr)
     json.dump(merge.codex_report, open(os.path.join(ROOT, "data", "codex_report.json"), "w"), indent=1, ensure_ascii=False)
+    json.dump(merge.gwapp_ds_report, open(os.path.join(ROOT, "data", "gwapp_ds_report.json"), "w"), indent=1, ensure_ascii=False)
     json.dump(merge.gwapp_report, open(os.path.join(ROOT, "data", "gwapp_report.json"), "w"), indent=1, ensure_ascii=False)
     stats_path = os.path.join(ROOT, "data", "build_stats.json")
     json.dump({"stats": dict(s), "unmatched_mfm_detachments": unmatched}, open(stats_path, "w"), indent=1)

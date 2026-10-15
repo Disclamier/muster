@@ -1,0 +1,1725 @@
+{
+ "note": "Datasheets from the Warhammer 40,000 app (via 40k.app unit pages) as a committed override.",
+ "factions": {
+  "dark-angels": {
+   "source": "Warhammer 40,000 app via https://www.40k.app/factions/dark-angels",
+   "version": "972",
+   "units": {
+    "Asmodai": {
+     "s": {
+      "M": "6\"",
+      "T": "5",
+      "SV": "3+",
+      "W": "4",
+      "LD": "5+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Heavy Bolt Pistol",
+       "r",
+       [
+        [
+         null,
+         "18\"",
+         "1",
+         "2+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Crozius Arcanum and Power Weapon",
+       "m",
+       [
+        [
+         "Strike",
+         "Melee",
+         "5",
+         "2+",
+         "6",
+         "-2",
+         "2",
+         [
+          "Precision"
+         ]
+        ],
+        [
+         "Sweep",
+         "Melee",
+         "8",
+         "2+",
+         "5",
+         "-2",
+         "1",
+         [
+          "Cleave 1"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Leader"
+     ],
+     "fa": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+     ],
+     "ab": [
+      [
+       "Feared Interrogator",
+       "At the start of the Fight phase, each enemy CHARACTER unit within 6\" of this model makes a battle-shock roll, with -1 to that battle-shock roll."
+      ],
+      [
+       "Exemplar of Hate",
+       "This unit's melee attacks can re-roll hit rolls."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Azrael": {
+     "s": {
+      "M": "6\"",
+      "T": "5",
+      "SV": "2+",
+      "W": "6",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Lion's Wrath",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "2+",
+         "8",
+         "-3",
+         "2",
+         [
+          "Anti-Infantry 4+",
+          "Devastating Wounds",
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "The Sword of Secrets",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "2+",
+         "6",
+         "-4",
+         "2",
+         [
+          "Devastating Wounds"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Leader"
+     ],
+     "fa": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+     ],
+     "ab": [
+      [
+       "Masterful Tactician",
+       "In your Movement phase, select up to one visible friendly ADEPTUS ASTARTES unit within 9\" of this model, and select one combat doctrine. That combat doctrine is active for that unit until the start of your next Command phase."
+      ],
+      [
+       "Watcher in the Dark (Once per battle, per unit)",
+       "In any phase, when this unit suffers a mortal wound, this unit can summon a Watcher in the Dark. If it does, this unit has Feel No Pain 4+ against mortal wounds."
+      ],
+      [
+       "Supreme Grand Master",
+       "This unit's attacks have [SUSTAINED HITS 1]."
+      ]
+     ],
+     "wa": [
+      [
+       "The Lion Helm",
+       "The Lion Helm",
+       "This unit has 4+ InSv."
+      ]
+     ],
+     "wo": []
+    },
+    "Belial": {
+     "s": {
+      "M": "5\"",
+      "T": "6",
+      "SV": "2+",
+      "W": "6",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Master-crafted Storm Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "2+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Precision"
+         ]
+        ]
+       ]
+      ],
+      [
+       "The Sword of Silence",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "2+",
+         "6",
+         "-3",
+         "2",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Deep Strike",
+      "Leader"
+     ],
+     "fa": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+     ],
+     "ab": [
+      [
+       "Grand Master of the Deathwing",
+       "This unit's attacks that target an enemy CHARACTER unit have +1 to wound rolls."
+      ],
+      [
+       "Strikes of Retribution",
+       "In the fight phase, when this model is destroyed, if this unit has not been selected to fight this phase, roll one D6:\n■ On a 2+, do not remove this model from the battlefield. When your unit has fought, or at the end of the phase (whichever comes first), this model is removed from the battlefield."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Deathwing Knights": {
+     "s": {
+      "M": "5\"",
+      "T": "6",
+      "SV": "2+",
+      "W": "4",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Great Weapon of the Unforgiven",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "5",
+         "2+",
+         "6",
+         "-2",
+         "2",
+         [
+          "Devastating Wounds",
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Relic Weapon",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "2+",
+         "7",
+         "-2",
+         "2",
+         [
+          "Lethal Hits"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Mace of Absolution",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "4",
+         "2+",
+         "6",
+         "-2",
+         "2",
+         [
+          "Anti-Monster/Vehicle 4+"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Power Weapon",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "5",
+         "2+",
+         "6",
+         "-2",
+         "2",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Deep Strike"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Inner Circle",
+       "Attacks that target this unit have -1D.\nThis unit cannot be targeted with the Tactical Dreadnought Fortitude stratagem."
+      ],
+      [
+       "Teleport Homer (Once per battle, per unit)",
+       "At the start of the battle, you can set up one Teleport Homer token for this unit on the battlefield. If you do:\n■ When you target this unit with the Rapid Ingress stratagem, you can use that Teleport Homer token. If you do, that use is -1 CP, but when resolving that stratagem, this unit must be set up within 3\" of that Teleport Homer token and not within 8\" of an enemy unit. That Teleport Homer token is then removed from the battlefield.\nIf an enemy unit ends a move within 1\" of that Teleport Homer token, that Teleport Homer token is removed from the battlefield."
+      ]
+     ],
+     "wa": [
+      [
+       "Watcher in the Dark",
+       "Watcher in the Dark",
+       "Once per battle, in any phase, just after a mortal wound is allocated to an ADEPTUS ASTARTES model in this unit, this unit can summon a Watcher in the Dark. When it does, until the end of the phase, models in this unit have the Feel No Pain 4+ ability against mortal wounds."
+      ]
+     ],
+     "wo": [
+      "This unit can be equipped with 1 Watcher in the Dark",
+      "All Deathwing Knight models in this unit can each have their Mace of Absolution replaced with 1 Power Weapon.",
+      "The Knight Master can have their Great Weapon of the Unforgiven replaced with 1 Relic Weapon."
+     ]
+    },
+    "Deathwing Terminator Squad": {
+     "s": {
+      "M": "5\"",
+      "T": "6",
+      "SV": "2+",
+      "W": "3",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Storm Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Rapid Fire 2"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Assault Cannon",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "6",
+         "3+",
+         "6",
+         "-2",
+         "1",
+         [
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Cyclone Missile Launcher",
+       "r",
+       [
+        [
+         "Frag",
+         "36\"",
+         "8",
+         "3+",
+         "4",
+         "-1",
+         "1",
+         [
+          "Blast 2"
+         ]
+        ],
+        [
+         "Krak",
+         "36\"",
+         "2",
+         "3+",
+         "10",
+         "-2",
+         "D3+3",
+         []
+        ]
+       ]
+      ],
+      [
+       "Heavy Flamer",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "3",
+         "N/A",
+         "5",
+         "-1",
+         "1",
+         [
+          "Blast 2",
+          "Torrent"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Plasma Cannon",
+       "r",
+       [
+        [
+         "Standard",
+         "36\"",
+         "3",
+         "3+",
+         "7",
+         "-2",
+         "2",
+         [
+          "Blast 1"
+         ]
+        ],
+        [
+         "Supercharge",
+         "36\"",
+         "3",
+         "3+",
+         "8",
+         "-3",
+         "3",
+         [
+          "Blast 1",
+          "Hazardous"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Chainfist",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "2",
+         "4+",
+         "8",
+         "-2",
+         "2",
+         []
+        ],
+        [
+         null,
+         "Melee",
+         "3",
+         "3+",
+         "12",
+         "-2",
+         "3",
+         [
+          "Hunter: Monster/Vehicle"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Power Fist",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "3+",
+         "8",
+         "-2",
+         "2",
+         []
+        ]
+       ]
+      ],
+      [
+       "Power Weapon",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "5",
+         "3+",
+         "5",
+         "-2",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Deep Strike"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Deathwing",
+       "This unit's attacks can ignore modifiers to:\n■ BS and WS.\n■ Hit rolls."
+      ]
+     ],
+     "wa": [
+      [
+       "Watcher in the Dark",
+       "Watcher in the Dark",
+       "Once per battle, in any phase, just after a mortal wound is allocated to an ADEPTUS ASTARTES model in this unit, this unit can summon a Watcher in the Dark. When it does, until the end of the phase, models in this unit have the Feel No Pain 4+ ability against mortal wounds."
+      ]
+     ],
+     "wo": [
+      "Any number of Deathwing Terminator models can each have their Power Fist replaced with 1 Chainfist.",
+      "For every 5 models in this unit, 1 Deathwing Terminator model can have their Storm Bolter replaced with one of the following: 1 Assault Cannon, 1 Heavy Flamer, 1 Plasma Cannon, 1 Storm Bolter and 1 Cyclone Missile Launcher (that model’s Storm Bolter cannot be replaced)",
+      "The Deathwing Sergeant can have their Power Fist replaced with one of the following: 1 Chainfist, 1 Power Weapon"
+     ]
+    },
+    "Ezekiel": {
+     "s": {
+      "M": "6\"",
+      "T": "5",
+      "SV": "2+",
+      "W": "5",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Mind Wipe",
+       "r",
+       [
+        [
+         "Focused Witchfire",
+         "12\"",
+         "1",
+         "2+",
+         "6",
+         "-2",
+         "D3+3",
+         [
+          "Anti-Character 4+",
+          "Close-quarters",
+          "Devastating Wounds",
+          "Hazardous",
+          "Precision",
+          "Psychic"
+         ]
+        ],
+        [
+         "Witchfire",
+         "12\"",
+         "1",
+         "2+",
+         "6",
+         "-2",
+         "D6",
+         [
+          "Close-quarters",
+          "Devastating Wounds",
+          "Precision",
+          "Psychic"
+         ]
+        ]
+       ]
+      ],
+      [
+       "The Deliverer",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "1",
+         "2+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Close-quarters",
+          "Precision"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Traitor's Bane",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "4",
+         "2+",
+         "6",
+         "-3",
+         "2",
+         [
+          "Precision",
+          "Psychic"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Leader"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Psychic Hood",
+       "This unit has Feel No Pain 4+ against psychic attacks and mortal wounds."
+      ],
+      [
+       "Book of Salvation",
+       "This unit's melee attacks have +1 A."
+      ],
+      [
+       "Chief Librarian (psyker level 3)",
+       "This model has the psychic abilities listed in the Psychic Abilities section."
+      ],
+      [
+       "Engulfing Fear (psychic level 1)",
+       "In your Shooting phase, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:\n■ On a 1, this unit is battle-shocked.\n■ Select one enemy unit within 12” of this model. That unit makes a battle-shock roll with -1 to that battle-shock roll."
+      ],
+      [
+       "Whispers of the Shadow Forest (psychic level 1)",
+       "When an enemy unit targets this unit, if this unit is not battle-shocked, you can make a psychic roll for this unit by rolling one D6. If you do:\n■ On a 1, this unit is battle-shocked.\n■ Attacks that target this unit have -1 to hit rolls until the end of the phase."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Inner Circle Companions": {
+     "s": {
+      "M": "6\"",
+      "T": "5",
+      "SV": "3+",
+      "W": "3",
+      "LD": "6+",
+      "OC": "2"
+     },
+     "wp": [
+      [
+       "Heavy Bolt Pistol",
+       "r",
+       [
+        [
+         null,
+         "18\"",
+         "1",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Calibanite Greatsword",
+       "m",
+       [
+        [
+         "Strike",
+         "Melee",
+         "4",
+         "3+",
+         "6",
+         "-2",
+         "2",
+         [
+          "Lethal Hits"
+         ]
+        ],
+        [
+         "Sweep",
+         "Melee",
+         "5",
+         "3+",
+         "6",
+         "-2",
+         "1",
+         [
+          "Sustained Hits 2"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "cr": [],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Braziers of Judgement",
+       "This unit has Stealth.\nMelee attacks that target this unit have -1 to hit rolls."
+      ],
+      [
+       "Emnity for the Unworthy",
+       "This unit's attacks that target a CHARACTER unit have +1 to hit rolls."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Land Speeder Vengeance": {
+     "s": {
+      "M": "14\"",
+      "T": "9",
+      "SV": "3+",
+      "W": "11",
+      "LD": "6+",
+      "OC": "3"
+     },
+     "wp": [
+      [
+       "Assault Cannon",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "6",
+         "3+",
+         "6",
+         "-2",
+         "1",
+         [
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Heavy Bolter",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "3",
+         "3+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Rapid Fire 2",
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Plasma Storm Battery",
+       "r",
+       [
+        [
+         "Standard",
+         "36\"",
+         "D3+3",
+         "3+",
+         "9",
+         "-2",
+         "2",
+         [
+          "Blast 1",
+          "Twin-linked"
+         ]
+        ],
+        [
+         "Supercharge",
+         "36\"",
+         "D3+3",
+         "3+",
+         "10",
+         "-3",
+         "3",
+         [
+          "Blast 1",
+          "Hazardous",
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Hull",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "4+",
+         "6",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [
+      "Deadly Demise D3",
+      "Deep Strike"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Storm of Vengeance (Once per turn, per unit)",
+       "In your opponent's Shooting phase, when an enemy unit has shot, if those attacks destroyed a friendly DARK ANGELS unit within 6\" of this unit, you can use this ability. If you do, this unit shoots using normal shooting but while doing so this unit can only target that enemy unit."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "This model's Heavy Bolter can be replaced with 1 Assault Cannon."
+     ]
+    },
+    "Lazarus": {
+     "s": {
+      "M": "6\"",
+      "T": "5",
+      "SV": "3+",
+      "W": "5",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Bolt Pistol",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "1",
+         "2+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Enmity's Edge",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "2+",
+         "6",
+         "-3",
+         "2",
+         [
+          "Anti-Psyker 2+"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Leader"
+     ],
+     "fa": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+     ],
+     "ab": [
+      [
+       "The Spiritshield Helm",
+       "This unit has Feel No Pain 3+ against psychic attacks and mortal wounds."
+      ],
+      [
+       "Intractable Will",
+       "In the Fight phase, when a model in this unit is destroyed, if this unit has not been selected to fight this phase, roll one D6:\n■ On a 4+, do not remove that model from the battlefield. When your unit has fought, or at the end of the phase (whichever comes first), that model is removed from the battlefield."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Lion El'Jonson": {
+     "s": {
+      "M": "8\"",
+      "T": "10",
+      "SV": "2+",
+      "W": "16",
+      "LD": "5+",
+      "OC": "4"
+     },
+     "wp": [
+      [
+       "Arma Luminis",
+       "r",
+       [
+        [
+         "Bolt",
+         "18\"",
+         "4",
+         "2+",
+         "6",
+         "-2",
+         "2",
+         [
+          "Close-quarters"
+         ]
+        ],
+        [
+         "Plasma",
+         "18\"",
+         "2",
+         "2+",
+         "10",
+         "-3",
+         "3",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Fealty",
+       "m",
+       [
+        [
+         "Strike",
+         "Melee",
+         "8",
+         "2+",
+         "12",
+         "-4",
+         "4",
+         [
+          "Lethal Hits"
+         ]
+        ],
+        [
+         "Sweep",
+         "Melee",
+         "12",
+         "2+",
+         "6",
+         "-3",
+         "2",
+         [
+          "Cleave 2",
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "3+",
+     "cr": [
+      "Deep Strike",
+      "Fights First"
+     ],
+     "fa": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+     ],
+     "ab": [
+      [
+       "The Emperor's Shield",
+       "Attacks that target this unit with a S greater than this unit's T have -1 to wound rolls."
+      ],
+      [
+       "Dark Angels Bodyguard",
+       "While this unit is within 3\" of a friendly DARK ANGELS INFANTRY unit, this unit has Lone Operative."
+      ],
+      [
+       "Master Strategist",
+       "In your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase, in addition to any other combat doctrine."
+      ],
+      [
+       "Primarch of the First Legion",
+       "At the start of your Command phase, you can select up to two of the abilities in the Primarch of the First Legion section. Until the start of your next Command phase, this model has those abilities."
+      ],
+      [
+       "Mist-wreathed Shadow Realms",
+       "In your Command phase, if this unit is unengaged, you can use this ability. If you do: ▫ Place this unit in strategic reserves. ▫ This unit can make an ingress move in your next Movement phase (including in your first turn)."
+      ],
+      [
+       "Martial Exemplar",
+       "While a friendly DARK ANGELS unit is within 6\" of this unit, that unit's melee attacks can:\n■ Re-roll hit rolls of 1.\n■ Re-roll wound rolls of 1."
+      ],
+      [
+       "No Hiding from the Watchers",
+       "While a friendly DARK ANGELS unit is within 6\" of this unit, that unit has Feel No Pain 5+ against psychic attacks and mortal wounds."
+      ],
+      [
+       "The Watchers",
+       "This unit has Feel No Pain 4+ against psychic attacks and mortal wounds."
+      ],
+      [
+       "Supreme Commander",
+       "If this model is in your army, it must be your Warlord."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Nephilim Jetfighter": {
+     "s": {
+      "M": "-",
+      "T": "8",
+      "SV": "3+",
+      "W": "11",
+      "LD": "6+",
+      "OC": "-"
+     },
+     "wp": [
+      [
+       "Avenger Mega Bolter",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "10",
+         "3+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Blacksword Missiles",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "2",
+         "3+",
+         "8",
+         "-2",
+         "D3+2",
+         [
+          "Anti-Fly 2+"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Nephilim Lascannons",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "2",
+         "3+",
+         "12",
+         "-3",
+         "D3+3",
+         []
+        ]
+       ]
+      ],
+      [
+       "Twin Heavy Bolter",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "3",
+         "3+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Rapid Fire 2",
+          "Sustained Hits 1",
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Hull",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "4+",
+         "6",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [
+      "Deadly Demise D3",
+      "Damaged 3"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Lightning-fast Manoeuvres",
+       "Ranged attacks that target this unit have -1 to wound rolls."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "This model's Twin Heavy Bolter can be replaced with 1 Nephilim Lascannons."
+     ]
+    },
+    "Ravenwing Black Knights": {
+     "s": {
+      "M": "12\"",
+      "T": "6",
+      "SV": "3+",
+      "W": "3",
+      "LD": "6+",
+      "OC": "2"
+     },
+     "wp": [
+      [
+       "Bolt Pistol",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "1",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Grenade Launcher",
+       "r",
+       [
+        [
+         "Frag",
+         "24\"",
+         "4",
+         "3+",
+         "4",
+         "-1",
+         "1",
+         [
+          "Blast 1"
+         ]
+        ],
+        [
+         "Krak",
+         "24\"",
+         "1",
+         "3+",
+         "10",
+         "-2",
+         "3",
+         [
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Plasma Talon",
+       "r",
+       [
+        [
+         "Standard",
+         "18\"",
+         "2",
+         "3+",
+         "7",
+         "-2",
+         "1",
+         [
+          "Rapid Fire 1"
+         ]
+        ],
+        [
+         "Supercharge",
+         "18\"",
+         "2",
+         "3+",
+         "8",
+         "-3",
+         "2",
+         [
+          "Hazardous",
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Corvus Hammers",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "4",
+         "3+",
+         "5",
+         "-2",
+         "1",
+         [
+          "Devastating Wounds"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Knights of Caliban",
+       "If this unit made a charge move this turn, this unit's melee attacks have [ANTI-MONSTER/VEHICLE 4+]."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "For every 3 models in this unit, 1 model can have their Plasma Talon replaced with 1 Grenade Launcher."
+     ]
+    },
+    "Ravenwing Command Squad": {
+     "s": {
+      "M": "12\"",
+      "T": "6",
+      "SV": "3+",
+      "W": "4",
+      "LD": "6+",
+      "OC": "2"
+     },
+     "wp": [
+      [
+       "Bolt Pistol",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "1",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Grenade Launcher",
+       "r",
+       [
+        [
+         "Frag",
+         "24\"",
+         "4",
+         "3+",
+         "4",
+         "-1",
+         "1",
+         [
+          "Blast 1"
+         ]
+        ],
+        [
+         "Krak",
+         "24\"",
+         "1",
+         "3+",
+         "10",
+         "-2",
+         "3",
+         [
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Plasma Talon",
+       "r",
+       [
+        [
+         "Standard",
+         "18\"",
+         "2",
+         "3+",
+         "7",
+         "-2",
+         "1",
+         [
+          "Rapid Fire 1"
+         ]
+        ],
+        [
+         "Supercharge",
+         "18\"",
+         "2",
+         "3+",
+         "8",
+         "-3",
+         "2",
+         [
+          "Hazardous",
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Corvus Hammers",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "4",
+         "3+",
+         "5",
+         "-2",
+         "1",
+         [
+          "Devastating Wounds"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Master-crafted Power Weapon",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "2+",
+         "6",
+         "-2",
+         "2",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [
+      "Support"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Narthecium",
+       "While this unit contains a RAVENWING APOTHECARY, in your Command phase, this unit heals D3+1 wounds."
+      ],
+      [
+       "Astartes Banner",
+       "While this unit contains a RAVENWING ANCIENT, this unit has +1 OC."
+      ],
+      [
+       "Honour or Death",
+       "While this unit contains a RAVENWING CHAMPION:\n■ This unit has +1 to advance rolls and charge rolls.\n■ When you target this unit with the Heroic Intervention stratagem, that use is -1CP."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "For every 3 models in this unit, 1 model can have their Plasma Talon replaced with 1 Grenade Launcher."
+     ]
+    },
+    "Ravenwing Dark Talon": {
+     "s": {
+      "M": "-",
+      "T": "8",
+      "SV": "3+",
+      "W": "11",
+      "LD": "6+",
+      "OC": "-"
+     },
+     "wp": [
+      [
+       "Hurricane Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "6",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Rapid Fire 6",
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Rift Cannon",
+       "r",
+       [
+        [
+         null,
+         "18\"",
+         "D3+1",
+         "3+",
+         "16",
+         "-4",
+         "3",
+         [
+          "Blast 1",
+          "Devastating Wounds"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Hull",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "4+",
+         "6",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [
+      "Deadly Demise D3",
+      "Damaged 3"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Stasis Bomb",
+       "At the end of your opponent’s Fight phase, select one visible enemy unit (excluding AIRCRAFT/Lone Operative units) within 24\" of this unit. That enemy unit is slowed until the end of your opponent's next Movement phase:\n■ While a unit is slowed, in your opponent's Movement phase, when that unit is selected to move, unless that unit remains stationary, roll one D6:\n■ On a 1-4, that unit suffers D3 mortal wounds and that unit has -2” M.\nOn a 5-6, that unit suffers 2D3 mortal wounds and that unit has -3” M."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    },
+    "Ravenwing Darkshroud": {
+     "s": {
+      "M": "14\"",
+      "T": "8",
+      "SV": "3+",
+      "W": "10",
+      "LD": "6+",
+      "OC": "3"
+     },
+     "wp": [
+      [
+       "Assault Cannon",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "6",
+         "3+",
+         "6",
+         "-2",
+         "1",
+         [
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Heavy Bolter",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "3",
+         "3+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Rapid Fire 2",
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Hull",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "4+",
+         "6",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [
+      "Deadly Demise D3",
+      "Deep Strike",
+      "Lone Operative 15\""
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "ab": [
+      [
+       "Icon of Old Caliban",
+       "While a friendly DARK ANGELS unit is within 6\" of this unit, that unit has Stealth."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "This model's Heavy Bolter can be replaced with 1 Assault Cannon."
+     ]
+    },
+    "Sammael": {
+     "s": {
+      "M": "12\"",
+      "T": "6",
+      "SV": "3+",
+      "W": "7",
+      "LD": "6+",
+      "OC": "2"
+     },
+     "wp": [
+      [
+       "Bolt Pistol",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "1",
+         "2+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Close-quarters"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Master-crafted Plasma Cannon",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "3",
+         "2+",
+         "8",
+         "-3",
+         "3",
+         [
+          "Blast 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Twin Storm Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "2+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Rapid Fire 2",
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "The Raven Sword",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "2+",
+         "6",
+         "-3",
+         "2",
+         [
+          "Sustained Hits 2"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "inv": "4+",
+     "cr": [
+      "Leader"
+     ],
+     "fa": [
+      "Combat Doctrines",
+      "Transhuman Strategist"
+     ],
+     "ab": [
+      [
+       "Cut Off Their Escape",
+       "When an enemy unit engaged with this unit (excluding MONSTER/VEHICLE units) makes a fall-back move, that enemy unit must use the desperate escape mode. If that enemy unit is battle‑shocked, ‑1 from those hazard rolls."
+      ],
+      [
+       "Grand Master of the Ravenwing",
+       "This unit has MOBILE.\nIn your Command phase, you can use this ability. If you do, select one combat doctrine to be active for this unit until the start of your next Command phase."
+      ]
+     ],
+     "wa": [],
+     "wo": []
+    }
+   }
+  }
+ }
+}
