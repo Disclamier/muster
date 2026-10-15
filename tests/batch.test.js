@@ -47,3 +47,21 @@ test("export box: rules checkbox is a large labelled control next to the unchang
   assert.match(src, /exp-rules-box[\s\S]*data-change="exp-rules"/); assert.match(src, /data-change="md"/);
   assert.match(css, /\.exp-rules-box\{[^}]*min-height:44px[^}]*cursor:pointer/);
 });
+test("CSM: every unit except the two Daemon Princes has no Mark of Chaos wargear; Cultist Firebrand gets no marks at all", () => {
+  const F = I.factions["chaos-space-marines"], MK = ["Khorne", "Nurgle", "Slaanesh", "Tzeentch", "Chaos Undivided"];
+  const DP = ["Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"];
+  for (const u of F.f.units) {
+    const slots = ((u.lo && u.lo.m) || []).flatMap((m) => m[4] || []);
+    const marked = slots.some((sl) => /Mark/i.test(sl[0]) || sl[1].filter((o) => MK.includes(o[0])).length >= 3);
+    assert.equal(marked, DP.includes(u.n), u.n);
+  }
+  for (const d of [[], ["Pactbound Zealots"]]) assert.equal(C.markChoices(mk(F.f.id, d), F, F.units["Cultist Firebrand"]), null);
+});
+test("export rules appendix: one Detachment rule line per detachment, one line per stratagem (name, CP, text)", () => {
+  const F = I.factions["chaos-space-marines"]; const l = mk(F.f.id, ["Chaos Cult", "Cabal of Chaos"]); l.entries.push(C.newEntry(F.units["Legionaries"]));
+  const t = C.exportText(l, I, {}, "gw", { rules: true }); const app = t.slice(t.indexOf("DETACHMENT RULES & STRATAGEMS")).split("\n");
+  for (const n of ["Chaos Cult", "Cabal of Chaos"]) {
+    assert.equal(app.filter((x) => x.startsWith(`Detachment rule (${n}) – `)).length, 1, n);
+    for (const s of F.dets[n].st) assert.equal(app.filter((x) => x.startsWith(`Stratagem: ${s[0]} – ${s[1]}CP – `)).length, 1, s[0]);
+  }
+});

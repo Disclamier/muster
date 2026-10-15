@@ -758,16 +758,10 @@
   }
   /* optional appendix: detachment rules + stratagems of the selected detachments */
   function rulesAppendix(X) {
-    const L = ["", "DETACHMENT RULES & STRATAGEMS", ""];
-    for (const d of X.dets) {
-      L.push(`== ${d.n.toUpperCase()} (${d.dp} DP) ==`);
-      if (d.rule && d.rule[0]) L.push(`Detachment rule – ${d.rule[0]}: ${String(d.rule[1] || "").replace(/\*\*|\^\^/g, "")}`, "");
-      if (!d.st.length) L.push("(no stratagem data available)", "");
-      for (const s of d.st) {
-        L.push(`${s[0]} – ${s[1]}CP${s[3] ? ` – ${s[3]}` : ""}${s[2] ? ` – ${s[2]}` : ""}${s[4] ? ` (${s[4]})` : ""}`);
-        L.push(String(s[5] || "").replace(/\*\*|\^\^/g, ""), "");
-      }
-    }
+    const one = (x) => String(x || "").replace(/\*\*|\^\^/g, "").replace(/\s*\n+\s*/g, " ").trim();
+    const L = ["", "DETACHMENT RULES & STRATAGEMS"];
+    for (const d of X.dets) L.push(`Detachment rule (${d.n}) – ${d.rule && d.rule[0] ? `${d.rule[0]}: ${one(d.rule[1])}` : "(no rule data available)"}`);
+    for (const d of X.dets) for (const s of d.st) L.push(`Stratagem: ${s[0]} – ${s[1]}CP – ${one(s[5])}`);
     return L;
   }
   function footer(meta) {
