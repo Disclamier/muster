@@ -22,9 +22,14 @@ from collections import Counter
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gwapp_override  # noqa: E402  newest rules text (Warhammer 40,000 app detachments), applied last
+import wahapedia_options  # noqa: E402  wargear options the secondary loadout data misses (Wahapedia export)
 import gwapp_datasheets  # noqa: E402  Warhammer 40,000 app datasheets for chapter units the codex does not cover
 import codex_override  # noqa: E402  committed codex override layer (Space Marines 11th-ed codex)
 
+MULTI_LEADER = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "multi_leader.json")))
+CHAOS_ASTARTES = {"chaos-space-marines", "death-guard", "world-eaters", "emperors-children", "thousand-sons"}
+CSM_MARK_UNITS = {"Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"}
+NEW_CODEX_FACTIONS = {"adeptus-custodes"}   # MFM lists the full post-codex detachment list; secondary-only ones are obsolete
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
 
@@ -286,7 +291,8 @@ def merge(mfm, gs):
                 stats["enhancements"] += 1
                 stats["enhancements_with_text"] += bool(g and g.get("text"))
                 upg = 1 if "(upgrade)" in e["name"].lower() else 0   # MFM's own marker is authoritative
-                enh.append([e["name"], e["points"], (g or {}).get("text"), upg])
+                enh.append([e["name"], e["points"], (g or {}).get("text"), upg]
+                           + ([{"k": e["attach"]["kind"], "u": e["attach"]["units"]}] if e.get("attach") else []))
             cd = {"n": (gd or {}).get("name") or title_name(md["name"]), "dp": md["detachment_points"], "src": "mfm",
                   "fd": md.get("force_dispositions", []), "enh": enh,
                   "st": [[s["name"], s["cp"], s.get("phase"), s.get("type"), s.get("turn"), s.get("text")]
@@ -306,7 +312,8 @@ def merge(mfm, gs):
         # Factions covered by the codex override are the exception: the codex replaced their whole detachment
         # list and the MFM lists it in full, so GrimSlate-only ones there are obsolete (pre-codex) and dropped
         # (a codex detachment an MFM faction page happens to omit stays, flagged as not in the MFM).
-        drop_gs_only = codex_override.covers(mf["id"])
+        # factions whose new codex replaced the whole detachment list in the MFM (Custodes, Oct 2026) - same treatment
+        drop_gs_only = codex_override.covers(mf["id"]) or mf["id"] in NEW_CODEX_FACTIONS
         for gd in (gf or {}).get("detachments", []):
             if norm(gd["name"]) in seen or gd.get("detachment_points") is None:
                 continue
@@ -359,6 +366,43 @@ def merge(mfm, gs):
                              stats, merge.codex_report, role_from_keywords)
         gwapp_override.apply(mf["id"], dets, stats, merge.gwapp_report)
         gwapp_datasheets.apply(mf["id"], units, f_ds, stats, merge.gwapp_ds_report)
+        if mf["id"] == "adeptus-custodes":   # rules target DREADNOUGHT; the app's keyword list omits it on the walkers
+            for u in units:
+                if u["n"].endswith("Dreadnought") and "Dreadnought" not in (u.get("kw") or []):
+                    u["kw"] = (u.get("kw") or []) + ["Dreadnought"]
+        wahapedia_options.apply(mf["id"], units, stats)
+        if mf["id"] == "chaos-space-marines":
+            # Marks of Chaos are a wargear choice only on the two Daemon Princes (their datasheet); for everything else
+            # the mark is a keyword chosen under the Pactbound Zealots rule (entry.mark in the app). Cultists: no boons.
+            for x in units:
+                lo = x.get("lo") or {}
+                for m in lo.get("m") or []:
+                    keep = x["n"] in CSM_MARK_UNITS
+                    m[4] = [sl for sl in m[4] if (sl[0] != "Mark of Chaos" or keep) and not (sl[0] == "Chaos Boons" and "Damned" in (x.get("kw") or []))]
+                    stats["csm_slots_cleaned"] += 1
+        if mf["id"] in CHAOS_ASTARTES:
+            # Chaos Rhino: combi-bolter (swap to combi-weapon), optional additional combi-bolter, optional havoc launcher
+            # (all five Heretic Astartes datasheets). Chaos Land Raider: optional combi-bolter/combi-weapon + havoc.
+            pre = "Inferno c" if mf["id"] == "thousand-sons" else "C"
+            cb, cw = pre + "ombi-bolter", pre + "ombi-weapon"
+            for x in units:
+                for m in (x.get("lo") or {}).get("m") or []:
+                    if x["n"] == "Chaos Rhino":
+                        m[4] = [["Pintle weapon", [[cb, 1, None, None, None], [cw, 1, None, None, None]], [cb], 1, None, 0],
+                                [cb, [[cb, 1, None, None, None]], [], 0, None, 1],
+                                ["Havoc launcher", [["Havoc launcher", 1, None, None, None]], [], 0, None, 1]]
+                        stats["chaos_transport_slots"] = stats.get("chaos_transport_slots", 0) + 1
+                    elif x["n"] == "Chaos Land Raider":
+                        for sl in m[4]:
+                            if sl[0] == "Pintle weapon":
+                                sl[2], sl[3], sl[5] = [], 0, 1
+                        stats["chaos_transport_slots"] = stats.get("chaos_transport_slots", 0) + 1
+        ml = MULTI_LEADER
+        for x in units:
+            if x["n"] in ml.get("leaders", {}).get(mf["id"], {}):
+                x["xl"] = ml["leaders"][mf["id"]][x["n"]]
+            if x["n"] in ml.get("bodies", {}).get(mf["id"], {}):
+                x["ml"] = ml["bodies"][mf["id"]][x["n"]]
         for x in units:
             unique_slot_names(x.get("lo"))
         units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))

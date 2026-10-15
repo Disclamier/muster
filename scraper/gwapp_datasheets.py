@@ -56,7 +56,10 @@ def blocks(lines):
 def parse(text):
     raw = [l.strip() for l in text.split("\n")]
     L = [l for l in raw if l]
-    name = L[L.index("DATASHEET") - 1]
+    i0 = L.index("DATASHEET") - 1
+    while L[i0].startswith("This is a LEGENDS"):
+        i0 -= 1
+    name = L[i0]
     i = L.index("OC")
     inv = next((l.split(": ")[1] for l in L[i:i + 4] if l.startswith("Invulnerable save")), None)
     j, vals = i + 1, []
@@ -104,6 +107,10 @@ def parse(text):
         ds["ab"].append(["Supreme Commander", L[L.index("SUPREME COMMANDER") + 1]])
     ds["wa"] = [[t, t, x] for t, x in blocks([l for l in section("WARGEAR") if not l.startswith("Designer")])]
     ds["wo"] = section("WARGEAR OPTIONS")
+    if "KEYWORDS" in L:
+        a = L.index("KEYWORDS") + 1
+        b = next((x for x in range(a, len(L)) if L[x] in SECTIONS or L[x] in ("COSTS", "FACTION KEYWORDS")), len(L))
+        ds["kw"] = [title_case(x) for x in L[a:b]]
     return ds
 
 
@@ -130,9 +137,11 @@ def apply(fid, units, f_ds, stats, report):
     for u in units:
         d = by.get(norm(u["n"]))
         old = f_ds.get(u["n"])
-        if not d or old is None or u.get("cx"):  # codex-covered generic units keep the codex datasheet
+        if not d or u.get("cx"):  # codex-covered generic units keep the codex datasheet
             continue
-        new = dict(old)
+        if not u.get("kw") and d.get("kw"):   # new codex units have no MFM/GrimSlate keywords
+            u["kw"] = [u["n"]] + d["kw"]
+        new = dict(old or {"n": u["n"]})
         for key in ("s", "wp", "ab", "cr", "fa"):
             new[key] = json.loads(json.dumps(d[key]))
         if d.get("inv"):

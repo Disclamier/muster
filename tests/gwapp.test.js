@@ -84,8 +84,8 @@ test("app typos corrected; bogus secondary-source stratagems gone", () => {
 
 test("enhancement eligibility follows the app text", () => {
   const ok = (fid, d, e, u) => { const F = I.factions[fid]; const en = det(fid, d).enh.find((x) => n(x[0]) === n(e)); assert.ok(en, e); return C.enhEligible(F.units[u], en, F).ok; };
-  assert.equal(ok("adeptus-custodes", "Lions of the Emperor", "Admonimortis", "Shield-Captain"), true);
-  assert.equal(ok("adeptus-custodes", "Lions of the Emperor", "Admonimortis", "Blade Champion"), false);
+  assert.equal(ok("adeptus-custodes", "Might of the Moritoi", "Memento Moritoi (one per army) (Upgrade)", "Venerable Contemptor Dreadnought"), true);
+  assert.equal(ok("adeptus-custodes", "Might of the Moritoi", "Memento Moritoi (one per army) (Upgrade)", "Shield-Captain"), false);
   assert.equal(ok("adeptus-custodes", "Null Maiden Vigil", "Huntress' Eye", "Shield-Captain"), false);
   assert.equal(ok("necrons", "Pantheon of Woe", "Animus Damper", "C'tan Shard of the Void Dragon"), true);
   assert.equal(ok("thousand-sons", "Rubricae Phalanx", "Stave Abominus", "Lord of Change"), false);

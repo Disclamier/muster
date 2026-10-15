@@ -18,42 +18,25 @@
  },
  "adeptus-custodes": {
   "applied": [
-   "Auric Champions",
-   "Lions of the Emperor",
-   "Might of the Moritoi",
-   "Null Maiden Vigil"
-  ],
-  "not_in_app": [
    "Aquilan Shield",
+   "Auric Champions",
    "Dread Host",
    "Emissaries Imperatus",
    "Emperor’s Chosen",
    "Grav‑Assault Force",
    "Guardians of the Throne",
    "Honoured Companions",
+   "Lions of the Emperor",
+   "Might of the Moritoi",
+   "Null Maiden Vigil",
    "Shadowkeepers",
    "Solar Watch"
   ],
-  "enh_unmatched": [
-   "Auric Champions: Shroud of the Hidden Blade",
-   "Auric Champions: Superior Creation",
-   "Lions of the Emperor: Leonine Ferocity",
-   "Lions of the Emperor: Lightning Descent",
-   "Might of the Moritoi: Augury Uplink (one per army) (Upgrade)",
-   "Might of the Moritoi: Memento Moritoi (one per army) (Upgrade)"
-  ],
-  "enh_cost_diff": [
-   "Null Maiden Vigil: Huntress’ Eye MFM 10 vs app 15 (MFM kept)",
-   "Null Maiden Vigil: Oblivion Knight MFM 15 vs app 25 (MFM kept)"
-  ],
+  "not_in_app": [],
+  "enh_unmatched": [],
+  "enh_cost_diff": [],
   "strat_cp_missing": [],
-  "app_only": [
-   "Shield Host",
-   "Silent Hunters",
-   "Solar Spearhead",
-   "Talons of the Emperor",
-   "Tharanatoi Hammerblow"
-  ]
+  "app_only": []
  },
  "adeptus-mechanicus": {
   "applied": [

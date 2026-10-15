@@ -26,8 +26,8 @@ test("unconditional detachment changes, only for the named keywords", () => {
 });
 
 test("conditional / choose-one detachment changes are dashed with the condition (options listed)", () => {
-  const ap = elig("adeptus-custodes", "Shield Host", "Custodian Guard", "AP");
-  assert.ok(ap[0].cond && /select one of the bullet points/.test(ap[0].cond));
+  const ap = elig("adeptus-mechanicus", "Haloscreed Battleclade", "Kastelan Robots", "T");
+  assert.ok(ap[0].cond && /select one of the Override abilities/.test(ap[0].cond));
   const cob = mods("chaos-space-marines", "Creations of Bile");
   assert.deepEqual(cob.map((m) => m.stat).sort(), ["A", "BS", "M", "S", "T", "WS"]);
   assert.ok(cob.every((m) => m.cond && /select which augmentations/.test(m.cond)));

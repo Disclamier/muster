@@ -1,0 +1,688 @@
+{
+ "note": "Wargear options the secondary loadout data misses, from Wahapedia's data export (wh40k11ed/Datasheets_options.csv).",
+ "source": "https://wahapedia.ru/wh40k11ed/Datasheets_options.csv",
+ "wahapedia_updated": "2026-10-13 19:05:11",
+ "factions": {
+  "adeptus-custodes": {
+   "Custodian Wardens": [
+    {
+     "model": "Custodian Warden (Guardian Spear)",
+     "slot": "vexilla",
+     "opts": [
+      [
+       "vexilla",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model can be equipped with 1 vexilla."
+    }
+   ],
+   "Allarus Custodians": [
+    {
+     "model": "Allarus Custodian (Guardian Spear)",
+     "swap": "Guardian Spear",
+     "slot": "Guardian spear",
+     "opts": [
+      [
+       "vexilla + misericordia",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model’s guardian spear can be replaced with 1 vexilla and 1 misericordia."
+    }
+   ]
+  },
+  "adeptus-mechanicus": {
+   "Skitarii Rangers": [
+    {
+     "model": "Skitarii Ranger w/ galvanic rifle",
+     "slot": "enhanced data-tether / omnispex",
+     "opts": [
+      [
+       "enhanced data-tether",
+       null
+      ],
+      [
+       "omnispex",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Skitarii Ranger equipped with a galvanic rifle can be equipped with one of the following: ; ; 1 enhanced data-tether* ; ; 1 omnispex* ; ;"
+    }
+   ],
+   "Skitarii Vanguard": [
+    {
+     "model": "Skitarii Vanguard w/ radium carbine",
+     "slot": "enhanced data-tether / omnispex",
+     "opts": [
+      [
+       "enhanced data-tether",
+       null
+      ],
+      [
+       "omnispex",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Skitarii Vanguard equipped with a radium carbine can be equipped with one of the following: ; ; 1 enhanced data-tether* ; ; 1 omnispex* ; ;"
+    }
+   ],
+   "Onager Dunecrawler": [
+    {
+     "model": "Onager Dunecrawler",
+     "slot": "Additional cognis heavy stubber",
+     "opts": [
+      [
+       "cognis heavy stubber",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "This model can be equipped with 1 additional cognis heavy stubber."
+    }
+   ],
+   "Secutarii Hoplites": [
+    {
+     "model": "Secutarii Hoplite",
+     "slot": "enhanced data-tether / omnispex",
+     "opts": [
+      [
+       "enhanced data-tether",
+       null
+      ],
+      [
+       "omnispex",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Secutarii Hoplite can be equipped with one of the following: ; ; 1 enhanced data-tether ; ; 1 omnispex ; ;"
+    }
+   ],
+   "Secutarii Peltasts": [
+    {
+     "model": "Secutarii Peltast",
+     "slot": "enhanced data-tether / omnispex",
+     "opts": [
+      [
+       "enhanced data-tether",
+       null
+      ],
+      [
+       "omnispex",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Secutarii Peltast can be equipped with one of the following: ; ; 1 enhanced data-tether ; ; 1 omnispex ; ;"
+    }
+   ],
+   "Serberys Raiders": [
+    {
+     "model": "Serberys Raider",
+     "slot": "enhanced data-tether",
+     "opts": [
+      [
+       "enhanced data-tether",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Serberys Raider can be equipped with 1 enhanced data-tether."
+    }
+   ]
+  },
+  "aeldari": {
+   "Dire Avengers": [
+    {
+     "model": "Dire Avenger Exarch",
+     "slot": "Additional Avenger shuriken catapult",
+     "opts": [
+      [
+       "Avenger shuriken catapult",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "If this unit’s Dire Avenger Exarch is equipped with 1 Avenger shuriken catapult, it can be equipped with 1 additional Avenger shuriken catapult."
+    }
+   ],
+   "Ynnari Reavers": [
+    {
+     "model": "Arena Champion",
+     "slot": "agoniser",
+     "opts": [
+      [
+       "agoniser",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "The Arena Champion can be equipped with 1 agoniser."
+    }
+   ]
+  },
+  "astra-militarum": {
+   "Macharius Omega": [
+    {
+     "model": "Macharius Omega [Legends]",
+     "slot": "hunter-killer missile",
+     "opts": [
+      [
+       "hunter-killer missile",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model can be equipped with 1 hunter-killer missile."
+    }
+   ],
+   "Kasrkin": [
+    {
+     "model": "Kasrkin Trooper",
+     "swap": "Hot-shot lasgun",
+     "slot": "Hot-shot lasgun",
+     "opts": [
+      [
+       "hot-shot laspistol + melta mine",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Kasrkin Trooper’s hot-shot lasgun can be replaced with 1 hot-shot laspistol and 1 melta mine."
+    }
+   ],
+   "Tempestus Scions": [
+    {
+     "model": "Tempestus Scion",
+     "swap": "Hot-shot lasgun",
+     "slot": "Hot-shot lasgun",
+     "opts": [
+      [
+       "hot-shot laspistol + vox-caster",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Tempestus Scion’s hot-shot lasgun can be replaced with 1 hot-shot laspistol and 1 vox-caster."
+    }
+   ],
+   "Catachan Command Squad": [
+    {
+     "model": "Veteran Guardsman",
+     "slot": "master vox",
+     "opts": [
+      [
+       "master vox",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "Veteran Guardsman equipped with a lasgun can be equipped with 1 master vox.**"
+    },
+    {
+     "model": "Veteran Guardsman",
+     "slot": "regimental standard",
+     "opts": [
+      [
+       "regimental standard",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Veteran Guardsman equipped with a lasgun can be equipped with 1 regimental standard.**"
+    }
+   ]
+  },
+  "imperial-agents": {
+   "Grey Knights Terminator Squad": [
+    {
+     "model": "Terminator",
+     "slot": "Ancient’s banner",
+     "opts": [
+      [
+       "Ancient’s banner",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Grey Knights Terminator equipped with a storm bolter can be equipped with 1 Ancient’s banner.*"
+    },
+    {
+     "model": "Terminator",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "narthecium",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Grey Knights Terminator can have its storm bolter replaced with 1 narthecium.*"
+    }
+   ]
+  },
+  "adepta-sororitas": {
+   "Celestian Insidiants": [
+    {
+     "model": "Insidiant",
+     "swap": "Condemnor bolt pistol",
+     "slot": "Condemnor bolt pistol",
+     "opts": [
+      [
+       "denuncia oratory",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "One Celestian Insidiant’s condemnor bolt pistol can be replaced with 1 denuncia oratory."
+    }
+   ]
+  },
+  "death-guard": {
+   "Deathshroud Terminators": [
+    {
+     "model": "Deathshroud Terminator Champion",
+     "slot": "Additional plaguespurt gauntlet",
+     "opts": [
+      [
+       "plaguespurt gauntlet",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "The Deathshroud Champion can be equipped with 1 additional plaguespurt gauntlet."
+    }
+   ]
+  },
+  "grey-knights": {
+   "Brotherhood Terminator Squad": [
+    {
+     "model": "Terminator",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "Apothecary’s narthecium",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Terminator can have its storm bolter replaced with 1 Apothecary’s narthecium."
+    },
+    {
+     "model": "Terminator",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "incinerator + Ancient’s banner",
+       null
+      ],
+      [
+       "psilencer + Ancient’s banner",
+       null
+      ],
+      [
+       "psycannon + Ancient’s banner",
+       null
+      ],
+      [
+       "storm bolter + Ancient’s banner",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Terminator’s storm bolter can be replaced with one of the following: ; ; 1 incinerator and 1 Ancient’s banner ; ; 1 psilencer and 1 Ancient’s banner ; ; 1 psycannon and 1 Ancient’s banner ; ; 1 storm bolter and 1 Ancient’s banner* ; ;"
+    }
+   ],
+   "Paladin Squad": [
+    {
+     "model": "Paladin",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "Apothecary’s narthecium",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Paladin can have its storm bolter replaced with 1 Apothecary’s narthecium."
+    },
+    {
+     "model": "Paladin",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "incinerator + Ancient’s banner",
+       null
+      ],
+      [
+       "psilencer + Ancient’s banner",
+       null
+      ],
+      [
+       "psycannon + Ancient’s banner",
+       null
+      ],
+      [
+       "storm bolter + Ancient’s banner",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Paladin’s storm bolter can be replaced with one of the following: ; ; 1 incinerator and 1 Ancient’s banner ; ; 1 psilencer and 1 Ancient’s banner ; ; 1 psycannon and 1 Ancient’s banner ; ; 1 storm bolter and 1 Ancient’s banner* ; ;"
+    }
+   ]
+  },
+  "black-templars": {
+   "Rhino": [
+    {
+     "model": "Rhino",
+     "slot": "Additional storm bolter",
+     "opts": [
+      [
+       "storm bolter",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "This model can be equipped with 1 additional storm bolter."
+    }
+   ],
+   "Gladiator Lancer": [
+    {
+     "model": "Gladiator Lancer",
+     "slot": "Multi-melta",
+     "opts": [
+      [
+       "Multi-melta",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model can be equipped with 1 Multi-melta"
+    }
+   ],
+   "Gladiator Reaper": [
+    {
+     "model": "Gladiator Reaper",
+     "slot": "Multi-melta",
+     "opts": [
+      [
+       "Multi-melta",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model can be equipped with 1 Multi-melta"
+    }
+   ],
+   "Repulsor Executioner": [
+    {
+     "model": "Repulsor Executioner",
+     "slot": "Multi-melta",
+     "opts": [
+      [
+       "Multi-melta",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model can be equipped with 1 Multi-melta"
+    }
+   ],
+   "Repulsor": [
+    {
+     "model": "Repulsor",
+     "slot": "Multi-melta",
+     "opts": [
+      [
+       "Multi-melta",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model can be equipped with 1 Multi-melta"
+    }
+   ],
+   "Sicaran": [
+    {
+     "model": "Sicaran Battle Tank [Legends]",
+     "swap": "Herakles-pattern autocannon",
+     "slot": "Herakles-pattern Autocannon",
+     "opts": [
+      [
+       "Arcus Multi-launcher",
+       null
+      ],
+      [
+       "Omega Plasma Array",
+       null
+      ],
+      [
+       "Punisher Rotary Cannon",
+       null
+      ],
+      [
+       "Venator Neutron Laser",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model's Herakles-pattern Autocannon can be replaced with one of the following: 1 Arcus Multi-launcher, 1 Omega Plasma Array, 1 Punisher Rotary Cannon, 1 Venator Neutron Laser"
+    }
+   ]
+  },
+  "leagues-of-votann": {
+   "Hernkyn Pioneers": [
+    {
+     "model": "Hernkyn Pioneer w/ ion beamer",
+     "slot": "multiwave comms array",
+     "opts": [
+      [
+       "multiwave comms array",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model that is not equipped with either a HYLas rotary cannon or an ion beamer can be equipped with 1 multiwave comms array.*"
+    },
+    {
+     "model": "Hernkyn Pioneer w/ ion beamer",
+     "slot": "panspectral scanner",
+     "opts": [
+      [
+       "panspectral scanner",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model that is not equipped with either a HYLas rotary cannon or an ion beamer can be equipped with 1 panspectral scanner.*"
+    },
+    {
+     "model": "Hernkyn Pioneer w/ ion beamer",
+     "slot": "rollbar searchlight",
+     "opts": [
+      [
+       "rollbar searchlight",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model that is not equipped with either a HYLas rotary cannon or an ion beamer can be equipped with 1 rollbar searchlight.*"
+    }
+   ]
+  },
+  "orks": {
+   "Nobz": [
+    {
+     "model": "Nob w/ Kustom Shoota and Kustom Krumpa",
+     "swap": "Kustom Shoota",
+     "slot": "Kustom Shoota",
+     "opts": [
+      [
+       "Paired Krumpas",
+       null
+      ]
+     ],
+     "count": {
+      "per": 5,
+      "n": 1
+     },
+     "text": "For every 5 models in this unit, 1 model can have their Kustom Shoota replaced with 1 Paired Krumpas."
+    }
+   ]
+  },
+  "blood-angels": {
+   "Death Company Marines": [
+    {
+     "model": "Death Company Marine",
+     "slot": "Grenade Launcher",
+     "opts": [
+      [
+       "Grenade Launcher",
+       null
+      ]
+     ],
+     "count": {
+      "per": 5,
+      "n": 1
+     },
+     "text": "For every 5 models in this unit, 1 model equipped with 1 Bolt Rifle can be equipped with 1 Grenade Launcher."
+    }
+   ]
+  },
+  "space-wolves": {
+   "Wolf Scouts": [
+    {
+     "model": "Wolf Scout",
+     "swap": "Plasma pistol",
+     "slot": "Plasma Pistol",
+     "opts": [
+      [
+       "Instigator Bolt Carbine",
+       null
+      ]
+     ],
+     "count": {
+      "per": 12,
+      "n": 1
+     },
+     "text": "For every 12 models in this unit, 1 Wolf Scout model can have their Plasma Pistol replaced with 1 Instigator Bolt Carbine."
+    }
+   ]
+  },
+  "tau-empire": {
+   "Kroot Farstalkers": [
+    {
+     "model": "Kroot Farstalker",
+     "slot": "Pech’ra",
+     "opts": [
+      [
+       "Pech’ra",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Kroot Farstalker equipped with a Farstalker firearm can be equipped with 1 Pech’ra."
+    }
+   ]
+  },
+  "chaos-space-marines": {
+   "Sorcerer": [
+    {
+     "model": "Sorcerer",
+     "slot": "Prosperine khopesh",
+     "opts": [
+      [
+       "Prosperine khopesh",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model can be equipped with 1 Prosperine khopesh."
+    }
+   ]
+  }
+ }
+}

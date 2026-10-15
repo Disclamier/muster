@@ -1,6 +1,4 @@
 {
  "note": "Factions held at their last published data while a Field Manual update is reviewed. build_data.py keeps the previously published faction (points + datasheets) for these ids; the points audit reports them as held instead of failing. Remove an entry to publish the new data.",
- "factions": {
-  "adeptus-custodes": {"held_at": "v1.5", "reason": "Field Manual v1.6 / new Codex: Adeptus Custodes update awaiting James's approval"}
- }
+ "factions": {}
 }

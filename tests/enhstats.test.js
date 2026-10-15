@@ -19,8 +19,8 @@ test("points left / over the battle size", () => {
 });
 
 test("enhancement stat mods: unconditional characteristic + weapon changes (old and new wording)", () => {
-  assert.deepEqual(sig(C.enhStatMods(enh("adeptus-custodes", "Lions of the Emperor", "Admonimortis"))), ["m:AP+1/m", "m:D+1/m", "m:S+3/m"]);
-  assert.deepEqual(sig(C.enhStatMods(enh("adeptus-custodes", "Shield Host", "Auric Mantle"))), ["m:W+2"]);
+  assert.deepEqual(sig(C.enhStatMods(enh("adeptus-custodes", "Might of the Moritoi", "Memento Moritoi (one per army) (Upgrade)"))), ["m:A+1/m", "m:D+1/m", "m:S+1/m"]);
+  assert.deepEqual(sig(C.enhStatMods(enh("chaos-knights", "Infernal Lance", "Blasphemous Engine"))), ["m:W+2"]);
   assert.deepEqual(sig(C.enhStatMods(enh("adepta-sororitas", "Bringers of Flame", "Iron Surplice of Saint Istalela"))), ["m:SV=2+"]);
   assert.deepEqual(sig(C.enhStatMods(enh("space-wolves", "Champions of Fenris", "A Giant Amongst Giants"))), ["m:S+1/m", "m:W+2"]);
   assert.deepEqual(sig(C.enhStatMods(enh("space-wolves", "Saga of the Beastslayer", "Wolf-Touched"))), ["u:M+2"]);
@@ -38,7 +38,7 @@ test("enhancement stat mods: conditional ones are marked with their condition; '
   assert.deepEqual(sig(md), ["cond:m:OC+3"]); assert.match(md[0].cond, /not Battle-shocked/);
   assert.deepEqual(sig(C.enhStatMods(enh("aeldari", "Aspect Host", "Strategic Savant"))), ["cond:u:OC+1"]);
   assert.deepEqual(sig(C.enhStatMods(enh("orks", "War Horde", "Headwoppa's Killchoppa"))), ["cond:m:AP+1/m"]);
-  assert.deepEqual(sig(C.enhStatMods(enh("adeptus-custodes", "Null Maiden Vigil", "Raptor Blade"))), ["m:A+1/m", "m:D+1/m", "m:S+1/m"]);
+  assert.deepEqual(sig(C.enhStatMods(enh("black-templars", "Devastator Brethren", "Master-forged Firearms"))), ["m:A+1/r", "m:AP+1/r", "m:D+1/r", "m:S+1/r"]);
   assert.deepEqual(sig(C.enhStatMods(enh("space-marines", "Spearpoint Task Force", "Spearpoint Paragon"))), ["alt:m:AP+2/m", "alt:m:S+2/m", "m:AP+1/m", "m:S+1/m"]);
   assert.ok(C.enhStatMods(enh("adepta-sororitas", "Sanctified Orators", "Hagiomnifex (Upgrade)")).every((m) => m.cond), "choose-one ability = conditional");
 });

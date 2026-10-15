@@ -261,7 +261,21 @@ def parse_detachment_card(card):
         if "text-white" in c and not bk:
             det["force_dispositions"].append(t)
         elif bk and clean(text_of(bk[0])) == "ENHANCEMENTS":
-            for li in find_all(blk, lambda e: e[1] == "li"):
+            # an enhancement may carry 'LEADER: X, Y' / 'SUPPORT: X' (the bearer can join those units) right after its <li>
+            seq = [e for e in iter_elements(blk) if e[1] == "li" or (e[1] == "div" and "mx-3" in cls(e))]
+            lis = []
+            for e in seq:
+                if e[1] == "li":
+                    lis.append(e)
+                elif lis and not isinstance(lis[-1], tuple):
+                    mm = re.match(r"(LEADER|SUPPORT):?\s*(.*)", clean(text_of(e)), re.I)
+                    if mm:
+                        lis[-1] = (lis[-1], mm.group(1).lower(), [clean(x) for x in mm.group(2).split(",") if clean(x)])
+            for li in lis:
+                att = None
+                if isinstance(li, tuple):
+                    li, kind, lst = li
+                    att = {"kind": kind, "units": lst}
                 sp = [s for s in iter_elements(li) if s[1] == "span"]
                 if len(sp) >= 2:
                     ename = clean(text_of(sp[0]))
@@ -269,6 +283,8 @@ def parse_detachment_card(card):
                 else:
                     ename, (pts, d) = clean(text_of(li)), (None, None)
                 e = {"name": ename, "points": pts}
+                if att:
+                    e["attach"] = att
                 if d is not None:
                     e["change"] = d
                 det["enhancements"].append(e)

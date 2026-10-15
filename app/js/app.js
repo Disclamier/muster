@@ -570,6 +570,7 @@
   }
 
   /* ------------------------------------------------------------------ modals */
+  function isTouch() { try { return matchMedia("(pointer: coarse)").matches || (navigator.maxTouchPoints || 0) > 0 && matchMedia("(hover: none)").matches; } catch (e) { return false; } }
   function modal(titleText, body, opts) {
     const m = $("#modal");
     const fl = opts && opts.float, fk = fl === true ? "colors" : fl;   // float: true (Colors) or a window key, e.g. "ds"
@@ -584,7 +585,10 @@
       <div class="mbody">${body}</div></div></div>`;
     const wrap = box.firstElementChild; m.appendChild(wrap);
     const el = $(".modal", wrap);
-    const f = $("input[autofocus], textarea[autofocus]", el); if (f) setTimeout(() => f.focus(), 0);
+    // touch devices: never focus a text field by itself (that pops the keyboard) - only when the user taps it
+    const f = $("input[autofocus], textarea[autofocus]", el);
+    if (f && isTouch()) el.querySelectorAll("[autofocus]").forEach((x) => x.removeAttribute("autofocus"));
+    else if (f) setTimeout(() => f.focus(), 0);
     if (fl) { toFront(wrap); makeDraggable(el, fk); }
     return el;
   }
@@ -827,8 +831,8 @@
     const dpTxt = `${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} DP`;
     const allDets = F ? F.f.dets.filter((d) => d.dp !== null && d.dp !== undefined) : [];
     const selDet = new Set(l.dets || []);
-    const detOpt = (d) => `<label class="opt${selDet.has(d.n) ? " sel" : ""}" data-testid="det-opt" data-det="${esc(d.n)}"><input type="checkbox" value="${esc(d.n)}" ${selDet.has(d.n) ? "checked" : ""} data-change="det">
-        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selDet.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</span></label>`;
+    const detOpt = (d) => { const fits = !F || C.detFits(l, F, d, c.size); return `<label class="opt${selDet.has(d.n) ? " sel" : ""}${fits ? "" : " dis"}" data-testid="det-opt" data-det="${esc(d.n)}"${fits ? "" : ` aria-disabled="true" title="Would exceed ${c.dpLimit} Detachment Points with the current picks"`}><input type="checkbox" value="${esc(d.n)}" ${selDet.has(d.n) ? "checked" : ""}${fits ? "" : " disabled"} data-change="det">
+        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selDet.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</span></label>`; };
     const mfmDets = allDets.filter((d) => d.src !== "gs"), gsDets = allDets.filter((d) => d.src === "gs");
     const ds = c.dispositions || [];
     const cfg = `<div class="card cfgcard${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && ds.length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
@@ -1114,12 +1118,17 @@
             <span class="on">${esc(en[0])}${en[3] ? ` <span class="tag">Upgrade</span>` : ""}${taken ? ` <span class="tag">taken</span>` : ""}${dets.length > 1 ? ` <span class="muted">(${esc(d.n)})</span>` : ""}${dis && reason ? `<span class="why" data-testid="enh-why">${esc(reason)}</span>` : ""}${checked && !ok && reason ? `<span class="why err">${esc(reason)}</span>` : ""}${en[2] ? `<span class="desc">${esc(clean(en[2]))}</span>` : ""}</span>${pts(en[1])}</label>`;
         }).join("") : `<div class="muted">${dets.length ? "No enhancements available to this unit." : "Select a detachment to see its enhancements."}</div>`}</div></details>`;
     }
+    // Mark of Chaos (only while a selected detachment has the 'Marks of Chaos' rule, e.g. Pactbound Zealots)
+    const markCh = C.markChoices(l, F, u);
+    const markHtml = markCh ? `<div class="grp" data-testid="mark-grp"><div class="gh">Mark of Chaos <span class="muted">(Marks of Chaos rule)</span>${!markCh.includes(e.mark) ? ` <span class="need warn" title="Select a Mark of Chaos">!</span>` : ""}</div><div class="gb">
+        ${markCh.map((m) => `<label class="opt${e.mark === m ? " sel" : ""}" data-testid="mark-opt"><input type="radio" name="mark" value="${esc(m)}" ${e.mark === m ? "checked" : ""} data-change="mark"><span class="on">${esc(m)}</span></label>`).join("")}</div></div>` : "";
     // Attach to: bodyguard units in the list this Leader / Support unit can join
     let attachHtml = "";
-    if (C.canAttach(u)) {
+    const grantA = C.enhAttach(F, e);
+    if (C.canAttach(u) || grantA) {
       const targets = C.attachTargets(l, S.idx, uid);
       const kindOf = r.attachKind || (u.ldr && u.ldr.length ? "leader" : "support");
-      const can = [...new Set([...(u.ldr || []), ...(u.sup || [])])].map(title);
+      const can = [...new Set([...(u.ldr || []), ...(u.sup || []), ...((grantA && grantA.u) || [])])].map(title);
       const curBad = e.attach && !targets.some((t) => t.entry.uid === e.attach);
       attachHtml = `<div class="grp" data-testid="attach-grp"><div class="gh">Attached to <span class="muted">(${kindOf === "support" ? "Support" : "Leader"})</span></div><div class="gb">
         <label class="opt"><input type="radio" name="attach" value="" ${!e.attach ? "checked" : ""} data-change="attach"><span class="on">Not attached</span></label>
@@ -1132,7 +1141,7 @@
           const cand = `<span class="cand muted">${esc(tr.modelsLabel || "")}${tr.total != null ? `${tr.modelsLabel ? " · " : ""}${tr.total} pts` : ""}${gearTxt ? ` · ${gearTxt}` : ""}</span>`;
           const checked = e.attach === t.entry.uid; const dis = t.taken && !checked;
           return `<label class="opt${dis ? " disabled" : ""}" data-testid="attach-opt" data-to="${esc(t.entry.uid)}"${dis ? ` title="Already has ${esc(t.kind === "support" ? "a Support unit" : "a Leader")}: ${esc(t.by.join(", "))}"` : ""}><input type="radio" name="attach" value="${esc(t.entry.uid)}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="attach">
-            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${cand}${dis ? `<span class="why">Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${esc(t.by.join(", "))}</span>` : ""}</span></label>`; }).join("")}
+            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${t.extra && !dis ? ` <span class="tag" data-testid="attach-2nd" title="Datasheet rule: this unit can take a second Leader">2nd Leader with ${esc(t.by.join(", "))}</span>` : ""}${cand}${dis ? `<span class="why">Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${esc(t.by.join(", "))}</span>` : ""}</span></label>`; }).join("")}
         ${curBad ? `<div class="warn">Currently attached to a unit it can't join – choose another or "Not attached".</div>` : ""}
         ${!targets.length ? `<div class="muted">Add a unit it can join: ${esc(can.join(", "))}.</div>` : ""}</div></div>`;
     }
@@ -1149,7 +1158,7 @@
         ${(u.w || []).some((w, i) => !linked.has(i)) ? `<div class="grp"><div class="gh">Wargear costs (MFM)</div><div class="gb">${u.w.map((w, i) => linked.has(i) ? "" : `<div class="opt"><span class="on">${esc(w[0])}</span>${pts(w[1])}
           <span class="counter"><button data-action="wg" data-w="${esc(w[0])}" data-d="-1">−</button><span>${esc((e.wargear || {})[w[0]] || 0)}</span><button data-action="wg" data-w="${esc(w[0])}" data-d="1">+</button></span></div>`).join("")}</div></div>` : ""}
         ${C.isCharacter(u) ? `<div class="grp"><div class="gb"><label class="opt"><input type="checkbox" ${e.warlord ? "checked" : ""} data-change="warlord"><span class="on"><b>Warlord</b></span></label></div></div>` : ""}
-        ${attachHtml}${attachedHere}
+        ${markHtml}${attachHtml}${attachedHere}
         ${enhHtml}
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
         <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(led by ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : ""}</summary><div class="cb">${combinedDatasheet(F, r)}</div></details>
@@ -1224,10 +1233,10 @@
     const focus = F.dets[S.ui.focusDet] || F.dets[(l.dets || [])[0]] || mfm[0] || gs[0];
     const size = c.size;
     const over = c.dpLimit != null && c.dp > c.dpLimit && !(size.single3dp && l.dets.length === 1 && c.dp === 3);
-    const row = (d) => `<div class="detrow${focus && focus.n === d.n ? " focus" : ""}"><label><input type="checkbox" ${selected.has(d.n) ? "checked" : ""} value="${esc(d.n)}" data-change="det">
+    const row = (d) => { const fits = C.detFits(l, F, d, size); return `<div class="detrow${focus && focus.n === d.n ? " focus" : ""}${fits ? "" : " dis"}" data-testid="det-row" data-det="${esc(d.n)}"><label${fits ? "" : ` title="Would exceed ${c.dpLimit} Detachment Points with the current picks"`}><input type="checkbox" ${selected.has(d.n) ? "checked" : ""}${fits ? "" : " disabled"} value="${esc(d.n)}" data-change="det">
         <span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} Detachment Point${d.dp === 1 ? "" : "s"}</span>
         ${d.chg ? `<span class="tag">updated</span>` : ""}${(d.rs || []).map((x) => `<span class="tag">${esc(x)}</span>`).join("")}${d.fd && d.fd.length ? `<span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selected.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</label>
-        <button class="ibtn" data-action="focus-det" data-det="${esc(d.n)}" title="View rules">${icon("eye")}</button></div>`;
+        <button class="ibtn" data-action="focus-det" data-det="${esc(d.n)}" title="View rules">${icon("eye")}</button></div>`; };
     // every selected detachment gets its own block (rule, enhancements, stratagems); an unselected detachment
     // opened with the eye button is shown as a preview after them
     const selDets = (l.dets || []).map((n) => F.dets[n]).filter(Boolean);
@@ -1290,10 +1299,10 @@
       $("[data-ok]", m).onclick = () => { if (guestBlocked(1)) return; S.lists.push(l); saveLists(); closeModal(); location.hash = `#/list/${l.id}`; };
     } catch (e) { $("#main").innerHTML = `<div class="empty">Could not read this share link (${esc(e.message)}). <a href="#/lists">My Lists</a></div>`; }
   }
-  const EXP = { md: false };
+  const EXP = { md: false, rules: localStorage.getItem("muster.exp.rules") === "1" };
   function exportTextFor(l) {
     const fmt = localStorage.getItem(LS_FMT) || "gw";
-    return C.exportText(l, S.idx, S.meta, fmt, { markdown: EXP.md });
+    return C.exportText(l, S.idx, S.meta, fmt, { markdown: EXP.md, rules: EXP.rules });
   }
   function openExport() {
     const l = CUR; if (!l) return;
@@ -1301,7 +1310,8 @@
     const text = exportTextFor(l);
     const m = modal("Export", `<div class="exp">
       <div class="expfmts">${C.EXPORT_FORMATS.map((f) => `<label class="opt"><input type="radio" name="fmt" value="${f.id}" ${f.id === fmt ? "checked" : ""} data-change="fmt"><span class="on"><b>${esc(f.name)}</b><span class="desc">${esc(f.desc)}</span></span></label>`).join("")}
-        <label class="opt"><input type="checkbox" ${EXP.md ? "checked" : ""} data-change="md"><span class="on">Markdown formatting</span></label></div>
+        <label class="opt"><input type="checkbox" ${EXP.md ? "checked" : ""} data-change="md"><span class="on">Markdown formatting</span></label>
+        <label class="opt"><input type="checkbox" ${EXP.rules ? "checked" : ""} data-change="exp-rules" data-testid="exp-rules"><span class="on">Include detachment rules &amp; stratagems</span></label></div>
       <textarea readonly data-testid="export-text">${esc(text)}</textarea></div>
       <div class="ys-box" data-testid="ys-box"><div class="ys-txt"><b>Tabletop Simulator (Yellowscribe)</b><span class="muted">Download a roster file, upload it at
         <a href="${YS_URL}" target="_blank" rel="noopener">yellowscribe.link</a>, then paste the code it gives you into the Yellowscribe mod in Tabletop Simulator.</span></div>
@@ -1318,7 +1328,7 @@
   }
   function refreshExportPreview() { const ta = $("[data-testid=export-text]"); if (ta && CUR) ta.value = exportTextFor(CUR); }
   function openDiscord() {
-    const blocks = C.discordBlocks(C.exportText(CUR, S.idx, S.meta, localStorage.getItem(LS_FMT) || "gw", {}), 2000);
+    const blocks = C.discordBlocks(C.exportText(CUR, S.idx, S.meta, localStorage.getItem(LS_FMT) || "gw", { rules: EXP.rules }), 2000);
     const m = modal("Copy for Discord", `<p class="muted">Discord messages are limited to 2000 characters, so the list is split into ${blocks.length} code block${blocks.length === 1 ? "" : "s"}.</p>
       ${blocks.map((b, i) => `<div class="dblock"><div class="dh"><b>Message ${i + 1}</b> <span class="muted">${b.length} chars</span><button class="btn" data-copy-block="${i}">${icon("copy")} Copy</button></div><pre>${esc(b)}</pre></div>`).join("")}`, { wide: true });
     $$("[data-copy-block]", m).forEach((b) => { b.onclick = () => copyText(blocks[+b.getAttribute("data-copy-block")]); });
@@ -1957,6 +1967,7 @@
     "show-locked": (t) => mutate((l) => { l.showLocked = t.checked; }),
     "leaders-own": (t) => mutate((l) => { if (t.checked) l.leadersOwnCat = true; else delete l.leadersOwnCat; }),
     "attach": (t) => mutate((l) => { const e = l.entries.find((x) => x.uid === S.ui.panel.uid); if (!e) return; if (t.value) e.attach = t.value; else delete e.attach; }),
+    "mark": (t) => mutate((l) => { const e = l.entries.find((x) => x.uid === S.ui.panel.uid); if (!e) return; if (t.value) e.mark = t.value; else delete e.mark; }),
     "size": (t) => { S.ui.cfgOpen = null; mutate((l) => { l.size = t.value; }); },
     "disp": (t) => { S.ui.cfgOpen = null; mutate((l) => { if (t.value) l.disposition = t.value; else delete l.disposition; }); },
     "det": (t) => mutate((l) => {
@@ -1985,6 +1996,7 @@
     }),
     "fmt": (t) => { try { localStorage.setItem(LS_FMT, t.value); } catch (e) { /* ignore */ } refreshExportPreview(); },
     "md": (t) => { EXP.md = t.checked; refreshExportPreview(); },
+    "exp-rules": (t) => { EXP.rules = t.checked; try { localStorage.setItem("muster.exp.rules", t.checked ? "1" : "0"); } catch (e) { /* ignore */ } refreshExportPreview(); },
     "show-small": (t) => { S.ui.showSmall = t.checked; route(); },
     "meta-rtt": (t) => { S.ui.metaRtt = t.checked; lsSet(LS_WRRTT, t.checked ? "1" : "0"); route(); },
     "meta-list-det": (t) => { S.ui.metaListDet = t.value; route(); },

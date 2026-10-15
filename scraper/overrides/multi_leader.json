@@ -1,0 +1,18 @@
+{
+ "note": "Datasheet rules that allow a second Leader on one Bodyguard unit (Warhammer 40,000 app / datasheet text, Oct 2026). leaders: this Leader can join a unit that already has one other Leader matching 'with' (unit name or keyword; 'any' = any other Leader); nodup = not the same Leader twice. bodies: this unit can have up to n Leaders; max1 = at most one of them may have that keyword; ss = only at that Starting Strength (model count); nodup = no duplicate Leaders. Support units (MFM SUPPORT lists) are separate and unchanged.",
+ "leaders": {
+  "astra-militarum": {"Death Rider Commissar": {"with": ["Death Rider Squadron Commander", "Lord Marshal Dreir", "Lord Solar Leontus"]}},
+  "death-guard": {
+   "Biologus Putrifier": {"with": "any", "nodup": true}, "Foul Blightspawn": {"with": "any", "nodup": true},
+   "Icon Bearer": {"with": "any", "nodup": true}, "Noxious Blightbringer": {"with": "any", "nodup": true},
+   "Plague Surgeon": {"with": "any", "nodup": true}, "Tallyman": {"with": "any", "nodup": true}},
+  "imperial-agents": {"Jokaero Weaponsmith": {"with": ["Inquisitor"]}},
+  "necrons": {"Vargard Obyron": {"with": ["Nemesor Zahndrekh"]}}
+ },
+ "bodies": {
+  "astra-militarum": {
+   "Cadian Shock Troops": {"n": 2, "max1": "Command Squad"}, "Catachan Jungle Fighters": {"n": 2, "max1": "Command Squad"},
+   "Death Korps of Krieg": {"n": 2, "max1": "Command Squad"}, "Tempestus Scions": {"n": 2, "max1": "Command Squad"}},
+  "tau-empire": {"Kroot Carnivores": {"n": 2, "ss": 20, "nodup": true}}
+ }
+}

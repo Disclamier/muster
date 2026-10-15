@@ -1100,3 +1100,7 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 html[data-theme="dark"] .emod.det .emd { color: var(--c-det, #39ff14); }
 .emod.both, html[data-theme="dark"] .emod.both { border-color: #3fd3ee; outline: 1.5px solid var(--c-det, #39ff14); outline-offset: 1px; background: linear-gradient(135deg, rgba(63,211,238,.16) 50%, color-mix(in srgb, var(--c-det, #39ff14) 16%, transparent) 50%); }
 .emod-key.det { border-color: var(--c-det, #39ff14); background: color-mix(in srgb, var(--c-det, #39ff14) 13%, transparent); }
+
+/* detachment that would exceed the DP limit with the current picks */
+.det-dd .opt.dis, .detrow.dis { opacity: .4; }
+.det-dd .opt.dis input, .detrow.dis input { cursor: not-allowed; }

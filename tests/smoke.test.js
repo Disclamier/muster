@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v39/);
+  assert.match(read("sw.js"), /muster-shell-v40/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2399,22 +2399,22 @@ test("enhancement stat changes are highlighted in the unit panel and datasheet (
     for (const [n, en] of units) { const e = C.newEntry(F.units[n]); if (en) e.enh = { det, name: en }; l.entries.push(e); }
     S.lists.push(l); return l;
   };
-  // Shield-Captain with Admonimortis: melee S +3, AP +1, D +1 (unconditional)
-  const l1 = mk("adeptus-custodes", "Lions of the Emperor", [["Shield-Captain", "Admonimortis"]]);
+  // Venerable Contemptor Dreadnought with Memento Moritoi: melee A, S, D +1 (unconditional)
+  const l1 = mk("adeptus-custodes", "Might of the Moritoi", [["Venerable Contemptor Dreadnought", "Memento Moritoi (one per army) (Upgrade)"]]);
   await go(w, "#/list/" + l1.id); await until(() => d.querySelector(".editor"));
   click(w, d.querySelector(`[data-action=select-entry][data-uid="${l1.entries[0].uid}"]`));
   const panel = await until(() => d.querySelector(".panel [data-testid=profiles]"));
-  const spear = panel.querySelector('[data-testid=ds-melee] tr[data-weapon="Guardian Spear"]');
+  const spear = panel.querySelector('[data-testid=ds-melee] tr[data-weapon="Contemptor Fist"]');
   const em = [...spear.querySelectorAll("[data-testid=emod]")].map((e) => `${e.dataset.stat}:${e.dataset.base}->${e.firstChild.textContent}`);
-  assert.deepEqual(em, ["S:7->10", "AP:-2->-3", "D:2->3"]);
+  assert.deepEqual(em, ["A:5->6", "S:12->13", "D:D3+3->D3+4"]);
   assert.ok(![...spear.querySelectorAll(".emod")].some((e) => e.classList.contains("cond")));
-  assert.match(spear.querySelector("[data-testid=emod]").title, /Admonimortis: \+3/);
-  assert.equal(panel.querySelector('[data-testid=ds-ranged] tr[data-weapon="Guardian Spear"] [data-testid=emod]'), null, "ranged profile untouched");
-  assert.match(panel.querySelector("[data-testid=emod-note]").textContent, /Admonimortis/);
+  assert.match(spear.querySelector("[data-testid=emod]").title, /Memento Moritoi.*: \+1/);
+  assert.equal(panel.querySelector('[data-testid=ds-ranged] tr[data-weapon="Multi-melta"] [data-testid=emod]'), null, "ranged profile untouched");
+  assert.match(panel.querySelector("[data-testid=emod-note]").textContent, /Memento Moritoi/);
   // datasheet window (PC) shows the same
   click(w, d.querySelector(`.urow [data-action=ds-pop][data-uid="${l1.entries[0].uid}"]`) || d.querySelector(`[data-action=ds-pop][data-uid="${l1.entries[0].uid}"]`));
   const win = await until(() => d.querySelector(".modal [data-testid=datasheet]"));
-  assert.equal(win.querySelectorAll('[data-testid=ds-melee] tr[data-weapon="Guardian Spear"] [data-testid=emod]').length, 3);
+  assert.equal(win.querySelectorAll('[data-testid=ds-melee] tr[data-weapon="Contemptor Fist"] [data-testid=emod]').length, 3);
   click(w, d.querySelector("[data-action=close-modal]"));
   // conditional: Grey Knights Mandulian Reliquary (+3 OC while not Battle-shocked) -> dashed
   const l2 = mk("grey-knights", "Warpbane Task Force", [["Brother-Captain", "Mandulian Reliquary"]]);
