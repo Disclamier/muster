@@ -1,6 +1,5 @@
 -- Muster owner-only Stats: read another account's saved lists (full list data) for the read-only list viewer.
--- NOT applied yet: James must OK it, then run once in the Supabase dashboard -> SQL Editor -> New query -> Run
--- (after supabase/page_views.sql and supabase/stats_drilldown.sql). Safe to re-run (idempotent).
+-- APPLIED Oct 16, 2026 (James approved; run in the Supabase dashboard SQL Editor). Safe to re-run (idempotent).
 --
 -- What it does:
 --   muster_stats_lists(p_email): security definer (runs with table-owner rights) but first refuses anyone for whom
