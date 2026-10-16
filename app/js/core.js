@@ -147,6 +147,7 @@
   /* {ok, reason} - keyword/unit restriction written in the enhancement text. Unparseable restrictions allow. */
   function enhEligible(u, en, F) {
     if (!u) return { ok: false, reason: "" };
+    if (u.ally && u.ally.ne) return { ok: false, reason: `${u.ally.label} units cannot be given Enhancements` };
     const baseOf = (x) => isEpicHero(x) ? "Epic Heroes cannot take enhancements" : !en[3] && !isCharacter(x) ? "Characters only" : "";
     const base = baseOf(u);
     const r = enhRestriction(en);
@@ -460,7 +461,7 @@
 
     // entries
     const copies = {}, enhUse = {};
-    let warlords = 0;
+    let warlords = 0; const allySum = {};
     for (const e of list.entries) {
       const u = F.units[e.unit] || findUnit(F, e.unit);
       const row = { uid: e.uid, entry: e, unit: u, name: e.unit, role: u ? u.r : "Other", copy: 0, base: 0,
@@ -512,8 +513,10 @@
       }
       if (e.warlord) {
         if (!isCharacter(u)) err(`${u.n} cannot be the Warlord (not a Character)`, e.uid);
+        if (u.ally && u.ally.nw) err(`${u.n} cannot be the Warlord (${u.ally.label})`, e.uid);
         warlords += 1;
       }
+      if (u.ally) { allySum[u.ally.label] = allySum[u.ally.label] || { pts: 0, al: u.ally }; allySum[u.ally.label].pts += row.base + row.wargear + row.addons + row.enh; }
       if (u.lg) warn(`${u.n} is a Legends unit`, e.uid);
       row.total = row.base + row.wargear + row.addons + row.enh;
       res.units += row.base + row.wargear + row.addons;
@@ -567,6 +570,11 @@
       res.enhCount += v.upgrade ? 1 : v.n;
     }
     if (res.enhLimit != null && res.enhCount > res.enhLimit) err(`Enhancements: ${res.enhCount} / ${res.enhLimit}`);
+    for (const [lab, a] of Object.entries(allySum)) {
+      const cap = size && a.al.caps ? a.al.caps[size.id] : null;
+      if (cap != null && a.pts > cap) err(`${lab}: ${a.pts} / ${cap} pts of allied units`);
+    }
+    res.allies = allySum;
     if (warlords > 1) err(`${warlords} Warlords selected (max 1)`);
     if (!warlords && list.entries.length) err("Select a Warlord");
     res.total = res.units + res.enhancements;
@@ -779,9 +787,11 @@
     for (const d of X.dets) L.push(`${d.n} (${d.dp} DP)`);
     if (list.disposition) L.push(`Force Disposition: ${list.disposition}`);
     L.push("");
-    const sections = [["CHARACTERS", (r) => r.unit && isCharacter(r.unit)], ["BATTLELINE", (r) => r.unit && !isCharacter(r.unit) && isBattleline(r.unit)],
-      ["DEDICATED TRANSPORTS", (r) => r.unit && !isCharacter(r.unit) && !isBattleline(r.unit) && isTransport(r.unit)],
-      ["OTHER DATASHEETS", (r) => !r.unit || (!isCharacter(r.unit) && !isBattleline(r.unit) && !isTransport(r.unit))]];
+    const own = (r) => !(r.unit && r.unit.af);
+    const sections = [["CHARACTERS", (r) => own(r) && r.unit && isCharacter(r.unit)], ["BATTLELINE", (r) => own(r) && r.unit && !isCharacter(r.unit) && isBattleline(r.unit)],
+      ["DEDICATED TRANSPORTS", (r) => own(r) && r.unit && !isCharacter(r.unit) && !isBattleline(r.unit) && isTransport(r.unit)],
+      ["OTHER DATASHEETS", (r) => own(r) && (!r.unit || (!isCharacter(r.unit) && !isBattleline(r.unit) && !isTransport(r.unit)))],
+      ["ALLIED UNITS", (r) => !own(r)]];
     for (const [title, pred] of sections) {
       const rs = X.rows.filter(pred).concat(title === "OTHER DATASHEETS" ? X.c.entries.filter((r) => r.missing) : []);
       if (!rs.length) continue;

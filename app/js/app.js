@@ -777,12 +777,10 @@
     units = C.searchUnits(units, S.ui.q);
     const lockToggle = lockedAll.length ? `<label class="locktoggle" data-testid="lock-toggle"><input type="checkbox" ${l.showLocked ? "checked" : ""} data-change="show-locked">
       Show ${lockedAll.length} unit${lockedAll.length === 1 ? "" : "s"} that need${lockedAll.length === 1 ? "s" : ""} another detachment <span class="muted">(${esc([...new Set(lockedAll.flatMap((u) => u.req))].join(", "))})</span></label>` : "";
-    const byRole = {}; for (const u of units) (byRole[u.r] = byRole[u.r] || []).push(u);
+    const own = units.filter((u) => !u.af), allied = units.filter((u) => u.af);
+    const byRole = {}; for (const u of own) (byRole[u.r] = byRole[u.r] || []).push(u);
     const size = c.size;
-    const html = C.ROLE_ORDER.filter((r) => byRole[r]).map((role) => {
-      const k = `cat:${role}`;
-      return `<div class="sect${S.ui.q ? "" : collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}"><span class="tri"></span>${esc(role)} <span class="muted">(${byRole[role].length})</span></div>
-        <div class="sect-body">${byRole[role].sort((a, b) => a.n.localeCompare(b.n)).map((u) => {
+    const row = (u) => {
           const n = copies[u.n] || 0; const lim = C.unitLimit(u, size); const al = C.unitAllowed(u, l);
           if (!al.ok) return `<div class="crow locked" data-unit="${esc(u.n)}" data-testid="locked-unit" title="${esc(al.reason)}">
             ${pts(C.minCost(u, n + 1))}<span class="cname">${esc(u.n)}${u.lg ? `<span class="tag">Legends</span>` : ""}<span class="why">🔒 ${esc(al.reason)}</span></span>
@@ -794,7 +792,19 @@
             <span class="cnt${lim != null && n > lim ? " over" : ""}">${lim != null ? `${n}/${lim}` : n ? n : ""}</span>
             <button class="ibtn" data-action="preview-unit" data-unit="${esc(u.n)}" title="View">${icon("eye")}</button>
             <button class="ibtn add" data-action="add-unit" data-unit="${esc(u.n)}" title="Add">${icon("plusbox", "green")}</button></div>`;
-        }).join("")}</div></div>`;
+    };
+    let html = C.ROLE_ORDER.filter((r) => byRole[r]).map((role) => {
+      const k = `cat:${role}`;
+      return `<div class="sect${S.ui.q ? "" : collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}"><span class="tri"></span>${esc(role)} <span class="muted">(${byRole[role].length})</span></div>
+        <div class="sect-body">${byRole[role].sort((a, b) => a.n.localeCompare(b.n)).map(row).join("")}</div></div>`;
+    }).join("");
+    // allied units (faction rules such as Brood Brothers): own section per rule, closed until opened, with the points cap
+    const byAlly = {}; for (const u of allied) (byAlly[u.ally.label] = byAlly[u.ally.label] || []).push(u);
+    html += Object.entries(byAlly).map(([lab, us]) => {
+      const k = `allyopen:${lab}`; const cap = size && us[0].ally.caps ? us[0].ally.caps[size.id] : null;
+      const used = (c.allies && c.allies[lab] && c.allies[lab].pts) || 0;
+      return `<div class="sect ally-sect${S.ui.q || S.ui.collapsed[k] ? "" : " collapsed"}" data-testid="ally-sect" data-ally="${esc(lab)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}" title="${esc(us[0].ally.text)}"><span class="tri"></span>Allied: ${esc(lab)} <span class="muted">(${us.length})</span>${cap != null ? ` <span class="dpchip${used > cap ? " over" : ""}" data-testid="ally-cap">${used} / ${cap} pts</span>` : ""}</div>
+        <div class="sect-body"><div class="muted small ally-note">${esc(us[0].ally.text)}</div>${us.sort((a, b) => a.n.localeCompare(b.n)).map(row).join("")}</div></div>`;
     }).join("");
     return lockToggle + (html || `<div class="empty">No units match.</div>`);
   }

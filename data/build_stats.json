@@ -16,7 +16,12 @@
   "codex_enhancements": 201,
   "codex_army_rules": 36,
   "wahapedia_option_slots": 5,
+  "bsdata_leader_targets": 16,
   "renamed_duplicate_units": 1,
+  "allied_units_drukhari": 0,
+  "allied_units_chaos-knights": 0,
+  "allied_units_imperial-knights": 5,
+  "allied_units_genestealer-cults": 134,
   "factions_with_images": 30
  },
  "unmatched_mfm_detachments": [

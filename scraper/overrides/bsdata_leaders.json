@@ -1,0 +1,91 @@
+{
+ "note": "New Recruit parity (BSData wh40k-11e, Oct 14 2026). 'ldr': Leader targets BSData allows that Muster lacked; every pair is in BSData and also listed in the unit's own datasheet Leader ability text. 'xl': second-Leader permissions from BSData's association limits (same format as multi_leader.json leaders).",
+ "ldr": {
+  "blood-angels": {
+   "Brother Corbulo": [
+    "Assault Intercessor Squad",
+    "Sternguard Veteran Squad"
+   ],
+   "Captain Tycho": [
+    "Assault Intercessor Squad",
+    "Sternguard Veteran Squad",
+    "Company Heroes"
+   ],
+   "Gabriel Seth": [
+    "Assault Intercessor Squad",
+    "Company Heroes",
+    "Sternguard Veteran Squad",
+    "Bladeguard Veteran Squad"
+   ],
+   "Sanguinary Priest with Jump Pack": [
+    "Vanguard Veteran Squad with Jump Packs",
+    "Assault Intercessors with Jump Packs"
+   ]
+  },
+  "dark-angels": {
+   "Deathwing Strikemaster": [
+    "Deathwing Terminator Squad",
+    "Terminator Assault Squad",
+    "Terminator Squad"
+   ]
+  },
+  "space-wolves": {
+   "Canis Wolfborn": [
+    "Fenrisian Wolves",
+    "Thunderwolf Cavalry"
+   ],
+   "Harald Deathwolf": [
+    "Thunderwolf Cavalry"
+   ],
+   "Krom Dragongaze": [
+    "Blood Claws",
+    "Grey Hunters"
+   ],
+   "Logan Grimnar on Stormrider": [
+    "Thunderwolf Cavalry"
+   ],
+   "Lukas the Trickster": [
+    "Blood Claws"
+   ],
+   "Cyberwolf": [
+    "Fenrisian Wolves"
+   ],
+   "Wolf Guard Battle Leader in Terminator Armour": [
+    "Terminator Assault Squad",
+    "Terminator Squad",
+    "Wolf Guard Terminators"
+   ],
+   "Wolf Guard Battle Leader on Thunderwolf": [
+    "Thunderwolf Cavalry"
+   ],
+   "Wolf Guard Pack Leader": [
+    "Blood Claws",
+    "Grey Hunters"
+   ],
+   "Wolf Guard Pack Leader in Terminator Armour": [
+    "Blood Claws",
+    "Grey Hunters"
+   ],
+   "Wolf Lord on Thunderwolf": [
+    "Thunderwolf Cavalry"
+   ]
+  }
+ },
+ "xl": {
+  "aeldari": {
+   "The Visarch": {
+    "with": [
+     "Yvraine"
+    ]
+   },
+   "Warlock Conclave": {
+    "with": "any",
+    "nodup": true
+   },
+   "Warlock Skyrunners": {
+    "with": "any",
+    "nodup": true
+   }
+  }
+ }
+}

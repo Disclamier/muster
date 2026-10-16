@@ -60,7 +60,8 @@ for (const [fid, mf] of Object.entries(M.factions)) {
     if (prev && JSON.stringify([prev.tiers, prev.wargear]) !== JSON.stringify([u.tiers, u.wargear])) bad(fid, `${u.name}: listed twice in the MFM with different points`);
     if (!prev) mu.set(k, u);
   }
-  const au = new Map(); for (const u of AF.f.units) au.set(key(u.n, u.lg), u);
+  const au = new Map(); for (const u of AF.f.units) if (!u.af) au.set(key(u.n, u.lg), u);
+  { const nAl = AF.f.units.filter((u) => u.af).length; if (nAl) info.push(`${fid}: ${nAl} allied units (faction rule) skipped here - audited in their own faction`); }
   for (const [k, m] of mu) {
     counts.units++;
     const u = au.get(k);

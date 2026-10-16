@@ -1,0 +1,38 @@
+{
+ "note": "New Recruit parity: default wargear BSData (wh40k-11e) lists that Muster's loadout lacked; each is also in Wahapedia's 'This model is equipped with' text and the unit's datasheet profiles. Added to the fixed kit of single-model units.",
+ "fixed": {
+  "adepta-sororitas": {
+   "Dialogus": [
+    "Bolt pistol"
+   ],
+   "Dogmata": [
+    "Bolt pistol"
+   ],
+   "Hospitaller": [
+    "Bolt pistol"
+   ],
+   "Imagifier": [
+    "Bolt pistol"
+   ]
+  },
+  "chaos-space-marines": {
+   "Exalted Champion": [
+    "Bolt pistol"
+   ],
+   "Master of Executions": [
+    "Bolt pistol"
+   ],
+   "Master of Possession": [
+    "Bolt pistol"
+   ],
+   "Sorcerer": [
+    "Bolt pistol"
+   ]
+  },
+  "orks": {
+   "Kill Tank": [
+    "Crushin' Bulk"
+   ]
+  }
+ }
+}

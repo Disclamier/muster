@@ -27,6 +27,11 @@ import gwapp_datasheets  # noqa: E402  Warhammer 40,000 app datasheets for chapt
 import codex_override  # noqa: E402  committed codex override layer (Space Marines 11th-ed codex)
 
 MULTI_LEADER = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "multi_leader.json")))
+BSDATA_WARGEAR = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "bsdata_wargear.json")))
+BSDATA_LEADERS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "bsdata_leaders.json")))
+for _f, _v in BSDATA_LEADERS.get("xl", {}).items():
+    for _n, _x in _v.items():
+        MULTI_LEADER.setdefault("leaders", {}).setdefault(_f, {}).setdefault(_n, _x)
 CHAOS_ASTARTES = {"chaos-space-marines", "death-guard", "world-eaters", "emperors-children", "thousand-sons"}
 CSM_MARK_UNITS = {"Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"}
 NEW_CODEX_FACTIONS = {"adeptus-custodes"}   # MFM lists the full post-codex detachment list; secondary-only ones are obsolete
@@ -175,6 +180,36 @@ def gs_alt_keys(name):
         k = norm(n)
         out += [k, k[:-1] if k.endswith("s") else k + "s", norm(n + " battle tank"), norm(n + " [legends]")]
     return [k for i, k in enumerate(out) if k and k not in out[:i]]
+
+
+def apply_allies(factions, ds, stats):
+    """Allied units from faction rules (overrides/allies.json): copy the source faction's units in as a group with a points cap."""
+    p = os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "allies.json")
+    if not os.path.exists(p):
+        return
+    by = {f["id"]: f for f in factions}
+    for r in json.load(open(p))["rules"]:
+        to = by.get(r["to"])
+        if not to:
+            continue
+        al = {"label": r["label"], "caps": r["caps"], "text": r["text"]}
+        if r.get("no_warlord"): al["nw"] = 1
+        if r.get("no_enh"): al["ne"] = 1
+        if r.get("group"):   # an existing group of the faction (e.g. Legions of Excess): just add the cap
+            for u in to["units"]:
+                if u.get("grp") == r["group"]: u["ally"] = al
+            continue
+        src = by.get(r["from"]); have = {u["n"] for u in to["units"]}; n = 0
+        for u in (src or {}).get("units", []):
+            kw = set(u.get("kw") or [])
+            ok = r.get("all") or u["n"] in r.get("units", []) or kw & set(r.get("kw_any", [])) or (u.get("fk") in r.get("fk_any", []))
+            if not ok or kw & set(r.get("kw_none", [])) or u["n"] in have or u.get("req") or (u.get("grp") and not (u.get("fk") in r.get("fk_any", []) or kw & set(r.get("kw_any", [])))):
+                continue
+            c = json.loads(json.dumps(u)); c["grp"] = r["label"]; c["ally"] = al; c["af"] = r["from"]
+            to["units"].append(c); n += 1
+            if u["n"] in ds.get(r["from"], {}).get("units", {}):
+                ds.setdefault(r["to"], {"rules": [], "units": {}})["units"][u["n"]] = ds[r["from"]]["units"][u["n"]]
+        stats["allied_units_" + r["to"]] = n
 
 
 def merge(mfm, gs):
@@ -397,6 +432,17 @@ def merge(mfm, gs):
                             if sl[0] == "Pintle weapon":
                                 sl[2], sl[3], sl[5] = [], 0, 1
                         stats["chaos_transport_slots"] = stats.get("chaos_transport_slots", 0) + 1
+        for x in units:   # New Recruit (BSData) parity: extra Leader targets confirmed by the datasheet text
+            extra = BSDATA_LEADERS.get("ldr", {}).get(mf["id"], {}).get(x["n"])
+            if extra:
+                have = {t.upper() for t in x.get("ldr") or []}
+                x["ldr"] = (x.get("ldr") or []) + [t.upper() for t in extra if t.upper() not in have]
+                stats["bsdata_leader_targets"] = stats.get("bsdata_leader_targets", 0) + 1
+        for x in units:
+            for w in BSDATA_WARGEAR.get("fixed", {}).get(mf["id"], {}).get(x["n"], []):
+                m = ((x.get("lo") or {}).get("m") or [None])[0]
+                if m is not None and w.lower() not in [y.lower() for y in m[3]]:
+                    m[3].append(w); stats["bsdata_wargear_added"] = stats.get("bsdata_wargear_added", 0) + 1
         ml = MULTI_LEADER
         for x in units:
             if x["n"] in ml.get("leaders", {}).get(mf["id"], {}):
@@ -514,6 +560,7 @@ def main():
         print(f"warning: GrimSlate data unavailable ({e}); building MFM-only", file=sys.stderr)
         gs = {"factions": []}
     factions, stats, unmatched = merge(mfm, gs)
+    apply_allies(factions, merge.datasheets, stats)
     ids = {f["id"]: f["name"] for f in factions}
     # faction artwork downloaded by fetch_images.py (optional)
     img_index = {}
