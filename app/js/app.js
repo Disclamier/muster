@@ -1584,9 +1584,50 @@
       else if (kind === "visitors" || kind === "views") inner = `<table class="drill-t" data-testid="drill-table"><tr><th>Who</th><th>First seen</th><th>Last seen</th><th>Views</th><th>Pages · devices</th></tr>${rows.map((r) =>
         `<tr data-testid="drill-row"><td data-l="Who">${r.email ? `<b>${esc(r.email)}</b>` : `<span class="muted">anonymous</span> <code>${esc(r.visitor || "")}</code>`}</td><td data-l="First seen">${esc(fmtWhen(r.first))}</td><td data-l="Last seen">${esc(fmtWhen(r.last))}</td><td data-l="Views" class="num">${esc(fmtN(r.views || 0))}</td><td data-l="Pages · devices">${esc((r.pages || []).map((k) => VIEW_LBL[k] || k).join(", "))}<div class="muted small">${esc((r.devices || []).map((k) => DEV_LBL[k] || k).join(", "))}</div></td></tr>`).join("")}</table>`;
       else inner = `<table class="drill-t" data-testid="drill-table"><tr><th>Account</th><th>Signed up</th><th>Last seen</th><th>Lists</th></tr>${rows.map((r) =>
-        `<tr data-testid="drill-row"><td data-l="Account"><b>${esc(r.email || "")}</b></td><td data-l="Signed up">${esc(fmtWhen(r.signed_up))}</td><td data-l="Last seen">${esc(fmtWhen(r.last_seen))}</td><td data-l="Lists"><span class="num">${esc(fmtN(r.list_count || 0))}</span>${(r.lists || []).length ? `<div class="drill-lists">${r.lists.map((x) => { const F = S.idx && S.idx.factions[x.faction]; return `<div>${esc(x.name || "(unnamed)")} <span class="muted">· ${esc(F ? F.f.name : x.faction || "?")}</span></div>`; }).join("")}</div>` : ""}</td></tr>`).join("")}</table>`;
+        `<tr data-testid="drill-row" class="drill-acct${S.ui.statsAcct === r.email ? " on" : ""}" data-action="stats-acct" data-email="${esc(r.email || "")}" title="Show saved lists"><td data-l="Account"><b>${esc(r.email || "")}</b> <span class="tl-more">${S.ui.statsAcct === r.email ? "▴" : "▾"} lists</span></td><td data-l="Signed up">${esc(fmtWhen(r.signed_up))}</td><td data-l="Last seen">${esc(fmtWhen(r.last_seen))}</td><td data-l="Lists"><span class="num">${esc(fmtN(r.list_count || 0))}</span>${(r.lists || []).length ? `<div class="drill-lists">${r.lists.map((x) => { const F = S.idx && S.idx.factions[x.faction]; return `<div>${esc(x.name || "(unnamed)")} <span class="muted">· ${esc(F ? F.f.name : x.faction || "?")}</span></div>`; }).join("")}</div>` : ""}</td></tr>${S.ui.statsAcct === r.email ? statsAcctListsHtml(r.email) : ""}`).join("")}</table>`;
     }
     return `<div class="scard drill" data-testid="stats-drill" data-kind="${esc(kind)}"><div class="scard-h">${esc(title)} – who <span class="muted small">${kind === "visitors" || kind === "views" ? "(visitor ids are anonymous and change daily; e-mail shown when the visitor was signed in)" : "(all accounts)"}</span></div><div class="drill-wrap">${inner}</div></div>`;
+  }
+  /* owner-only: an account's saved lists (supabase/stats_lists.sql -> muster_stats_lists) + read-only list viewer */
+  function statsAcctListsHtml(email) {
+    S.statsLists = S.statsLists || {};
+    const got = S.statsLists[email];
+    if (got === undefined) {
+      S.statsLists[email] = null;
+      SY.rpc("muster_stats_lists", { p_email: email }).then((data) => { S.statsLists[email] = { data: Array.isArray(data) ? data : [] }; },
+        (e) => { S.statsLists[email] = { err: e && e.status === 404 ? "The list viewer function isn't in the database yet (supabase/stats_lists.sql)." : (e && e.message) || "Could not load lists." }; })
+        .then(() => { if ((location.hash || "").startsWith("#/stats")) renderStats(); });
+    }
+    let inner;
+    if (!got) inner = `<span class="muted small">Loading lists…</span>`;
+    else if (got.err) inner = `<span class="muted small" data-testid="acct-lists-err">${esc(got.err)}</span>`;
+    else if (!got.data.length) inner = `<span class="muted small">No saved lists.</span>`;
+    else inner = got.data.map((x, i) => { const d = x.data || {}; const F = S.idx && S.idx.factions[d.faction];
+      return `<button type="button" class="btn secondary small acct-list" data-action="stats-list" data-email="${esc(email)}" data-i="${i}" data-testid="acct-list"><b>${esc(d.name || "(unnamed)")}</b> <span class="muted">· ${esc(F ? F.f.name : d.faction || "?")} · ${esc(fmtWhen(x.updated_at))}</span></button>`; }).join("");
+    return `<tr class="drill-lists-row" data-testid="acct-lists"><td colspan="4"><div class="acct-lists">${inner}</div></td></tr>`;
+  }
+  /* read-only view of someone else's list: same calculation / rows / export text as the editor, no edit or save */
+  function readOnlyListHtml(l) {
+    const F = C.getFaction(S.idx, l); const c = C.calcList(l, S.idx); const size = C.getSize(S.idx, l);
+    const sub = S.idx.subs && S.idx.subs[l.sub];
+    const row = (r, nested) => `<div class="ro-row${nested ? " ro-nested" : ""}" data-testid="ro-row"><div class="ro-h"><b>${esc(r.name)}</b>${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : r.attachKind === "join" ? "Joined" : "Leader"}</span>` : ""}${r.entry.warlord ? ` <span class="tag">Warlord</span>` : ""}<span class="pts">${esc(String(r.total))} pts</span></div>
+      <div class="ro-sum">${(r.loLines || []).map((x) => `<div>• ${esc(C.loadoutText(x))}</div>`).join("")}${entrySummary(r).filter((b) => b !== "Warlord").map((b) => `<div>• ${esc(b)}</div>`).join("")}</div></div>`;
+    const roles = C.ROLE_ORDER.filter((rl) => c.byRole[rl] && c.byRole[rl].entries.some((x) => !x.attachedTo)).map((rl) => {
+      const top = c.byRole[rl].entries.filter((x) => !x.attachedTo);
+      return `<div class="ro-sect"><div class="ro-sh">${esc(rl)}</div>${top.map((r) => (r.attached || []).length ? `<div class="ro-group">${r.attached.map((x) => (x.attached || []).map((y) => row(y, true)).join("") + row(x, true)).join("")}${row(r, false)}</div>` : row(r, false)).join("")}</div>`; }).join("");
+    const dets = (l.dets || []).map((n) => { const d = F && F.dets[n]; return `${esc(n)}${d && d.dp != null ? ` (${d.dp} DP)` : ""}`; }).join(", ");
+    const text = C.exportText(l, S.idx, S.meta, "gw", {});
+    return `<div class="ro-list" data-testid="ro-list"><div class="ro-top"><div><b>${esc(sub ? sub.name : F ? F.f.name : l.faction || "?")}</b> · ${esc(size ? size.name : "")}</div>
+        <div class="pts big${size && c.total > size.points ? " over" : ""}" data-testid="ro-total">${esc(String(c.total))} / ${esc(String(size ? size.points : "?"))} pts</div></div>
+      <div class="muted small" data-testid="ro-dets">Detachments: ${dets || "none"}${l.disposition ? ` · Force Disposition: ${esc(l.disposition)}` : ""} · ${c.entries.length} units · read-only</div>
+      ${roles || `<div class="muted">No units.</div>`}
+      <details class="coll"><summary>Export text (GW format)</summary><textarea readonly data-testid="ro-export">${esc(text)}</textarea></details></div>`;
+  }
+  function openStatsList(email, i) {
+    const got = S.statsLists && S.statsLists[email]; const x = got && got.data && got.data[+i]; if (!x || !x.data) return;
+    let l; try { l = JSON.parse(JSON.stringify(x.data)); if (!Array.isArray(l.entries)) l.entries = []; } catch (e) { return; }
+    let body; try { body = readOnlyListHtml(l); } catch (e) { body = `<div class="muted">Could not show this list (${esc(e.message)}).</div>`; }
+    modal(`${l.name || "List"} – ${email}`, body, { wide: true });
   }
   function renderStats() {
     if (!isOwner()) { location.hash = "#/lists"; return; }
@@ -1958,6 +1999,8 @@
     "meta-faction": (t) => { S.ui.metaListDet = ""; location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
     "rules-back": () => { location.hash = "#/rules"; },
     "rules-collapse": () => { S.ui.rulesOpen.clear(); renderRulesBody(); },
+    "stats-acct": (t) => { S.ui.statsAcct = S.ui.statsAcct === t.dataset.email ? null : t.dataset.email; renderStats(); },
+    "stats-list": (t) => openStatsList(t.dataset.email, t.dataset.i),
     "stats-drill": (t) => { S.ui.statsDrill = S.ui.statsDrill === t.dataset.tile ? null : t.dataset.tile; renderStats(); },
     "stats-range": (t) => { S.ui.statsRange = t.dataset.range; lsSet(LS_STRANGE, S.ui.statsRange); renderStats(); },
     "open-stats": () => { closeModal(); location.hash = "#/stats"; },

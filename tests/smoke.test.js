@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v47/);
+  assert.match(read("sw.js"), /muster-shell-v48/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2178,6 +2178,9 @@ test("service worker precaches the core rules data", () => {
 
 /* ------------------------------------------------------------------ owner-only traffic stats */
 const LIVE = "https://disclamier.github.io/muster/";
+const STATS_LIST = { id: "gt1", name: "Green Tide", faction: "orks", sub: "orks", size: "strikeforce", dets: ["War Horde"], app: "muster", schema: 1, updated: "2026-10-16T19:00:00Z",
+  entries: [{ uid: "w1", unit: "Warboss", models: 1, wargear: {}, addons: [], enh: { det: "War Horde", name: "Da Boss is Watchin'" }, warlord: true, attach: "b1" },
+    { uid: "b1", unit: "Boyz", models: 20, wargear: {}, addons: [], enh: null }] };
 function statsSb(o) {
   o = o || {};
   const sb = mockSupabase(); const inner = sb.handle; sb.views = []; sb.owner = o.owner === undefined ? "u-1" : o.owner;
@@ -2196,6 +2199,11 @@ function statsSb(o) {
       const uid = /^Bearer at-/.test(h.Authorization || "") ? h.Authorization.split("-")[1] + "-" + h.Authorization.split("-")[2] : null;
       if (!uid) return res(401, { message: "JWT expired" });
       if (u.pathname.endsWith("/muster_is_owner")) { sb.ownerCalls = (sb.ownerCalls || 0) + 1; if (sb.ownerFail > 0) { sb.ownerFail--; return res(503, { message: "upstream timeout" }); } return res(200, uid === sb.owner); }
+      if (u.pathname.endsWith("/muster_stats_lists")) {
+        if (uid !== sb.owner) return res(403, { code: "42501", message: "not allowed" });
+        sb.listsArgs = JSON.parse(init.body);
+        return res(200, [{ id: "gt1", updated_at: "2026-10-16T19:00:00Z", data: STATS_LIST }]);
+      }
       if (u.pathname.endsWith("/muster_stats_drill")) {
         if (uid !== sb.owner) return res(403, { code: "42501", message: "not allowed" });
         const b = JSON.parse(init.body); sb.drillArgs = b;
@@ -2360,6 +2368,33 @@ test("stats drill-down: owner clicks a tile -> who list (visitors with e-mail or
   assert.match(sql, /revoke all on function public\.muster_stats_drill\(text, date, date, text\) from public, anon/);
   assert.match(sql, /user_id uuid default auth\.uid\(\)/); assert.doesNotMatch(sql, /grant insert[^;]*user_id/i);
   assert.doesNotMatch(read("js/app.js") + read("js/stats.js") + read("js/sync.js"), /service_role/);
+});
+
+test("stats lists: owner taps an account -> its saved lists (owner-only RPC) -> read-only full list view, no edit/save", async () => {
+  const sb = statsSb({ owner: "u-1" });
+  const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: signedIn("u-1", "james@example.com") });
+  await until(() => !d.querySelector("#statsnav").hidden);
+  await go(w, "#/stats"); await until(() => d.querySelector("[data-testid=st-accounts]"));
+  click(w, d.querySelector("[data-testid=st-accounts]"));
+  await until(() => d.querySelector("[data-testid=drill-row][data-action=stats-acct]"));
+  click(w, d.querySelector("[data-testid=drill-row]"));
+  await until(() => d.querySelector("[data-testid=acct-list]"));
+  assert.deepEqual(sb.listsArgs, { p_email: "friend@example.com" });
+  const rc = sb.calls.find((c) => c.path === "/rest/v1/rpc/muster_stats_lists"); assert.match(rc.headers.Authorization, /^Bearer at-u-1/);
+  const before = w.localStorage.getItem("muster.lists");
+  click(w, d.querySelector("[data-testid=acct-list]"));
+  await until(() => d.querySelector("[data-testid=ro-list]"));
+  const ro = d.querySelector("[data-testid=ro-list]"), tx = ro.textContent;
+  assert.match(tx, /Warboss/); assert.match(tx, /Boyz/); assert.match(tx, /Da Boss is Watchin'/); assert.match(tx, /War Horde/);
+  assert.match(tx, /Leader/); assert.match(tx, /Warlord/); assert.match(d.querySelector("[data-testid=ro-total]").textContent, /\d+ \/ 2000 pts/);
+  assert.equal(ro.querySelectorAll("[data-testid=ro-row]").length, 2);
+  assert.ok(ro.querySelector("textarea[readonly][data-testid=ro-export]").value.includes("Boyz"));
+  assert.equal(ro.querySelectorAll("input:not([readonly]), select, [data-action=save], [data-action^=add], [data-action^=del]").length, 0, "nothing editable");
+  assert.equal(w.localStorage.getItem("muster.lists"), before, "viewing doesn't save it into my lists");
+  const sql = fs.readFileSync(path.join(__dirname, "../supabase/stats_lists.sql"), "utf8");
+  assert.match(sql, /security definer/); assert.match(sql, /if not public\.muster_is_owner\(\) then raise exception/);
+  assert.match(sql, /revoke all on function public\.muster_stats_lists\(text\) from public, anon/); assert.match(sql, /not l\.deleted/);
+  assert.doesNotMatch(read("js/app.js"), /service_role/);
 });
 
 test("stats regression: already signed in on load (expired token) -> owner check after refresh, Stats shown", async () => {
