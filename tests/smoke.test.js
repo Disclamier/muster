@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v45/);
+  assert.match(read("sw.js"), /muster-shell-v47/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2196,6 +2196,15 @@ function statsSb(o) {
       const uid = /^Bearer at-/.test(h.Authorization || "") ? h.Authorization.split("-")[1] + "-" + h.Authorization.split("-")[2] : null;
       if (!uid) return res(401, { message: "JWT expired" });
       if (u.pathname.endsWith("/muster_is_owner")) { sb.ownerCalls = (sb.ownerCalls || 0) + 1; if (sb.ownerFail > 0) { sb.ownerFail--; return res(503, { message: "upstream timeout" }); } return res(200, uid === sb.owner); }
+      if (u.pathname.endsWith("/muster_stats_drill")) {
+        if (uid !== sb.owner) return res(403, { code: "42501", message: "not allowed" });
+        const b = JSON.parse(init.body); sb.drillArgs = b;
+        if (b.p_kind === "visitors" || b.p_kind === "views") return res(200, { kind: b.p_kind, rows: [
+          { visitor: "0123456789abcdef", email: "friend@example.com", first: "2026-10-15T14:00:00Z", last: "2026-10-16T20:00:00Z", views: 12, pages: ["lists", "editor"], devices: ["phone"] },
+          { visitor: "fedcba9876543210", email: null, first: "2026-10-16T09:00:00Z", last: "2026-10-16T09:05:00Z", views: 2, pages: ["meta"], devices: ["pc"] }] });
+        return res(200, { kind: b.p_kind, rows: [{ email: "friend@example.com", signed_up: "2026-09-01T10:00:00Z", last_seen: "2026-10-16T20:00:00Z", list_count: 2,
+          lists: [{ name: "Green Tide", faction: "orks" }, { name: "Speed Freeks", faction: "orks" }] }] });
+      }
       if (u.pathname.endsWith("/muster_stats")) {
         if (uid !== sb.owner) return res(403, { code: "42501", message: "not allowed" });
         const b = JSON.parse(init.body); sb.statsArgs = b;
@@ -2224,7 +2233,7 @@ test("stats: device classification follows the app layout (phone = narrow, pc = 
   assert.deepEqual(["", "#/lists", "#/list/abc123", "#/meta/orks", "#/share/xyz", "#/stats", "#/weird"].map(MSx.viewOf), ["lists", "lists", "editor", "meta", "share", null, "other"]);
 });
 
-test("stats: the counted row holds no personal data (anon key, random daily id, no list ids / user / email); localhost not counted", async () => {
+test("stats: the counted row holds no personal data (random daily id, no list ids / user / email; signed-in token only so the DB can link the account); localhost not counted", async () => {
   const sb = statsSb({ owner: "nobody" });
   const mine = { id: "secretlist1", name: "James Secret Orks", faction: "orks", sub: "orks", size: "strikeforce", dets: [], entries: [], app: "muster", schema: 1, updated: "2026-10-02T00:00:00.000Z" };
   const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: { ...signedIn("u-1", "james@example.com"), "muster.lists": JSON.stringify([mine]) },
@@ -2237,9 +2246,9 @@ test("stats: the counted row holds no personal data (anon key, random daily id, 
   for (const v of sb.views) {
     assert.deepEqual(Object.keys(v.body).sort(), ["device", "kind", "ref_host", "view", "visitor"]);
     assert.match(v.body.visitor, /^[0-9a-f]{16}$/);
-    assert.equal(v.headers.Authorization, "Bearer anon-key", "anon key only, never the user's token");
+    assert.equal(v.headers.Authorization, "Bearer at-u-1-0", "signed in: session token (DB sets page_views.user_id = auth.uid())");
     assert.equal(v.init.credentials, "omit");
-    assert.doesNotMatch(JSON.stringify(v), /james|u-1|secret|Orks|bob|at-u/i);
+    assert.doesNotMatch(JSON.stringify(v.body), /james|u-1|secret|Orks|bob|at-u/i);
   }
   assert.deepEqual([v1.body.kind, v1.body.view, v1.body.ref_host, v1.body.device], ["load", "lists", "reddit.com", "pc"]);
   assert.deepEqual([v2.body.kind, v2.body.view, v2.body.ref_host], ["view", "editor", null]);
@@ -2325,6 +2334,32 @@ test("stats: Stats page only for the owner account (checked by the database); ow
   assert.match(sql, /if not public\.muster_is_owner\(\) then raise exception/);
   assert.match(sql, /revoke all on function public\.muster_stats\(date, date, text\) from public, anon/);
   assert.doesNotMatch(sql, /\b(ip|user_agent|email)\b\s+text/i);
+});
+
+test("stats drill-down: owner clicks a tile -> who list (visitors with e-mail or anonymous id; accounts with lists + factions)", async () => {
+  const sb = statsSb({ owner: "u-1" });
+  const { w, d } = makeApp({ config: CFG, supabase: sb, url: LIVE + "#/lists", storage: signedIn("u-1", "james@example.com") });
+  await until(() => !d.querySelector("#statsnav").hidden);
+  await go(w, "#/stats"); await until(() => d.querySelector("[data-testid=st-visitors]"));
+  for (const t of ["st-visitors", "st-views", "st-lists", "st-accounts"]) assert.equal(d.querySelector(`[data-testid=${t}]`).dataset.action, "stats-drill", t);
+  assert.ok(!d.querySelector("[data-testid=st-visits]").dataset.action, "Visits tile stays plain");
+  click(w, d.querySelector("[data-testid=st-visitors]"));
+  await until(() => d.querySelectorAll("[data-testid=drill-row]").length === 2);
+  assert.equal(sb.drillArgs.p_kind, "visitors"); assert.ok(sb.drillArgs.p_from && sb.drillArgs.p_tz);
+  const rc = sb.calls.find((c) => c.path === "/rest/v1/rpc/muster_stats_drill"); assert.match(rc.headers.Authorization, /^Bearer at-u-1/);
+  const tx = d.querySelector("[data-testid=stats-drill]").textContent;
+  assert.match(tx, /friend@example\.com/); assert.match(tx, /anonymous/); assert.match(tx, /fedcba9876543210/); assert.match(tx, /Phone/);
+  click(w, d.querySelector("[data-testid=st-accounts]"));
+  await until(() => /Green Tide/.test((d.querySelector("[data-testid=stats-drill]") || {}).textContent || ""));
+  assert.match(d.querySelector("[data-testid=stats-drill]").textContent, /Orks/);
+  click(w, d.querySelector("[data-testid=st-accounts]")); await tick(10);
+  assert.equal(d.querySelector("[data-testid=stats-drill]"), null, "click again closes");
+  // SQL: owner check, security definer, revoked from anon, user_id only via server default
+  const sql = fs.readFileSync(path.join(__dirname, "../supabase/stats_drilldown.sql"), "utf8");
+  assert.match(sql, /security definer/); assert.match(sql, /if not public\.muster_is_owner\(\) then raise exception/);
+  assert.match(sql, /revoke all on function public\.muster_stats_drill\(text, date, date, text\) from public, anon/);
+  assert.match(sql, /user_id uuid default auth\.uid\(\)/); assert.doesNotMatch(sql, /grant insert[^;]*user_id/i);
+  assert.doesNotMatch(read("js/app.js") + read("js/stats.js") + read("js/sync.js"), /service_role/);
 });
 
 test("stats regression: already signed in on load (expired token) -> owner check after refresh, Stats shown", async () => {

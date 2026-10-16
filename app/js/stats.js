@@ -77,15 +77,20 @@
       if (kind === "load") row.ref_host = refHost(win.document && win.document.referrer, win.location && win.location.hostname);
       return row;
     }
-    function send(row) {
+    function send(row, anonOnly) {
       try {
+        // signed in: the session token goes along so the database can note the account (server default auth.uid() ->
+        // page_views.user_id, see supabase/stats_drilldown.sql); the row itself still holds no ids. Guests: anon key.
+        const tok = !anonOnly && typeof opts.token === "function" ? opts.token() : null;
         const p = win.fetch(`${base}/rest/v1/page_views`, {
           method: "POST", keepalive: true, credentials: "omit", referrerPolicy: "no-referrer", cache: "no-store",
-          // anon key only, even when signed in: rows can't be tied to an account
-          headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+          headers: { apikey: key, Authorization: `Bearer ${tok || key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
           body: JSON.stringify(row),
         });
-        if (p && p.then) p.then((r) => { if (r && !r.ok && (r.status === 404 || r.status === 400 || r.status === 401 || r.status === 403)) dead = true; }, () => {});
+        if (p && p.then) p.then((r) => {
+          if (r && !r.ok && tok && (r.status === 401 || r.status === 403)) { send(row, true); return; }   // expired token: count anonymously
+          if (r && !r.ok && (r.status === 404 || r.status === 400 || r.status === 401 || r.status === 403)) dead = true;
+        }, () => {});
       } catch (e) { /* never surfaces */ }
     }
     /* call on every route; counts the first load and each change of main view */

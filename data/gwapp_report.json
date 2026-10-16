@@ -120,15 +120,14 @@
    "Tacticus Attack Force",
    "Tacticus Firestorm Force",
    "Terminator Storm Force",
-   "Vow-Sworn Crusaders"
+   "Vow-Sworn Crusaders",
+   "Gladius Task Force"
   ],
   "not_in_app": [],
   "enh_unmatched": [],
   "enh_cost_diff": [],
   "strat_cp_missing": [],
-  "app_only": [
-   "Gladius Task Force"
-  ]
+  "app_only": []
  },
  "blood-angels": {
   "applied": [

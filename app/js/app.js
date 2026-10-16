@@ -112,7 +112,7 @@
   }) : null;
   /* owner-only traffic stats (js/stats.js + supabase/page_views.sql): anonymous counting; Stats page only for the owner */
   const MS = window.MusterStats || null;
-  const ST = MS ? MS.create(window.MUSTER_CONFIG || {}) : null;
+  const ST = MS ? MS.create(window.MUSTER_CONFIG || {}, { token: () => { try { const ss = SY && SY.session(); return ss && ss.access_token && (ss.expires_at || 0) > Date.now() / 1000 + 30 ? ss.access_token : null; } catch (e) { return null; } } }) : null;
   const curUid = () => (SY && SY.session() && SY.user() && SY.user().id) || null;
   const isOwner = () => !!(MS && curUid() && MS.owner() === curUid());
   /* Owner check: ask the database (muster_is_owner, with the signed-in token). Only an explicit true/false answer changes
@@ -1563,23 +1563,53 @@
       return `<div class="srow"><span class="sk">${esc(lbl ? lbl[r.k] || r.k : r.k)}</span><span class="sbarh"><span style="width:${pct}%"></span></span><span class="sn">${esc(fmtN(r.n))}</span><span class="sp muted">${pct}%</span></div>`; }).join("")
       : `<div class="muted small">No ${esc(unit || "data")} in this range.</div>`}</div>`;
   }
+  /* owner-only drill-down (supabase/stats_drilldown.sql -> muster_stats_drill): who is behind a number */
+  const fmtWhen = (t) => (t ? C.fmtLocal(t) : "–");
+  function statsDrillHtml(kind, R) {
+    const ck = `${kind}|${R.p_from}|${R.p_to}`; S.statsDrill = S.statsDrill || {};
+    const got = S.statsDrill[ck];
+    if (got === undefined) {
+      S.statsDrill[ck] = null;
+      SY.rpc("muster_stats_drill", { p_kind: kind, ...R }).then((data) => { S.statsDrill[ck] = { data }; },
+        (e) => { S.statsDrill[ck] = { err: e && e.status === 404 ? "The drill-down function isn't in the database yet (supabase/stats_drilldown.sql)." : (e && e.message) || "Could not load." }; })
+        .then(() => { if ((location.hash || "").startsWith("#/stats")) renderStats(); });
+    }
+    const title = { visitors: "Unique visitors", views: "Page views", lists: "Lists saved", accounts: "Accounts" }[kind];
+    let inner;
+    if (!got) inner = `<div class="muted small">Loading…</div>`;
+    else if (got.err) inner = `<div class="muted small" data-testid="drill-err">${esc(got.err)}</div>`;
+    else {
+      const rows = (got.data && got.data.rows) || [];
+      if (!rows.length) inner = `<div class="muted small">Nobody in this range.</div>`;
+      else if (kind === "visitors" || kind === "views") inner = `<table class="drill-t" data-testid="drill-table"><tr><th>Who</th><th>First seen</th><th>Last seen</th><th>Views</th><th>Pages · devices</th></tr>${rows.map((r) =>
+        `<tr data-testid="drill-row"><td data-l="Who">${r.email ? `<b>${esc(r.email)}</b>` : `<span class="muted">anonymous</span> <code>${esc(r.visitor || "")}</code>`}</td><td data-l="First seen">${esc(fmtWhen(r.first))}</td><td data-l="Last seen">${esc(fmtWhen(r.last))}</td><td data-l="Views" class="num">${esc(fmtN(r.views || 0))}</td><td data-l="Pages · devices">${esc((r.pages || []).map((k) => VIEW_LBL[k] || k).join(", "))}<div class="muted small">${esc((r.devices || []).map((k) => DEV_LBL[k] || k).join(", "))}</div></td></tr>`).join("")}</table>`;
+      else inner = `<table class="drill-t" data-testid="drill-table"><tr><th>Account</th><th>Signed up</th><th>Last seen</th><th>Lists</th></tr>${rows.map((r) =>
+        `<tr data-testid="drill-row"><td data-l="Account"><b>${esc(r.email || "")}</b></td><td data-l="Signed up">${esc(fmtWhen(r.signed_up))}</td><td data-l="Last seen">${esc(fmtWhen(r.last_seen))}</td><td data-l="Lists"><span class="num">${esc(fmtN(r.list_count || 0))}</span>${(r.lists || []).length ? `<div class="drill-lists">${r.lists.map((x) => { const F = S.idx && S.idx.factions[x.faction]; return `<div>${esc(x.name || "(unnamed)")} <span class="muted">· ${esc(F ? F.f.name : x.faction || "?")}</span></div>`; }).join("")}</div>` : ""}</td></tr>`).join("")}</table>`;
+    }
+    return `<div class="scard drill" data-testid="stats-drill" data-kind="${esc(kind)}"><div class="scard-h">${esc(title)} – who <span class="muted small">${kind === "visitors" || kind === "views" ? "(visitor ids are anonymous and change daily; e-mail shown when the visitor was signed in)" : "(all accounts)"}</span></div><div class="drill-wrap">${inner}</div></div>`;
+  }
   function renderStats() {
     if (!isOwner()) { location.hash = "#/lists"; return; }
     const key = STATS_RANGES.some((r) => r[0] === S.ui.statsRange) ? S.ui.statsRange : "7";
     const R = statsRange(key), ck = `${key}|${R.p_to}`;
     const got = S.stats[ck];
-    const tile = (v, l, tid) => `<div class="tile" data-testid="${tid}"><div class="tv">${esc(fmtN(v))}</div><div class="tl">${esc(l)}</div></div>`;
+    const DK = { "st-visitors": "visitors", "st-views": "views", "st-lists": "lists", "st-accounts": "accounts" };
+    const drill = DK[S.ui.statsDrill] ? S.ui.statsDrill : null;
+    const tile = (v, l, tid) => DK[tid]
+      ? `<button type="button" class="tile tile-click${drill === tid ? " on" : ""}" data-testid="${tid}" data-action="stats-drill" data-tile="${tid}" aria-expanded="${drill === tid}" title="Show who"><div class="tv">${esc(fmtN(v))}</div><div class="tl">${esc(l)} <span class="tl-more">${drill === tid ? "▴" : "▾"} who</span></div></button>`
+      : `<div class="tile" data-testid="${tid}"><div class="tv">${esc(fmtN(v))}</div><div class="tl">${esc(l)}</div></div>`;
     let body;
     if (!got) body = `<div class="empty">Loading…</div>`;
     else if (got.err) body = `<div class="card pad" data-testid="stats-err"><b>Stats aren't available yet.</b> <span class="muted">${esc(got.err)}</span><div class="muted small">Run <code>supabase/page_views.sql</code> once in the Supabase SQL Editor to start counting. <button class="btn secondary small" data-action="stats-reload">Try again</button></div></div>`;
     else {
       const d = got.data || {}, t = d.totals || {};
       body = `<div class="tiles stiles">${tile(t.visits || 0, "Visits", "st-visits")}${tile(t.visitors || 0, "Unique visitors", "st-visitors")}${tile(t.views || 0, "Page views", "st-views")}${d.lists ? tile(d.lists.saved, "Lists saved (all accounts)", "st-lists") + tile(d.lists.accounts, "Accounts", "st-accounts") : ""}</div>
+        ${drill ? statsDrillHtml(DK[drill], R) : ""}
         <div class="scard sc-chart"><div class="scard-h">Daily visits <span class="lg"><i class="lgb"></i>visits <i class="lgl"></i>unique visitors</span></div>${statsChart(d.daily || [])}</div>
         <div class="sgrid3">${statsBreak("Visitors by device", d.by_device || [], DEV_LBL, "st-device", "visitors")}${statsBreak("Page views by page", d.by_view || [], VIEW_LBL, "st-view", "page views")}${statsBreak("Top referrers", d.referrers || [], null, "st-ref", "referrers")}</div>`;
     }
     $("#main").innerHTML = `<div class="meta-page stats-page" data-testid="stats-page">
-      <div class="meta-h"><div><h2>Stats</h2><div class="meta-src">Only you can see this · cookieless, anonymous counting (no IPs, no accounts)</div></div></div>
+      <div class="meta-h"><div><h2>Stats</h2><div class="meta-src">Only you can see this · cookieless counting (no IPs; signed-in visits are linked to the account, guests stay anonymous)</div></div></div>
       <div class="meta-ctl"><div class="seg" data-testid="stats-range">${STATS_RANGES.map(([k, l]) => `<button class="${k === key ? "on" : ""}" data-action="stats-range" data-range="${k}">${l}</button>`).join("")}</div>
         <label class="chk"><input type="checkbox" data-change="stats-nocount" data-testid="stats-nocount" ${MS.noCount() ? "checked" : ""}> Don't count my visits on this device</label></div>
       ${body}
@@ -1928,6 +1958,7 @@
     "meta-faction": (t) => { S.ui.metaListDet = ""; location.hash = `#/meta/${t.dataset.slug}`; window.scrollTo(0, 0); },
     "rules-back": () => { location.hash = "#/rules"; },
     "rules-collapse": () => { S.ui.rulesOpen.clear(); renderRulesBody(); },
+    "stats-drill": (t) => { S.ui.statsDrill = S.ui.statsDrill === t.dataset.tile ? null : t.dataset.tile; renderStats(); },
     "stats-range": (t) => { S.ui.statsRange = t.dataset.range; lsSet(LS_STRANGE, S.ui.statsRange); renderStats(); },
     "open-stats": () => { closeModal(); location.hash = "#/stats"; },
     "stats-reload": () => { S.stats = {}; renderStats(); },
