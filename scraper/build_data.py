@@ -64,6 +64,22 @@ def norm(s):
     return re.sub(r"[^a-z0-9]", "", s)
 
 
+
+_PREV = None
+
+
+def prev_gs_dets(fid):
+    """secondary-source-only detachments of `fid` in the last published app/data/points.json (read before rebuild)"""
+    global _PREV
+    if _PREV is None:
+        try:
+            _PREV = {f["id"]: [d for d in f.get("dets", []) if d.get("src") == "gs"]
+                     for f in json.load(open(os.path.join(ROOT, "app", "data", "points.json"), encoding="utf-8"))["factions"]}
+        except (OSError, ValueError, KeyError):
+            _PREV = {}
+    return _PREV.get(fid, [])
+
+
 def title_name(s):
     """MFM names are upper case; GrimSlate has proper case. Fallback: smart title-case."""
     t = s.title()
@@ -387,6 +403,25 @@ def merge(mfm, gs):
             if gd.get("rule"):
                 cd["rule"] = [gd["rule"].get("name"), gd["rule"].get("text")]
             dets.append(cd)
+        if drop_gs_only and codex_override.covers(mf["id"]):
+            # a codex detachment this faction's MFM page omits that the last published build had (Black Templars
+            # Gladius) and the secondary source has since dropped (GrimSlate Oct 13/16 2026): kept while the Warhammer
+            # 40,000 app still lists it for the faction, rebuilt from the MFM Space Marines page (names/points/DP);
+            # codex_override.apply below fills rule, stratagems and enhancement text
+            have = {norm(d["n"]) for d in dets}
+            app_dets = gwapp_override.det_index(mf["id"])
+            sm = next((x for x in mfm["factions"] if x["id"] == "space-marines"), None)
+            for pd in prev_gs_dets(mf["id"]):
+                smd = next((x for x in (sm or {}).get("detachments", []) if norm(x["name"]) == norm(pd["n"])), None)
+                if (norm(pd["n"]) in have or not smd or smd.get("detachment_points") is None
+                        or gwapp_override.key(pd["n"]) not in app_dets or not codex_override.has_detachment(mf["id"], pd["n"])):
+                    continue
+                stats["codex_detachments_kept_from_previous_build"] += 1
+                dets.append({"n": pd["n"], "dp": smd["detachment_points"], "src": "gs",
+                             "fd": smd.get("force_dispositions", pd.get("fd") or []),
+                             "enh": [[e["name"], e["points"], None, 1 if "(upgrade)" in e["name"].lower() else 0]
+                                     for e in smd["enhancements"]], "st": [],
+                             **({"rs": pd["rs"]} if pd.get("rs") else {})})
         dets.sort(key=lambda d: (d["src"] != "mfm", d["n"].lower()))
         apply_detachment_restrictions(mf, units, dets, stats)
         # datasheets (profiles / abilities) ship in a separate file: unit display name -> compact datasheet

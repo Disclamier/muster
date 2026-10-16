@@ -10,7 +10,7 @@ const KNOWN = new Set([
   "astra-militarum|Macharius Omega|hunter-killer missile", "genestealer-cults|Macharius Omega|hunter-killer missile",
   "black-templars|Gladiator Lancer|Multi-melta", "black-templars|Gladiator Reaper|Multi-melta", "black-templars|Repulsor|Multi-melta", "black-templars|Repulsor Executioner|Multi-melta",
   "black-templars|Sicaran|Arcus Multi-launcher", "black-templars|Sicaran|Omega Plasma Array", "black-templars|Sicaran|Punisher Rotary Cannon", "black-templars|Sicaran|Venator Neutron Laser",
-  "blood-angels|Death Company Marines|Grenade Launcher", "chaos-space-marines|Sorcerer|Prosperine khopesh",
+  "blood-angels|Death Company Marines|Grenade Launcher", "blood-angels|Death Company Dreadnought with Magna-Grapple|Smoke Launchers", "chaos-space-marines|Sorcerer|Prosperine khopesh",
   "dark-angels|Land Speeder Vengeance|Close Combat Weapon", "dark-angels|Ravenwing Darkshroud|Close Combat Weapon"]);
 const SKIP = /drone$|^(khorne|nurgle|slaanesh|tzeentch|chaos undivided)$/i;
 function unresolved() {
