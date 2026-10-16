@@ -423,6 +423,28 @@
     for (const s of M.unit) add(s, `*|${s.name}`);
     return out;
   }
+  /* map a loadout gear name ("Two excruciator cannons", "Bolt pistol and chainsword", "2x Plasma gun") to datasheet
+     weapon names with counts: [[weaponName, n], ...]; [] when nothing matches (non-weapon wargear) */
+  const NUMW = { one: 1, a: 1, an: 1, two: 2, pair: 2, paired: 0, twin: 0, three: 3, four: 4, five: 5, six: 6 };
+  const sing = (x) => x.replace(/(ies)$/, "y").replace(/(ches|shes|sses|xes)$/, (m) => m.slice(0, -2)).replace(/([^s])s$/, "$1");
+  const GEAR_ALIAS = { "black knight combat weapon": "Corvus Hammers", "wolf guard headtaker w/ paired weapons": "Paired Master-crafted Power Weapons", "wolf guard headtaker w/ storm shield": "Master-crafted Power Weapon" };
+  const gnorm = (t) => norm(String(t).toLowerCase().replace(/-linked/g, "").replace(/is(er|ers)\b/g, "iz$1"));
+  function gearWeapons(name, wpNames) {
+    const al = GEAR_ALIAS[String(name).toLowerCase()]; if (al && (wpNames || []).includes(al)) return [[al, 1]];
+    const W = (wpNames || []).map((w) => [w, gnorm(w), gnorm(sing(String(w).toLowerCase()))]);
+    const exact = (t) => { const n = gnorm(t), sn = gnorm(sing(t.toLowerCase())); const hit = W.find((w) => w[1] === n) || W.find((w) => w[2] === sn || w[1] === sn || w[2] === n); return hit && hit[0]; };
+    const whole = exact(String(name)); if (whole) return [[whole, 1]];
+    const out = [];
+    for (let part of String(name).split(/\s*(?:\+|,|&|\band\b|\bwith\b|\bw\/)\s*/i)) {
+      part = part.trim(); if (!part) continue;
+      let n = 1; const m = part.match(/^(\d+)\s*[x×]?\s+(.*)$/i) || part.match(/^(one|a|an|two|three|four|five|six|pair of)\s+(.*)$/i);
+      if (m) { n = /^\d/.test(m[1]) ? +m[1] : m[1].toLowerCase() === "pair of" ? 2 : NUMW[m[1].toLowerCase()]; part = m[2]; }
+      let hit = exact(part);
+      if (!hit) { const np = gnorm(sing(part.toLowerCase())); const c = W.filter((w) => w[2].length > 3 && (np.includes(w[2]) || w[2].includes(np))).sort((a, b) => b[2].length - a[2].length); hit = c[0] && c[0][0]; }
+      if (hit) out.push([hit, n]);
+    }
+    return out;
+  }
   function linkedWargear(u) {
     const M = loModel(u); const set = new Set(); if (!M) return set;
     for (const s of [...M.types.flatMap((t) => t.slots), ...M.unit]) for (const o of s.opts) if (o.w !== null && o.w !== undefined) set.add(o.w);
@@ -1783,7 +1805,7 @@
     return true;
   }
 
-  return { allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

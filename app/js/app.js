@@ -958,11 +958,16 @@
   const kwTip = (k) => { const g = S.ds && S.ds.weapon_keywords; const base = String(k).replace(/\s+[\dD+\-"]+$/, "").replace(/^\[|\]$/g, "");
     const t = g && (g[k] || g[base] || g[C.title ? base : base]); return t ? ` title="${esc(clean(t).slice(0, 400))}"` : ""; };
   /* what the unit currently carries: weapon name -> count, picked option names; null when unknown */
-  function equipped(u, r) {
+  function equipped(u, r, wpNames) {
     let lines = r && r.loLines, lo = r && r.lo;
     if (!lines && C.hasLoadout(u)) { const o = C.modelOptions(u, 1)[0] || { models: 1 }; lo = C.getLoadout(u, {}, o.models, o.label); lines = C.loadoutLines(u, lo); }
     if (!lines || !lines.length) return null;
-    const w = new Map(); for (const l of lines) for (const g of l.gear) for (const part of String(g.name).split(" + ")) w.set(C.norm(part), (w.get(C.norm(part)) || 0) + (g.count || 1));
+    // gear names -> datasheet weapon profiles ("Two excruciator cannons" -> 2x Excruciator cannon, "X and Y" -> both)
+    const w = new Map(); const addW = (k, n) => w.set(C.norm(k), (w.get(C.norm(k)) || 0) + n);
+    for (const l of lines) for (const g of l.gear) for (const part of String(g.name).split(" + ")) {
+      const hits = wpNames ? C.gearWeapons(part, wpNames) : [];
+      if (hits.length) for (const [wn, k] of hits) addW(wn, k * (g.count || 1)); else addW(part, g.count || 1);
+    }
     const picks = new Set(); for (const v of Object.values((lo && lo.p) || {})) for (const [k, n] of Object.entries(v)) if (n > 0) for (const part of String(k).split(" + ")) picks.add(C.norm(part));
     return { w, picks };
   }
@@ -1001,7 +1006,7 @@
     o = o || {};
     const ds = dsOf(F, u);
     const st = (ds && ds.s) || {};
-    const eq = equipped(u, r);
+    const eq = equipped(u, r, ds ? ds.wp.map((x) => x[0]) : null);
     const filt = o.item ? String(o.item).split("|").map(C.norm).filter(Boolean) : null;
     const matchItem = (name) => !filt || filt.some((f) => C.norm(name).includes(f) || f.includes(C.norm(name)));
     let html = "";
