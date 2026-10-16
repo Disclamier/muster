@@ -62,6 +62,8 @@
   function attachKind(who, body, grant) {
     if (!who || !body) return null;
     const k = unitKey(body.n);
+    // retinue units that JOIN another unit (Loyal Protector, Attachés, Servitor Retinue, Court of the Archon)
+    if (who.jn && (who.jn === "*" ? unitKey(body.n) !== unitKey(who.n) && !body.jn : who.jn.some((x) => unitKey(x) === k))) return "join";
     if ((who.ldr || []).some((x) => unitKey(x) === k)) return "leader";
     if ((who.sup || []).some((x) => unitKey(x) === k)) return "support";
     // an enhancement that lets the bearer join extra units (MFM 'LEADER:' / 'SUPPORT:' line under the enhancement)
@@ -86,7 +88,7 @@
     const pairOk = (x, y) => x.xl && !(x.xl.nodup && dup) && !dup && (x.xl.with === "any" || (x.xl.with || []).some((w) => _hasKw(y, w)));
     return pairOk(a, b) || pairOk(b, a);
   }
-  const canAttach = (u) => !!(u && ((u.ldr && u.ldr.length) || (u.sup && u.sup.length)));
+  const canAttach = (u) => !!(u && ((u.ldr && u.ldr.length) || (u.sup && u.sup.length) || u.jn));
   /* bodyguard units in the list `entry` could join, with free/occupied state (one Leader + one Support each) */
   function attachTargets(list, idx, uid) {
     const F = getFaction(idx, list); if (!F) return [];
@@ -95,15 +97,36 @@
     if (!mu || !(canAttach(mu) || grant)) return [];
     const out = [];
     for (const e of list.entries) {
-      if (e.uid === uid || e.attach) continue;
+      if (e.uid === uid || (e.attach && !mu.jn)) continue;
       const bu = findUnit(F, e.unit); const kind = attachKind(mu, bu, grant);
       if (!kind) continue;
+      if (kind === "join") {   // one unit of each retinue group per target; jl: target must be led by that unit
+        if (mu.jl && !list.entries.some((x) => x.attach === e.uid && unitKey(x.unit) === unitKey(mu.jl))) continue;
+        const by = list.entries.filter((x) => x.uid !== uid && x.attach === e.uid && (findUnit(F, x.unit) || {}).jg === mu.jg);
+        out.push({ entry: e, unit: bu, kind, taken: by.length > 0, extra: false, by: by.map((x) => x.unit) }); continue;
+      }
       const othersE = list.entries.filter((x) => x.uid !== uid && x.attach === e.uid && attachKind(findUnit(F, x.unit), bu, enhAttach(F, x)) === kind);
       const others = othersE.map((x) => findUnit(F, x.unit)).filter(Boolean);
       const taken = kind === "leader" ? !leadersOk(bu, others.concat([mu]), e.models) : others.length > 0;
       out.push({ entry: e, unit: bu, kind, taken, extra: kind === "leader" && others.length > 0 && !taken, by: othersE.map((x) => x.unit) });
     }
     return out;
+  }
+
+  /* allied unit-count rules (Assigned Agents: per-category caps by battle size; Freeblades/Dreadblades: 1 Titanic OR up to 3 Armigers) */
+  const allyCatHas = (u, ct) => (ct.units || []).includes(u.n) || (ct.kw && (u.kw || []).some((k) => norm(k) === norm(ct.kw)));
+  const allyCatMax = (ct, size) => (ct.caps ? (size ? ct.caps[size.id] : null) : ct.max);
+  function allyCountIssues(a, size) {
+    const uc = a.al.uc; if (!uc) return [];
+    const out = [];
+    uc.cats.forEach((ct, i) => { const n = a.n[i] || 0, mx = allyCatMax(ct, size); if (mx != null && n > mx) out.push(`${n} / ${mx} ${ct.name} units`); });
+    if (uc.xor && uc.cats.filter((ct, i) => a.n[i] > 0).length > 1) out.push(`either ${uc.cats.map((ct) => `${ct.max} ${ct.name}`).join(" or up to ")} - not both`);
+    return out;
+  }
+  /* "1/2 Retinue · 0/2 Character" style summary of an allied rule's caps */
+  function allyCapText(al, A, size) {
+    if (!al.uc) return null;
+    return al.uc.cats.map((ct, i) => `${(A && A.n[i]) || 0}/${allyCatMax(ct, size) ?? "?"} ${ct.name}`).join(al.uc.xor ? " or " : " · ");
   }
 
   /* ---------------------------------------------------------------- enhancement eligibility */
@@ -516,7 +539,8 @@
         if (u.ally && u.ally.nw) err(`${u.n} cannot be the Warlord (${u.ally.label})`, e.uid);
         warlords += 1;
       }
-      if (u.ally) { allySum[u.ally.label] = allySum[u.ally.label] || { pts: 0, al: u.ally }; allySum[u.ally.label].pts += row.base + row.wargear + row.addons + row.enh; }
+      if (u.ally) { const A = allySum[u.ally.label] = allySum[u.ally.label] || { pts: 0, al: u.ally, n: [], units: 0 }; A.pts += row.base + row.wargear + row.addons + row.enh; A.units++;
+        if (u.ally.uc) u.ally.uc.cats.forEach((ct, i) => { if (allyCatHas(u, ct)) A.n[i] = (A.n[i] || 0) + 1; }); }
       if (u.lg) warn(`${u.n} is a Legends unit`, e.uid);
       row.total = row.base + row.wargear + row.addons + row.enh;
       res.units += row.base + row.wargear + row.addons;
@@ -533,17 +557,22 @@
       if (e.attach) {
         const t = byUid[e.attach];
         if (!t || !t.unit) { warn(`${r.unit.n}: the unit it was attached to is no longer in the list`, e.uid); continue; }
-        if (t.entry.attach) { err(`${r.unit.n} cannot join ${t.unit.n}: that unit is itself attached to another unit`, e.uid); continue; }
         const kind = attachKind(r.unit, t.unit, enhAttach(F, e));
+        if (t.entry.attach && kind !== "join") { err(`${r.unit.n} cannot join ${t.unit.n}: that unit is itself attached to another unit`, e.uid); continue; }
         if (!kind) { warn(`${r.unit.n} cannot be attached to ${t.unit.n} (not in its Leader/Support list)`, e.uid); continue; }
         r.attachedTo = t; r.attachKind = kind; (t.attached = t.attached || []).push(r);
-        const k = t.uid + "|" + kind; (slots[k] = slots[k] || []).push(r);
+        const k = t.uid + "|" + kind + (kind === "join" ? "|" + r.unit.jg : ""); (slots[k] = slots[k] || []).push(r);
+      } else if (r.unit.jm) {
+        err(`${r.unit.n} must join a ${r.unit.jn === "*" ? "unit" : r.unit.jn.map((x) => x.replace(/\w\S*/g, (w) => w[0] + w.slice(1).toLowerCase())).join(" / ")} from your army`, e.uid);
       } else if (r.unit.sup && r.unit.sup.length && !(r.unit.ldr && r.unit.ldr.length)) {
         warn(`${r.unit.n} is a Support unit and must be attached to a bodyguard unit`, e.uid);
       }
     }
+    for (const r of res.entries) if (r.attachKind === "join" && r.unit.jl && !(r.attachedTo.attached || []).some((x) => x.attachKind !== "join" && unitKey(x.unit.n) === unitKey(r.unit.jl)))
+      err(`${r.unit.n} can only join a unit that is being led by a ${r.unit.jl}`, r.uid);
     for (const [k, rs] of Object.entries(slots)) if (rs.length > 1) {
       const t = byUid[k.split("|")[0]];
+      if (rs[0].attachKind === "join") { err(`${t.unit.n} cannot have more than one ${rs[0].unit.jg} unit joined to it (${rs.map((x) => x.unit.n).join(", ")})`, t.uid); continue; }
       if (rs[0].attachKind === "leader" && leadersOk(t.unit, rs.map((x) => x.unit), t.entry.models)) continue;
       err(`${t.unit.n} has ${rs.length} ${rs[0].attachKind === "leader" ? "Leaders" : "Support units"} attached (${rs.map((x) => x.unit.n).join(", ")}) - max 1`, t.uid);
     }
@@ -573,6 +602,10 @@
     for (const [lab, a] of Object.entries(allySum)) {
       const cap = size && a.al.caps ? a.al.caps[size.id] : null;
       if (cap != null && a.pts > cap) err(`${lab}: ${a.pts} / ${cap} pts of allied units`);
+      for (const m of allyCountIssues(a, size)) err(`${lab}: ${m}`);
+      if (a.al.rk) { const opp = norm(a.al.rk) === "imperium" ? "chaos" : "imperium";   // own-faction keyword data is patchy: only flag allied copies or units of the other allegiance
+        const bad = res.entries.find((r) => r.unit && !(r.unit.kw || []).some((k) => norm(k) === norm(a.al.rk)) && (r.unit.af || (r.unit.kw || []).some((k) => norm(k) === opp)));
+        if (bad) err(`${lab}: every model in your army must have the ${a.al.rk.toUpperCase()} keyword (${bad.unit.n} does not)`, bad.uid); }
     }
     res.allies = allySum;
     if (warlords > 1) err(`${warlords} Warlords selected (max 1)`);
@@ -757,7 +790,7 @@
   function attachText(r, c) {
     const t = r.attachedTo; if (!t) return "";
     const same = c.entries.filter((x) => x.name === t.name).length;
-    return `Attached to: ${t.name}${same > 1 ? ` #${t.copy}` : ""}${r.attachKind === "support" ? " (support)" : ""}`;
+    return `Attached to: ${t.name}${same > 1 ? ` #${t.copy}` : ""}${r.attachKind === "support" ? " (support)" : r.attachKind === "join" ? " (joined)" : ""}`;
   }
   /* bodyguard side of an attachment: "Led by: Shield-Captain + Blade Champion" */
   function ledText(r) {
@@ -1745,7 +1778,7 @@
     return true;
   }
 
-  return { MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

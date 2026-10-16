@@ -39,7 +39,7 @@ function mfmFrom(D, ids) {
   const out = { factions: {} };
   for (const f of D.factions.filter((x) => ids.includes(x.id))) {
     out.factions[f.id] = {
-      units: f.units.map((u) => ({ name: u.n.replace(/ \[Legends\]$/, "").toUpperCase(), legends: !!u.lg, group: u.lg ? "LEGENDS" : "UNITS",
+      units: f.units.filter((u) => !u.af).map((u) => ({ name: u.n.replace(/ \[Legends\]$/, "").toUpperCase(), legends: !!u.lg, group: u.lg ? "LEGENDS" : "UNITS",
         tiers: u.t.map((t) => ({ label: tierLabel(t[0], t[1]), rows: t[2].map((r) => [r[2] || (r[0] === 1 ? "1 model" : `${r[0]} models`), r[1]]) })),
         wargear: (u.w || []).map((w) => [`per ${w[0]}`, w[1]]), other: [] })),
       detachments: f.dets.filter((d) => d.src === "mfm").map((d) => ({ name: d.n, dp: d.dp, enhancements: d.enh.map((e) => [e[0] + (e[3] ? " (Upgrade)" : ""), e[1]]) })),

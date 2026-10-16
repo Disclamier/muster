@@ -188,11 +188,17 @@ def apply_allies(factions, ds, stats):
     if not os.path.exists(p):
         return
     by = {f["id"]: f for f in factions}
-    for r in json.load(open(p))["rules"]:
+    rules = []
+    for r in json.load(open(p))["rules"]:   # "to" may list several factions (Assigned Agents, Freeblades, Dreadblades)
+        for t in (r["to"] if isinstance(r["to"], list) else [r["to"]]):
+            rules.append(dict(r, to=t))
+    for r in rules:
         to = by.get(r["to"])
-        if not to:
+        if not to or r["to"] == r.get("from"):
             continue
-        al = {"label": r["label"], "caps": r["caps"], "text": r["text"]}
+        al = {"label": r["label"], "caps": r.get("caps"), "text": r["text"]}
+        if r.get("uc"): al["uc"] = r["uc"]
+        if r.get("req_kw"): al["rk"] = r["req_kw"]
         if r.get("no_warlord"): al["nw"] = 1
         if r.get("no_enh"): al["ne"] = 1
         if r.get("group"):   # an existing group of the faction (e.g. Legions of Excess): just add the cap
@@ -206,10 +212,11 @@ def apply_allies(factions, ds, stats):
             if not ok or kw & set(r.get("kw_none", [])) or u["n"] in have or u.get("req") or (u.get("grp") and not (u.get("fk") in r.get("fk_any", []) or kw & set(r.get("kw_any", [])))):
                 continue
             c = json.loads(json.dumps(u)); c["grp"] = r["label"]; c["ally"] = al; c["af"] = r["from"]
+            if r.get("src_kw") and r["src_kw"] not in (c.get("kw") or []): c["kw"] = (c.get("kw") or []) + [r["src_kw"]]   # every Knight carries its allegiance keyword
             to["units"].append(c); n += 1
             if u["n"] in ds.get(r["from"], {}).get("units", {}):
                 ds.setdefault(r["to"], {"rules": [], "units": {}})["units"][u["n"]] = ds[r["from"]]["units"][u["n"]]
-        stats["allied_units_" + r["to"]] = n
+        stats["allied_units_" + r["to"]] = stats.get("allied_units_" + r["to"], 0) + n
 
 
 def merge(mfm, gs):
@@ -438,6 +445,13 @@ def merge(mfm, gs):
                 have = {t.upper() for t in x.get("ldr") or []}
                 x["ldr"] = (x.get("ldr") or []) + [t.upper() for t in extra if t.upper() not in have]
                 stats["bsdata_leader_targets"] = stats.get("bsdata_leader_targets", 0) + 1
+        for x in units:   # retinue units that join another unit (Loyal Protector, Attachés, Servitor Retinue...)
+            j = BSDATA_LEADERS.get("join", {}).get(mf["id"], {}).get(x["n"])
+            if j:
+                x["jn"] = j["jn"]; x["jg"] = j["jg"]
+                if j.get("jl"): x["jl"] = j["jl"]
+                if j.get("must"): x["jm"] = 1
+                stats["bsdata_join_units"] = stats.get("bsdata_join_units", 0) + 1
         for x in units:
             for w in BSDATA_WARGEAR.get("fixed", {}).get(mf["id"], {}).get(x["n"], []):
                 m = ((x.get("lo") or {}).get("m") or [None])[0]

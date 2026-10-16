@@ -1,21 +1,276 @@
 {
  "note": "Faction rules that let an army include units without its Faction keyword (New Recruit / BSData wh40k-11e rule text). caps = combined points per battle size; filters: kw_any (unit has any of these keywords), units (exact names), kw_none (excluded keywords).",
  "rules": [
-  {"to": "drukhari", "from": "aeldari", "label": "Corsairs and Travelling Players", "fk_any": ["Harlequins", "Anhrathe"], "kw_any": ["Harlequins", "Anhrathe"],
-   "caps": {"incursion": 250, "strikeforce": 500, "onslaught": 750}, "no_warlord": true, "no_enh": true,
-   "text": "If your Army Faction is DRUKHARI, you can include HARLEQUINS and ANHRATHE units in your army. Combined points: Incursion up to 250, Strike Force up to 500, Onslaught up to 750. They cannot be your WARLORD or be given Enhancements."},
-  {"to": "chaos-knights", "from": "chaos-space-marines", "label": "Wretched Thralls", "kw_any": ["Damned"],
-   "caps": {"incursion": 500, "strikeforce": 500, "onslaught": 500},
-   "text": "You can include DAMNED units in your army (see Codex: Chaos Space Marines). The combined points cost of such units cannot exceed 500 points."},
-  {"to": "imperial-knights", "from": "adeptus-mechanicus", "label": "Mechanicus Allies", "units": ["Tech-Priest Dominus", "Tech-Priest Manipulus", "Skitarii Marshal", "Skitarii Rangers", "Skitarii Vanguard"],
-   "caps": {"incursion": 500, "strikeforce": 500, "onslaught": 500},
-   "text": "You can include TECH-PRIEST DOMINUS / TECH-PRIEST MANIPULUS / MARSHAL / RANGERS / VANGUARD units in your army. The combined points value of such units cannot exceed 500 points."},
-  {"to": "genestealer-cults", "from": "astra-militarum", "label": "Brood Brothers", "all": true,
-   "kw_none": ["Aircraft", "Commissar", "Epic Hero", "Militarum Tempestus", "Ogryn", "Ratling", "Tech-Priest Enginseer", "Ministorum Priest"],
-   "caps": {"incursion": 500, "strikeforce": 1000, "onslaught": 1500}, "no_warlord": true,
-   "text": "You can include ASTRA MILITARUM units in your army. Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. A GENESTEALER CULTS model must be your WARLORD; ASTRA MILITARUM models lose Voice of Command. Excludes AIRCRAFT, COMMISSAR, EPIC HERO, MILITARUM TEMPESTUS, OGRYN, RATLING, TECH-PRIEST ENGINSEER, MINISTORUM PRIEST."},
-  {"to": "emperors-children", "group": "Legions of Excess", "label": "Legions of Excess",
-   "caps": {"incursion": 500, "strikeforce": 1000, "onslaught": 1500}, "no_warlord": true,
-   "text": "You can include LEGIONS OF EXCESS units in your army. Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. No LEGIONS OF EXCESS model can be your WARLORD."}
+  {
+   "to": "drukhari",
+   "from": "aeldari",
+   "label": "Corsairs and Travelling Players",
+   "fk_any": [
+    "Harlequins",
+    "Anhrathe"
+   ],
+   "kw_any": [
+    "Harlequins",
+    "Anhrathe"
+   ],
+   "caps": {
+    "incursion": 250,
+    "strikeforce": 500,
+    "onslaught": 750
+   },
+   "no_warlord": true,
+   "no_enh": true,
+   "text": "If your Army Faction is DRUKHARI, you can include HARLEQUINS and ANHRATHE units in your army. Combined points: Incursion up to 250, Strike Force up to 500, Onslaught up to 750. They cannot be your WARLORD or be given Enhancements."
+  },
+  {
+   "to": "chaos-knights",
+   "from": "chaos-space-marines",
+   "label": "Wretched Thralls",
+   "kw_any": [
+    "Damned"
+   ],
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 500,
+    "onslaught": 500
+   },
+   "text": "You can include DAMNED units in your army (see Codex: Chaos Space Marines). The combined points cost of such units cannot exceed 500 points."
+  },
+  {
+   "to": "imperial-knights",
+   "from": "adeptus-mechanicus",
+   "label": "Mechanicus Allies",
+   "units": [
+    "Tech-Priest Dominus",
+    "Tech-Priest Manipulus",
+    "Skitarii Marshal",
+    "Skitarii Rangers",
+    "Skitarii Vanguard"
+   ],
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 500,
+    "onslaught": 500
+   },
+   "text": "You can include TECH-PRIEST DOMINUS / TECH-PRIEST MANIPULUS / MARSHAL / RANGERS / VANGUARD units in your army. The combined points value of such units cannot exceed 500 points."
+  },
+  {
+   "to": "genestealer-cults",
+   "from": "astra-militarum",
+   "label": "Brood Brothers",
+   "all": true,
+   "kw_none": [
+    "Aircraft",
+    "Commissar",
+    "Epic Hero",
+    "Militarum Tempestus",
+    "Ogryn",
+    "Ratling",
+    "Tech-Priest Enginseer",
+    "Ministorum Priest"
+   ],
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 1000,
+    "onslaught": 1500
+   },
+   "no_warlord": true,
+   "text": "You can include ASTRA MILITARUM units in your army. Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. A GENESTEALER CULTS model must be your WARLORD; ASTRA MILITARUM models lose Voice of Command. Excludes AIRCRAFT, COMMISSAR, EPIC HERO, MILITARUM TEMPESTUS, OGRYN, RATLING, TECH-PRIEST ENGINSEER, MINISTORUM PRIEST."
+  },
+  {
+   "to": "emperors-children",
+   "group": "Legions of Excess",
+   "label": "Legions of Excess",
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 1000,
+    "onslaught": 1500
+   },
+   "no_warlord": true,
+   "text": "You can include LEGIONS OF EXCESS units in your army. Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. No LEGIONS OF EXCESS model can be your WARLORD."
+  },
+  {
+   "to": "death-guard",
+   "group": "Plague Legions",
+   "label": "Plague Legions",
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 1000,
+    "onslaught": 1500
+   },
+   "no_warlord": true,
+   "text": "You can include PLAGUE LEGIONS units in your army (Tallyband Summoners). Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. No PLAGUE LEGIONS model can be your WARLORD."
+  },
+  {
+   "to": "thousand-sons",
+   "group": "Scintillating Legions",
+   "label": "Scintillating Legions",
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 1000,
+    "onslaught": 1500
+   },
+   "no_warlord": true,
+   "text": "You can include SCINTILLATING LEGIONS units in your army (Changehost of Deceit). Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. No SCINTILLATING LEGIONS model can be your WARLORD."
+  },
+  {
+   "to": "world-eaters",
+   "group": "Blood Legions",
+   "label": "Blood Legions",
+   "caps": {
+    "incursion": 500,
+    "strikeforce": 1000,
+    "onslaught": 1500
+   },
+   "no_warlord": true,
+   "text": "You can include BLOOD LEGIONS units in your army (Khorne Daemonkin). Combined points: Incursion up to 500, Strike Force up to 1000, Onslaught up to 1500. No BLOOD LEGIONS model can be your WARLORD."
+  },
+  {
+   "to": [
+    "adepta-sororitas",
+    "adeptus-custodes",
+    "adeptus-mechanicus",
+    "astra-militarum",
+    "black-templars",
+    "blood-angels",
+    "dark-angels",
+    "deathwatch",
+    "grey-knights",
+    "imperial-agents",
+    "imperial-knights",
+    "space-marines",
+    "space-wolves",
+    "titan-legions"
+   ],
+   "from": "imperial-agents",
+   "label": "Assigned Agents",
+   "kw_any": [
+    "Retinue",
+    "Character",
+    "Requisitioned",
+    "Dedicated Transport"
+   ],
+   "req_kw": "Imperium",
+   "uc": {
+    "cats": [
+     {
+      "name": "Retinue",
+      "kw": "Retinue",
+      "caps": {
+       "incursion": 1,
+       "strikeforce": 2,
+       "onslaught": 3
+      }
+     },
+     {
+      "name": "Character",
+      "kw": "Character",
+      "caps": {
+       "incursion": 1,
+       "strikeforce": 2,
+       "onslaught": 3
+      }
+     },
+     {
+      "name": "Requisitioned",
+      "kw": "Requisitioned",
+      "caps": {
+       "incursion": 1,
+       "strikeforce": 1,
+       "onslaught": 2
+      }
+     }
+    ]
+   },
+   "text": "If every model in your army has the IMPERIUM keyword, you can include AGENTS OF THE IMPERIUM units. Max: Incursion 1 RETINUE, 1 CHARACTER, 1 REQUISITIONED; Strike Force 2, 2, 1; Onslaught 3, 3, 2. Agents DEDICATED TRANSPORTS can be included but must start the battle with a unit embarked."
+  },
+  {
+   "to": [
+    "adepta-sororitas",
+    "adeptus-custodes",
+    "adeptus-mechanicus",
+    "astra-militarum",
+    "black-templars",
+    "blood-angels",
+    "dark-angels",
+    "deathwatch",
+    "grey-knights",
+    "imperial-agents",
+    "imperial-knights",
+    "space-marines",
+    "space-wolves",
+    "titan-legions"
+   ],
+   "from": "imperial-knights",
+   "label": "Freeblades",
+   "kw_any": [
+    "Titanic",
+    "Armiger"
+   ],
+   "units": [
+    "Canis Rex"
+   ],
+   "req_kw": "Imperium",
+   "no_warlord": true,
+   "no_enh": true,
+   "uc": {
+    "xor": true,
+    "cats": [
+     {
+      "name": "Titanic",
+      "kw": "Titanic",
+      "units": [
+       "Canis Rex"
+      ],
+      "max": 1
+     },
+     {
+      "name": "Armiger",
+      "kw": "Armiger",
+      "max": 3
+     }
+    ]
+   },
+   "text": "If every model in your army has the IMPERIUM keyword, you can include either one TITANIC IMPERIAL KNIGHTS model or up to three ARMIGER models. None of these models can be your WARLORD, and they cannot be given Enhancements.",
+   "src_kw": "Imperium"
+  },
+  {
+   "to": [
+    "chaos-space-marines",
+    "death-guard",
+    "emperors-children",
+    "thousand-sons",
+    "world-eaters",
+    "chaos-daemons",
+    "chaos-knights",
+    "chaos-titan-legions"
+   ],
+   "from": "chaos-knights",
+   "label": "Dreadblades",
+   "kw_any": [
+    "Titanic",
+    "War Dog"
+   ],
+   "req_kw": "Chaos",
+   "no_warlord": true,
+   "no_enh": true,
+   "uc": {
+    "xor": true,
+    "cats": [
+     {
+      "name": "Titanic",
+      "kw": "Titanic",
+      "max": 1
+     },
+     {
+      "name": "War Dog",
+      "kw": "War Dog",
+      "max": 3
+     }
+    ]
+   },
+   "text": "If every model in your army has the CHAOS keyword, you can include either one TITANIC CHAOS KNIGHTS model or up to three WAR DOG models. None of these models can be your WARLORD, and they cannot be given Enhancements.",
+   "src_kw": "Chaos"
+  }
  ]
 }

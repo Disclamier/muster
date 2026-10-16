@@ -87,5 +87,85 @@
     "nodup": true
    }
   }
+ },
+ "join": {
+  "_doc": "Retinue units that JOIN another unit (datasheet 'Loyal Protector' / 'Attachés' / 'Servitor Retinue' / 'Court of the Archon'); confirmed by BSData + Wahapedia datasheet text. jn targets, jg = one-per-target group, jl = target must be led by this unit, must = cannot be fielded alone",
+  "astra-militarum": {
+   "Nork Deddog": {
+    "jn": [
+     "CADIAN COMMAND SQUAD",
+     "CATACHAN COMMAND SQUAD",
+     "KRIEG COMMAND SQUAD",
+     "MILITARUM TEMPESTUS COMMAND SQUAD",
+     "HELL'S LAST"
+    ],
+    "jg": "Loyal Protector",
+    "must": true
+   },
+   "Ogryn Bodyguard": {
+    "jn": [
+     "CADIAN COMMAND SQUAD",
+     "CATACHAN COMMAND SQUAD",
+     "KRIEG COMMAND SQUAD",
+     "MILITARUM TEMPESTUS COMMAND SQUAD",
+     "HELL'S LAST"
+    ],
+    "jg": "Loyal Protector",
+    "must": true
+   },
+   "Regimental Attachés": {
+    "jn": [
+     "CADIAN COMMAND SQUAD",
+     "CATACHAN COMMAND SQUAD",
+     "KRIEG COMMAND SQUAD",
+     "MILITARUM TEMPESTUS COMMAND SQUAD",
+     "HELL'S LAST"
+    ],
+    "jg": "Regimental Attachés",
+    "must": true
+   },
+   "Munitorum Servitors": {
+    "jn": "*",
+    "jg": "Munitorum Servitors",
+    "jl": "Tech-Priest Enginseer"
+   }
+  },
+  "grey-knights": {
+   "Servitors": {
+    "jn": "*",
+    "jg": "Servitors",
+    "jl": "Brotherhood Techmarine"
+   }
+  },
+  "drukhari": {
+   "Court of the Archon": {
+    "jn": [
+     "KABALITE WARRIORS",
+     "HAND OF THE ARCHON"
+    ],
+    "jg": "Court of the Archon",
+    "jl": "Archon"
+   }
+  },
+  "aeldari": {
+   "D-Cannon Platform": {
+    "jn": [
+     "GUARDIAN DEFENDERS"
+    ],
+    "jg": "Support Weapon"
+   },
+   "Shadow Weaver Platform": {
+    "jn": [
+     "GUARDIAN DEFENDERS"
+    ],
+    "jg": "Support Weapon"
+   },
+   "Vibro Cannon Platform": {
+    "jn": [
+     "GUARDIAN DEFENDERS"
+    ],
+    "jg": "Support Weapon"
+   }
+  }
  }
 }

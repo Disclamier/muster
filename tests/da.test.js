@@ -23,7 +23,7 @@ test("DA chapter units no longer carry old T4/S4 profiles", () => {
   assert.equal(DS["Deathwing Knights"].s.T, "6");
   assert.equal(DS["Belial"].wp.find((w) => /storm bolter/i.test(w[0]))[2][0][4], "5");
   assert.ok(DS["Ravenwing Black Knights"].wp.some((w) => w[0] === "Grenade Launcher"));
-  for (const [n, d] of Object.entries(DS)) for (const w of d.wp) for (const p of w[2]) assert.ok(!(p[7].includes("Pistol") && p[4] === "4" && /bolt/i.test(w[0])), `${n} ${w[0]}`);
+  for (const [n, d] of Object.entries(DS)) if (!(P.units.find((u) => u.n === n) || {}).af) for (const w of d.wp) for (const p of w[2]) assert.ok(!(p[7].includes("Pistol") && p[4] === "4" && /bolt/i.test(w[0])), `${n} ${w[0]}`);
 });
 
 test("Deathwing Terminator chainfist strike profile has Hunter: Monster/Vehicle (app update)", () => {

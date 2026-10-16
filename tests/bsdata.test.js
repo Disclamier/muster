@@ -43,3 +43,47 @@ test("GW export puts allied units under ALLIED UNITS (like the Warhammer 40,000 
   const { l } = list("genestealer-cults", [["Neophyte Hybrids"], ["Cadian Shock Troops"]]);
   const t = C.exportText(l, I, {}, "gw"); assert.match(t, /ALLIED UNITS\n\nCadian Shock Troops/);
 });
+test("Retinue joins: Ogryn Bodyguard + Attachés join a Command Squad that leads Shock Troops", () => {
+  const { c } = list("astra-militarum", [["Cadian Shock Troops"], ["Cadian Command Squad", 0, 0], ["Ogryn Bodyguard", 0, 1], ["Regimental Attachés", 0, 1]]);
+  assert.deepEqual(errs(c, /join|Leader|attached|more than/), []);
+  const r = c.entries.find((x) => x.unit.n === "Ogryn Bodyguard"); assert.equal(r.attachKind, "join");
+  assert.match(C.attachText(r, c), /Cadian Command Squad.*\(joined\)/);
+});
+test("Retinue joins: one Loyal Protector per Command Squad, and Loyal Protector must join", () => {
+  assert.equal(errs(list("astra-militarum", [["Cadian Command Squad"], ["Ogryn Bodyguard", 0, 0], ["Nork Deddog", 0, 0]]).c, /more than one Loyal Protector/).length, 1);
+  assert.equal(errs(list("astra-militarum", [["Ogryn Bodyguard"]]).c, /must join/).length, 1);
+});
+test("Servitor Retinue: GK Servitors only join a unit led by a Brotherhood Techmarine; Court of the Archon joins Kabalites led by an Archon", () => {
+  assert.deepEqual(errs(list("grey-knights", [["Strike Squad"], ["Brotherhood Techmarine", 0, 0], ["Servitors", 0, 0]]).c, /join|Leader|attached|more than|led by/), []);
+  assert.equal(errs(list("grey-knights", [["Strike Squad"], ["Servitors", 0, 0]]).c, /led by a Brotherhood Techmarine/).length, 1);
+  const t = list("grey-knights", [["Strike Squad"], ["Brotherhood Techmarine", 0, 0], ["Servitors"]]);
+  assert.ok(C.attachTargets(t.l, I, t.E[2].uid).some((x) => x.kind === "join" && x.unit.n === "Strike Squad"));
+  assert.deepEqual(errs(list("drukhari", [["Kabalite Warriors"], ["Archon", 0, 0], ["Court of the Archon", 0, 0]]).c, /join|Leader|attached|more than|led by/), []);
+});
+test("Daemon legions: Plague / Scintillating / Blood Legions capped at 1000 pts in Strike Force, no Warlord", () => {
+  for (const [fid, lab] of [["death-guard", "Plague Legions"], ["thousand-sons", "Scintillating Legions"], ["world-eaters", "Blood Legions"]]) {
+    const u = Object.values(I.factions[fid].units).find((x) => x.grp === lab);
+    assert.equal(u.ally.caps.strikeforce, 1000, lab); assert.ok(u.ally.nw);
+  }
+});
+test("Assigned Agents: per-category caps (Strike Force 2 Retinue / 2 Character / 1 Requisitioned)", () => {
+  const F = I.factions["space-marines"]; assert.equal(F.units["Inquisitor"].ally.label, "Assigned Agents");
+  assert.deepEqual(errs(list("space-marines", [["Intercessor Squad"], ["Inquisitor"], ["Ministorum Priest"]]).c, /Assigned Agents/), []);
+  assert.equal(errs(list("space-marines", [["Inquisitor"], ["Ministorum Priest"], ["Navigator"]]).c, /Assigned Agents: 3 \/ 2 Character/).length, 1);
+});
+test("Freeblades / Dreadblades: 1 Titanic or up to 3 Armigers (not both), no Warlord / Enhancements", () => {
+  const ok = list("astra-militarum", [["Cadian Shock Troops"], ["Armiger Helverin"], ["Armiger Warglaive"], ["Armiger Helverin"]]).c;
+  assert.deepEqual(errs(ok, /Freeblades/), []);
+  assert.equal(errs(list("astra-militarum", [["Knight Paladin"], ["Armiger Helverin"]]).c, /Freeblades: either/).length, 1);
+  assert.equal(errs(list("astra-militarum", [["Knight Paladin"], ["Knight Warden"]]).c, /Freeblades: 2 \/ 1 Titanic/).length, 1);
+  assert.equal(errs(list("death-guard", [["War Dog Stalker"], ["Knight Tyrant"]]).c, /Dreadblades: either/).length, 1);
+  assert.ok(I.factions["space-marines"].units["Knight Paladin"].ally.ne);
+});
+test("Aeldari Support Artillery: one platform joins a Guardian Defenders unit", () => {
+  assert.deepEqual(errs(list("aeldari", [["Guardian Defenders"], ["D-Cannon Platform", 0, 0]]).c, /join|attached|more than/), []);
+  assert.equal(errs(list("aeldari", [["Guardian Defenders"], ["D-Cannon Platform", 0, 0], ["Vibro Cannon Platform", 0, 0]]).c, /more than one Support Weapon/).length, 1);
+});
+test("Datasheet default wargear filled in (Dark Apostle bolt pistol, Wulfen Dreadnought storm bolter)", () => {
+  assert.ok(I.factions["chaos-space-marines"].units["Dark Apostle"].lo.m[0][3].includes("Bolt pistol"));
+  assert.ok(I.factions["space-wolves"].units["Wulfen Dreadnought"].lo.m[0][3].includes("Storm bolter"));
+});

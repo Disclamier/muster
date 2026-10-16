@@ -803,7 +803,7 @@
     html += Object.entries(byAlly).map(([lab, us]) => {
       const k = `allyopen:${lab}`; const cap = size && us[0].ally.caps ? us[0].ally.caps[size.id] : null;
       const used = (c.allies && c.allies[lab] && c.allies[lab].pts) || 0;
-      return `<div class="sect ally-sect${S.ui.q || S.ui.collapsed[k] ? "" : " collapsed"}" data-testid="ally-sect" data-ally="${esc(lab)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}" title="${esc(us[0].ally.text)}"><span class="tri"></span>Allied: ${esc(lab)} <span class="muted">(${us.length})</span>${cap != null ? ` <span class="dpchip${used > cap ? " over" : ""}" data-testid="ally-cap">${used} / ${cap} pts</span>` : ""}</div>
+      return `<div class="sect ally-sect${S.ui.q || S.ui.collapsed[k] ? "" : " collapsed"}" data-testid="ally-sect" data-ally="${esc(lab)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}" title="${esc(us[0].ally.text)}"><span class="tri"></span>Allied: ${esc(lab)} <span class="muted">(${us.length})</span>${cap != null ? ` <span class="dpchip${used > cap ? " over" : ""}" data-testid="ally-cap">${used} / ${cap} pts</span>` : ""}${us[0].ally.uc ? ` <span class="dpchip${C.allyCountIssues((c.allies && c.allies[lab]) || { n: [], al: us[0].ally }, size).length ? " over" : ""}" data-testid="ally-cap">${esc(C.allyCapText(us[0].ally, c.allies && c.allies[lab], size))}</span>` : ""}</div>
         <div class="sect-body"><div class="muted small ally-note">${esc(us[0].ally.text)}</div>${us.sort((a, b) => a.n.localeCompare(b.n)).map(row).join("")}</div></div>`;
     }).join("");
     return lockToggle + (html || `<div class="empty">No units match.</div>`);
@@ -878,7 +878,7 @@
     const rowHtml = (r, nested) => {
       const errs = errsFor(r.uid); const bits = entrySummary(r);
       return `<div class="urow${nested ? " attached" : ""}${sel.type === "unit" && sel.uid === r.uid ? " sel" : ""}" data-action="select-entry" data-uid="${esc(r.uid)}"${nested ? ` data-testid="attached-row" data-to="${esc(r.attachedTo.uid)}"` : ""}>
-            <div class="line">${nested ? `<span class="att" title="${esc(r.attachKind === "support" ? "Support unit attached" : "Leader attached")} to ${esc(r.attachedTo.name)} (below)">↓</span>` : ""}${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : "Leader"}</span>` : ""}</span>
+            <div class="line">${nested ? `<span class="att" title="${esc(r.attachKind === "support" ? "Support unit attached" : "Leader attached")} to ${esc(r.attachedTo.name)} (below)">↓</span>` : ""}${icon(ROLE_ICON)}<span class="n">${esc(r.name)}${r.unit && r.unit.lg ? `<span class="tag">Legends</span>` : ""}${nested ? ` <span class="tag">${r.attachKind === "support" ? "Support" : r.attachKind === "join" ? "Joined" : "Leader"}</span>` : ""}</span>
               ${errs.some((x) => c.errors.includes(x)) ? `<span class="dot err" title="${esc(errs.map((x) => x.msg).join("\n"))}">!</span>` : ""}
               ${pts(r.total)}${!nested && r.attached && r.attached.length ? `<span class="combo" title="Attached unit: ${esc([...r.attached.map((x) => x.name), r.name].join(" + "))}" data-testid="combo-pts">Σ ${r.total + r.attached.reduce((a, x) => a + x.total, 0)} pts</span>` : ""}
               <button class="ibtn" data-action="ds-pop" data-uid="${esc(r.uid)}" title="View datasheet">${icon("eye")}</button>
@@ -895,9 +895,9 @@
     const roles = C.ROLE_ORDER.filter((r) => c.byRole[r] && c.byRole[r].entries.some((x) => own || !x.attachedTo)).map((role) => {
       const R = c.byRole[role]; const k = `ros:${role}`;
       const top = R.entries.filter((x) => own || !x.attachedTo);
-      const ptsSum = own ? top.reduce((a, r) => a + r.total, 0) : top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total, 0), 0);
+      const ptsSum = own ? top.reduce((a, r) => a + r.total, 0) : top.reduce((a, r) => a + r.total + (r.attached || []).reduce((b, x) => b + x.total + (x.attached || []).reduce((q, y) => q + y.total, 0), 0), 0);
       return `<div class="card${collKey(k)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}">${esc(role)} ${pts(ptsSum)}<span class="tri"></span></div><div class="sect-body">
-        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group" title="${esc([...r.attached.map((x) => x.name), r.name].join(" + "))}: attached unit">${r.attached.map((x) => rowHtml(x, true)).join("")}${rowHtml(r, false)}</div>` : rowHtml(r, false))).join("")}</div></div>`;
+        ${top.map((r) => (!own && r.attached && r.attached.length ? `<div class="ugroup" data-testid="attached-group" title="${esc([...r.attached.map((x) => x.name), r.name].join(" + "))}: attached unit">${r.attached.map((x) => (x.attached || []).map((y) => rowHtml(y, true)).join("") + rowHtml(x, true)).join("")}${rowHtml(r, false)}</div>` : rowHtml(r, false))).join("")}</div></div>`;
     }).join("");
     const missing = c.entries.filter((r) => r.missing);
     const miss = missing.length ? `<div class="card"><div class="sect-h">Not in current data</div>${missing.map((r) => `<div class="urow" data-uid="${esc(r.uid)}"><div class="line"><span class="n err">${esc(r.name)}</span>
@@ -1137,10 +1137,10 @@
     const grantA = C.enhAttach(F, e);
     if (C.canAttach(u) || grantA) {
       const targets = C.attachTargets(l, S.idx, uid);
-      const kindOf = r.attachKind || (u.ldr && u.ldr.length ? "leader" : "support");
-      const can = [...new Set([...(u.ldr || []), ...(u.sup || []), ...((grantA && grantA.u) || [])])].map(title);
+      const kindOf = r.attachKind || (u.jn ? "join" : u.ldr && u.ldr.length ? "leader" : "support");
+      const can = [...new Set([...(u.ldr || []), ...(u.sup || []), ...(Array.isArray(u.jn) ? u.jn : u.jn ? [`any unit led by a ${u.jl}`] : []), ...((grantA && grantA.u) || [])])].map(title);
       const curBad = e.attach && !targets.some((t) => t.entry.uid === e.attach);
-      attachHtml = `<div class="grp" data-testid="attach-grp"><div class="gh">Attached to <span class="muted">(${kindOf === "support" ? "Support" : "Leader"})</span></div><div class="gb">
+      attachHtml = `<div class="grp" data-testid="attach-grp"><div class="gh">Attached to <span class="muted">(${kindOf === "support" ? "Support" : kindOf === "join" ? "Joins" : "Leader"})</span></div><div class="gb">
         <label class="opt"><input type="radio" name="attach" value="" ${!e.attach ? "checked" : ""} data-change="attach"><span class="on">Not attached</span></label>
         ${targets.map((t) => { const sameName = l.entries.filter((x) => x.unit === t.entry.unit).length > 1; const idx = l.entries.filter((x) => x.unit === t.entry.unit).indexOf(t.entry) + 1;
           const tr = c.entries.find((x) => x.uid === t.entry.uid) || {};

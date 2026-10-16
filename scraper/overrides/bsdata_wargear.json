@@ -27,11 +27,30 @@
    ],
    "Sorcerer": [
     "Bolt pistol"
+   ],
+   "Dark Apostle": [
+    "Bolt pistol"
+   ],
+   "Traitor Enforcer": [
+    "Bolt pistol"
    ]
   },
   "orks": {
    "Kill Tank": [
     "Crushin' Bulk"
+   ]
+  },
+  "dark-angels": {
+   "Land Speeder Vengeance": [
+    "Armoured Hull"
+   ],
+   "Ravenwing Darkshroud": [
+    "Armoured Hull"
+   ]
+  },
+  "space-wolves": {
+   "Wulfen Dreadnought": [
+    "Storm bolter"
    ]
   }
  }
