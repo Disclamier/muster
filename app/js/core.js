@@ -1549,7 +1549,10 @@
   }
   /* null when the unit picks no mark, else the allowed marks (Khorne not for PSYKER units) */
   function markChoices(list, F, u) {
-    if (!u || !markRuleActive(list, F)) return null;
+    // James (Oct 15): Marks of Chaos are chosen ONLY on the two Heretic Astartes Daemon Princes (their wargear option);
+    // no per-unit picker for any other unit, Pactbound Zealots / Marks of Chaos rule included.
+    return null;
+    if (!u || !markRuleActive(list, F)) return null;   // eslint-disable-line no-unreachable
     const kw = (u.kw || []).map((x) => x.toLowerCase());
     if (u.fk !== "Heretic Astartes" || isEpicHero(u) || kw.includes("damned")) return null;
     if (MARKS.some((m) => kw.includes(m.toLowerCase()))) return null;                     // already has one

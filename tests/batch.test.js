@@ -9,7 +9,7 @@ test("detFits: a 3 DP pick greys out everything else; 2+1 fits", () => {
   assert.equal(C.detFits(mk(F.f.id, ["Chaos Cult"]), F, F.dets["Deceptors"], size), false);
   assert.equal(C.detFits(mk(F.f.id, []), F, F.dets["Pactbound Zealots"], size), true);
 });
-test("CSM: marks only on Daemon Princes; cultists have no boons; Pactbound Zealots offers marks", () => {
+test("CSM: marks only on Daemon Princes; cultists have no boons; no mark picker anywhere (Pactbound too)", () => {
   const F = I.factions["chaos-space-marines"];
   for (const u of F.f.units) for (const m of (u.lo && u.lo.m) || []) for (const sl of m[4] || []) {
     if (sl[0] === "Mark of Chaos") assert.match(u.n, /Daemon Prince/, u.n);
@@ -17,7 +17,7 @@ test("CSM: marks only on Daemon Princes; cultists have no boons; Pactbound Zealo
   }
   const lg = F.units["Legionaries"] || F.f.units.find((u) => u.n === "Legionaries");
   assert.equal(C.markChoices(mk(F.f.id, ["Chaos Cult"]), F, lg), null);
-  assert.ok(C.markChoices(mk(F.f.id, ["Pactbound Zealots"]), F, lg).includes("Nurgle"));
+  assert.equal(C.markChoices(mk(F.f.id, ["Pactbound Zealots"]), F, lg), null);
 });
 test("Chaos Rhinos all have combi-bolter/combi-weapon, extra combi-bolter and havoc launcher", () => {
   for (const fid of ["chaos-space-marines", "death-guard", "world-eaters", "emperors-children", "thousand-sons"]) {
@@ -71,4 +71,22 @@ test("export rules appendix: blank line between each detachment rule / stratagem
   app.forEach((x, i) => { if (/^(Detachment rule \(|Stratagem: )/.test(x)) assert.equal(app[i + 1], "", x); });
   const s = C.exportText(l, I, {}, "stratagems", { rules: true }).split("\n");
   for (const st of F.dets["Chaos Cult"].st) { const i = s.findIndex((x) => x.startsWith(`${st[0]} – ${st[1]}CP`)); assert.ok(i > 0 && s[i - 1] === "" || /^== /.test(s[i - 1]), st[0]); }
+});
+test("CSM: no unit other than the two Daemon Princes can pick a Mark of Chaos in any detachment (incl. Land Raider, Chaos Lord)", () => {
+  const F = I.factions["chaos-space-marines"]; const DP = ["Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"];
+  assert.ok(F.units["Chaos Land Raider"] && F.units["Chaos Lord"]);
+  for (const d of [[], ...Object.keys(F.dets).map((n) => [n])]) for (const u of F.f.units) {
+    assert.equal(C.markChoices(mk(F.f.id, d), F, u), null, `${u.n} ${d}`);
+    const marks = ((u.lo && u.lo.m) || []).flatMap((m) => m[4] || []).filter((sl) => /mark/i.test(sl[0]) || sl[1].some((o) => /^(Khorne|Nurgle|Tzeentch|Slaanesh|Chaos Undivided)$/.test(o[0])));
+    assert.equal(marks.length > 0, DP.includes(u.n), u.n);
+  }
+});
+test("CSM Cultist Mob matches the 11th-ed datasheet: Champion autopistol->bolt pistol swap, autopistol + brutal assault weapon, no Chaos Boons", () => {
+  const DS = require("../app/data/datasheets.json").factions["chaos-space-marines"].units["Cultist Mob"];
+  const u = I.factions["chaos-space-marines"].units["Cultist Mob"];
+  assert.deepEqual(DS.wa || [], []);
+  assert.deepEqual(DS.wp.map((w) => w[0]).sort(), ["Autopistol", "Bolt pistol", "Brutal assault weapon"]);
+  const opts = u.lo.m.flatMap((m) => m[4].flatMap((s) => s[1].map((o) => o[0])));
+  assert.deepEqual(opts.sort(), ["Autopistol", "Bolt pistol"]);
+  assert.deepEqual(u.lo.m.map((m) => m[3]), [["Brutal assault weapon"], ["Autopistol", "Brutal assault weapon"]]);
 });

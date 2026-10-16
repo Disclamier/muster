@@ -697,6 +697,12 @@ def main():
             print(f"winrates.json: {len(wc)/1024:.0f} KB, {len(wr.get('factions', []))} factions", file=sys.stderr)
         except Exception as e:  # noqa: BLE001
             print("warn: winrates not bundled:", e, file=sys.stderr)
+    # Cultist Mob: the secondary source still carried 10th-ed Chaos Boons as wargear abilities; the 11th-ed datasheet
+    # (GW app / Wahapedia) has only autopistol / bolt pistol (Champion) / brutal assault weapon and no boons
+    for _fd in merge.datasheets.values():
+        for _n, _u in (_fd.get("units") or {}).items():
+            if _n in ("Cultist Mob", "Cultist Mob with Firearms") and _u.get("wa"):
+                _u["wa"] = []; stats["cultist_boons_removed"] = stats.get("cultist_boons_removed", 0) + 1
     # datasheets (GrimSlate profiles/abilities) - separate file so rules-text changes never touch the points hash
     dsb = {"source": "Secondary rules data (profiles, abilities, keywords); Codex: Space Marines 11th ed. override (scraper/overrides)", "gs_fetched_at": gs.get("fetched_at"),
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
