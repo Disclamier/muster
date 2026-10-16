@@ -65,3 +65,10 @@ test("export rules appendix: one Detachment rule line per detachment, one line p
     for (const s of F.dets[n].st) assert.equal(app.filter((x) => x.startsWith(`Stratagem: ${s[0]} – ${s[1]}CP – `)).length, 1, s[0]);
   }
 });
+test("export rules appendix: blank line between each detachment rule / stratagem entry; Stratagems format spaced too", () => {
+  const F = I.factions["chaos-space-marines"]; const l = mk(F.f.id, ["Chaos Cult", "Cabal of Chaos"]); l.entries.push(C.newEntry(F.units["Legionaries"]));
+  const t = C.exportText(l, I, {}, "gw", { rules: true }); const app = t.slice(t.indexOf("DETACHMENT RULES & STRATAGEMS")).split("\n");
+  app.forEach((x, i) => { if (/^(Detachment rule \(|Stratagem: )/.test(x)) assert.equal(app[i + 1], "", x); });
+  const s = C.exportText(l, I, {}, "stratagems", { rules: true }).split("\n");
+  for (const st of F.dets["Chaos Cult"].st) { const i = s.findIndex((x) => x.startsWith(`${st[0]} – ${st[1]}CP`)); assert.ok(i > 0 && s[i - 1] === "" || /^== /.test(s[i - 1]), st[0]); }
+});

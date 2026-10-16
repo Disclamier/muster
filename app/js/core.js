@@ -801,8 +801,10 @@
   function rulesAppendix(X) {
     const one = (x) => String(x || "").replace(/\*\*|\^\^/g, "").replace(/\s*\n+\s*/g, " ").trim();
     const L = ["", "DETACHMENT RULES & STRATAGEMS"];
-    for (const d of X.dets) L.push(`Detachment rule (${d.n}) – ${d.rule && d.rule[0] ? `${d.rule[0]}: ${one(d.rule[1])}` : "(no rule data available)"}`);
-    for (const d of X.dets) for (const s of d.st) L.push(`Stratagem: ${s[0]} – ${s[1]}CP – ${one(s[5])}`);
+    // one line per entry, a blank line between entries
+    for (const d of X.dets) L.push(`Detachment rule (${d.n}) – ${d.rule && d.rule[0] ? `${d.rule[0]}: ${one(d.rule[1])}` : "(no rule data available)"}`, "");
+    for (const d of X.dets) for (const s of d.st) L.push(`Stratagem: ${s[0]} – ${s[1]}CP – ${one(s[5])}`, "");
+    if (L[L.length - 1] === "") L.pop();
     return L;
   }
   function footer(meta) {
