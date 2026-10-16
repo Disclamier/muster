@@ -1,5 +1,5 @@
--- Muster owner-only Stats drill-down. NOT applied yet: James must OK it, then run once in the Supabase dashboard
--- -> SQL Editor -> New query -> Run (after supabase/page_views.sql). Safe to re-run (idempotent).
+-- Muster owner-only Stats drill-down. APPLIED in the Supabase dashboard (SQL Editor) on Oct 16, 2026 with James's OK.
+-- Safe to re-run (idempotent) if it ever needs re-applying (after supabase/page_views.sql).
 --
 -- What it changes:
 --  1. page_views gets a nullable user_id column, filled ONLY by the server default auth.uid():
