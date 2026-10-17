@@ -2238,6 +2238,364 @@
     "s": {
      "T": "5"
     }
+   },
+   "Sicaran": {
+    "_src": "GW app via 40k.app (Legends datasheet 'Sicaran', 180 pts) + Wahapedia 11e export (datasheet 000004245, Space Marines Legends), 2026-10-17: one datasheet; Herakles-pattern Autocannon swaps to Arcus/Omega/Punisher/Venator; sponsons optional",
+    "replace": {
+     "s": {
+      "M": "10\"",
+      "T": "11",
+      "SV": "2+",
+      "W": "14",
+      "LD": "6+",
+      "OC": "4"
+     },
+     "wp": [
+      [
+       "Arcus Multi-launcher",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "7",
+         "3+",
+         "6",
+         "0",
+         "2",
+         [
+          "Indirect Fire"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Heavy Bolter",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "3",
+         "3+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Rapid Fire 2",
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Herakles-pattern Autocannon",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "6",
+         "3+",
+         "9",
+         "-1",
+         "3",
+         [
+          "Rapid Fire 2"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Hunter-killer Missile",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "1",
+         "3+",
+         "14",
+         "-3",
+         "D3+3",
+         [
+          "One Shot"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Lascannon",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "1",
+         "3+",
+         "12",
+         "-3",
+         "D3+3",
+         []
+        ]
+       ]
+      ],
+      [
+       "Omega Plasma Array",
+       "r",
+       [
+        [
+         "standard",
+         "36\"",
+         "6",
+         "3+",
+         "9",
+         "-3",
+         "2",
+         []
+        ],
+        [
+         "supercharge",
+         "36\"",
+         "6",
+         "3+",
+         "10",
+         "-3",
+         "3",
+         [
+          "Hazardous"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Punisher Rotary Cannon",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "18",
+         "3+",
+         "6",
+         "0",
+         "1",
+         [
+          "Devastating Wounds"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Storm Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Rapid Fire 2"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Venator Neutron Laser",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "3",
+         "3+",
+         "16",
+         "-3",
+         "D3+3",
+         [
+          "Heavy"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Tracks",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "6",
+         "4+",
+         "8",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "ab": [
+      [
+       "Armoured Spearhead",
+       "This unit's ranged attacks can re-roll one:\n■ Hit roll.\n■ Wound roll.\n■ Damage roll."
+      ]
+     ],
+     "cr": [
+      "Deadly Demise D3",
+      "Damaged 5"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "wa": [],
+     "wo": [
+      "This model can be equipped with 1 Hunter-killer Missile",
+      "This model's Herakles-pattern Autocannon can be replaced with one of the following: 1 Arcus Multi-launcher, 1 Omega Plasma Array, 1 Punisher Rotary Cannon, 1 Venator Neutron Laser",
+      "This model can be equipped with one of the following: 2 Heavy Bolters, 2 Lascannons",
+      "This model can be equipped with 1 Storm Bolter"
+     ],
+     "comp": [
+      "1 Sicaran model",
+      "This model is equipped with: 1 Armoured Tracks; 1 Heavy Bolter; 1 Herakles-pattern Autocannon."
+     ],
+     "ml": [
+      [
+       "Sicaran",
+       [
+        "Armoured Tracks",
+        "Heavy Bolter",
+        "Herakles-pattern Autocannon"
+       ]
+      ]
+     ],
+     "src": "curated"
+    },
+    "lo": {
+     "m": [
+      [
+       "Sicaran",
+       1,
+       1,
+       [
+        "Armoured Tracks",
+        "Heavy Bolter"
+       ],
+       [
+        [
+         "Herakles-pattern Autocannon",
+         [
+          [
+           "Herakles-pattern Autocannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Arcus Multi-launcher",
+           1,
+           null,
+           null,
+           null
+          ],
+          [
+           "Omega Plasma Array",
+           1,
+           null,
+           null,
+           null
+          ],
+          [
+           "Punisher Rotary Cannon",
+           1,
+           null,
+           null,
+           null
+          ],
+          [
+           "Venator Neutron Laser",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Herakles-pattern Autocannon"
+         ],
+         1,
+         1,
+         0
+        ],
+        [
+         "Sponsons",
+         [
+          [
+           "Two Heavy Bolters",
+           1,
+           null,
+           null,
+           null
+          ],
+          [
+           "Two Lascannons",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ],
+        [
+         "Hunter-killer Missile",
+         [
+          [
+           "Hunter-killer Missile",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ],
+        [
+         "Storm Bolter",
+         [
+          [
+           "Storm Bolter",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
    }
   },
   "astra-militarum": {

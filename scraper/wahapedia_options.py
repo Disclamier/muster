@@ -274,6 +274,11 @@ def apply(fid, units, stats):
                 each = p.get("max_each") or 1
                 opts = [[o[0], omax * (o[1] or 1) if omax else None, None, None, mas] for o in p["opts"]]
                 mt[4].append([p["slot"], opts, [], 0, each, 1])
+            # MFM per-item priced wargear (u["w"], e.g. Black Templars "Multi-melta +10") is charged when picked
+            wi = {N(w[0]): i for i, w in enumerate(u.get("w") or [])}
+            for o in mt[4][-1][1]:
+                if o[3] is None and N(o[0]) in wi:
+                    o[3] = wi[N(o[0])]; stats["wahapedia_option_costs"] = stats.get("wahapedia_option_costs", 0) + 1
             stats["wahapedia_option_slots"] = stats.get("wahapedia_option_slots", 0) + 1
 
 

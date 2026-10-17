@@ -1,0 +1,151 @@
+{
+ "_doc": "Weapon profiles missing from the secondary datasheet source; each verified against 2 sources (GW app via 40k.app v981 / Wahapedia 11e / BSData wh40k-11e). Added only when the unit lacks a profile of that name. Adeptus Custodes entries removed 2026-10-17: the new Custodes codex (GW app v995) datasheets supply their own profiles. 'only' limits a unit's additions to the listed factions: the multi-melta option exists only on the Black Templars datasheets (GW app via 40k.app + Wahapedia 11e export, 2026-10-17); the Space Marines codex Gladiators/Repulsors (used by SM, BA, DA, DW, SW) have no such option. The Sicaran is a curated fix (curated_datasheets.json).",
+ "units": {
+  "Macharius Omega": [
+   [
+    "Hunter-killer missile",
+    "r",
+    [
+     [
+      null,
+      "48\"",
+      "1",
+      "4+",
+      "14",
+      "-3",
+      "D6",
+      [
+       "One Shot"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "Gladiator Lancer": [
+   [
+    "Multi-melta",
+    "r",
+    [
+     [
+      null,
+      "18\"",
+      "2",
+      "3+",
+      "10",
+      "-3",
+      "D3+2",
+      [
+       "Melta 3"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "Gladiator Reaper": [
+   [
+    "Multi-melta",
+    "r",
+    [
+     [
+      null,
+      "18\"",
+      "2",
+      "3+",
+      "10",
+      "-3",
+      "D3+2",
+      [
+       "Melta 3"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "Repulsor": [
+   [
+    "Multi-melta",
+    "r",
+    [
+     [
+      null,
+      "18\"",
+      "2",
+      "3+",
+      "10",
+      "-3",
+      "D3+2",
+      [
+       "Melta 3"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "Repulsor Executioner": [
+   [
+    "Multi-melta",
+    "r",
+    [
+     [
+      null,
+      "18\"",
+      "2",
+      "3+",
+      "10",
+      "-3",
+      "D3+2",
+      [
+       "Melta 3"
+      ]
+     ]
+    ]
+   ]
+  ],
+  "Death Company Marines": [
+   [
+    "Grenade Launcher",
+    "r",
+    [
+     [
+      "frag",
+      "24\"",
+      "4",
+      "3+",
+      "4",
+      "-1",
+      "1",
+      [
+       "Blast 1"
+      ]
+     ],
+     [
+      "krak",
+      "24\"",
+      "2",
+      "3+",
+      "10",
+      "-2",
+      "3",
+      [
+       "Rapid Fire 1"
+      ]
+     ]
+    ]
+   ]
+  ]
+ },
+ "only": {
+  "Gladiator Lancer": [
+   "black-templars"
+  ],
+  "Gladiator Reaper": [
+   "black-templars"
+  ],
+  "Repulsor": [
+   "black-templars"
+  ],
+  "Repulsor Executioner": [
+   "black-templars"
+  ]
+ }
+}

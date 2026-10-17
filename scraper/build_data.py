@@ -816,6 +816,16 @@ def main():
             print(f"winrates.json: {len(wc)/1024:.0f} KB, {len(wr.get('factions', []))} factions", file=sys.stderr)
         except Exception as e:  # noqa: BLE001
             print("warn: winrates not bundled:", e, file=sys.stderr)
+    # weapon profiles missing from the secondary source (overrides/weapon_profiles.json, 2-source verified)
+    _wpo = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "weapon_profiles.json")))["units"]
+    _wpo_only = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "weapon_profiles.json"))).get("only", {})
+    for _fid, _fd in merge.datasheets.items():
+        for _n, _u in (_fd.get("units") or {}).items():
+            if _n in _wpo_only and _fid not in _wpo_only[_n]:
+                continue
+            for _w in _wpo.get(_n, []):
+                if not any(norm(x[0]) == norm(_w[0]) for x in _u.get("wp") or []):
+                    _u.setdefault("wp", []).append(json.loads(json.dumps(_w))); stats["weapon_profiles_added"] = stats.get("weapon_profiles_added", 0) + 1
     # Cultist Mob: the secondary source still carried 10th-ed Chaos Boons as wargear abilities; the 11th-ed datasheet
     # (GW app / Wahapedia) has only autopistol / bolt pistol (Champion) / brutal assault weapon and no boons
     for _fd in merge.datasheets.values():
