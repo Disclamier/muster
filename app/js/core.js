@@ -134,6 +134,8 @@
   const kwNorm = (t) => String(t || "").toUpperCase().replace(/[’‘]/g, "'").replace(/[^A-Z0-9' -]/g, " ").replace(/\s+/g, " ").trim();
   const _enhRx = new Map();
   /* parse "WORLD EATERS INFANTRY model only (excluding EPIC HERO units)." -> {alts:[...], excl:[...], text} */
+  /* copies of an Upgrade an army may include: 3 (core rules 25.03), 1 when the name/text says "one per army" */
+  function upgradeMax(en) { return /\bone per army\b/i.test(`${en[0]} ${String(en[2] || "").slice(0, 160)}`) ? 1 : 3; }
   function enhRestriction(en) {
     const key = en[0] + "|" + (en[2] || "");
     if (_enhRx.has(key)) return _enhRx.get(key);
@@ -199,14 +201,19 @@
     const used = {}; for (const x of list.entries) if (x.uid !== uid && x.enh) used[x.enh.name] = (used[x.enh.name] || 0) + 1;
     const g = groupOf(list, e);
     const groupHas = list.entries.find((x) => x.uid !== uid && x.enh && groupOf(list, x) === g);
-    const atLimit = c.enhLimit != null && !e.enh && c.enhCount >= c.enhLimit;
+    // count the army would have with `en` on this entry (11e 25.03: every Character enhancement counts 1; each
+    // different Upgrade counts 1 however many units (max 3) take it, so a 2nd/3rd copy of a taken Upgrade is free)
+    const upg = {}; for (const x of list.entries) if (x.uid !== uid && x.enh) { const xd = F.dets[x.enh.det]; const xe = xd && xd.enh.find((y) => y[0] === x.enh.name); upg[x.enh.name] = !!(xe && xe[3]); }
+    const countWith = (name, isUp) => { const m = { ...used }; if (name) m[name] = (m[name] || 0) + 1; const up = { ...upg }; if (name) up[name] = isUp;
+      return Object.entries(m).reduce((n, [k, v]) => n + (up[k] ? 1 : v), 0); };
     return dets.flatMap((d) => d.enh.map((en) => {
       const el = enhEligible(u, en, F);
       let ok = el.ok, reason = el.reason, taken = false;
       if (ok && !en[3] && used[en[0]]) { ok = false; taken = true; reason = `Already taken by ${list.entries.find((x) => x.uid !== uid && x.enh && x.enh.name === en[0]).unit}`; }
-      else if (ok && en[3] && used[en[0]] >= 3) { ok = false; taken = true; reason = "Already taken 3 times"; }
+      else if (ok && en[3] && used[en[0]] >= upgradeMax(en)) { ok = false; taken = true; reason = upgradeMax(en) === 1 ? "Already taken (one per army)" : "Already taken by 3 units (an Upgrade can be taken up to 3 times)"; }
       if (ok && groupHas) { ok = false; reason = `${groupHas.unit} in the same attached unit already has ${groupHas.enh.name} (one enhancement per unit)`; }
-      if (ok && atLimit && !(e.enh && e.enh.name === en[0])) { ok = false; reason = `Enhancement limit reached (${c.enhCount}/${c.enhLimit})`; }
+      if (ok && c.enhLimit != null && !(e.enh && e.enh.name === en[0]) && countWith(en[0], !!en[3]) > c.enhLimit)
+        { ok = false; reason = `Enhancement limit reached (${countWith(null)}/${c.enhLimit}): each Character enhancement counts 1, each different Upgrade counts 1 (up to 3 units can share it)`; }
       return { d, en, ok, reason, taken };
     }));
   }
@@ -552,7 +559,7 @@
           if (!el.ok) err(el.reason === "Epic Heroes cannot take enhancements" ? `${u.n}: Epic Heroes cannot take enhancements`
             : el.reason === "Characters only" ? `${u.n}: only Characters can take ${en[0]}` : `${u.n} cannot take ${en[0]}: ${el.reason}`, e.uid);
           const k = en[0];
-          enhUse[k] = enhUse[k] || { n: 0, upgrade };
+          enhUse[k] = enhUse[k] || { n: 0, upgrade, max: upgradeMax(en) };
           enhUse[k].n += 1;
         }
       }
@@ -617,11 +624,16 @@
       if (lim != null && c > lim) err(`${n}: ${c} / ${lim} units`);
     }
     for (const [k, v] of Object.entries(enhUse)) {
-      if (!v.upgrade && v.n > 1) err(`${k} taken ${v.n} times (max 1)`);
-      if (v.upgrade && v.n > 3) err(`${k} taken ${v.n} times (max 3)`);
+      if (!v.upgrade && v.n > 1) err(`${k} taken ${v.n} times (an enhancement can be taken only once per army)`);
+      if (v.upgrade && v.n > v.max) err(v.max === 1 ? `${k} taken ${v.n} times (one per army)` : `${k} taken ${v.n} times (an Upgrade can be given to at most 3 units)`);
       res.enhCount += v.upgrade ? 1 : v.n;
+      if (v.upgrade) res.upgCount = (res.upgCount || 0) + v.n; else res.charEnh = (res.charEnh || 0) + v.n;
     }
-    if (res.enhLimit != null && res.enhCount > res.enhLimit) err(`Enhancements: ${res.enhCount} / ${res.enhLimit}`);
+    if (res.enhLimit != null && res.enhCount > res.enhLimit) {
+      const nUp = Object.values(enhUse).filter((v) => v.upgrade).length;
+      err(`Enhancements: ${res.enhCount} / ${res.enhLimit} – ${res.charEnh || 0} Character enhancement${res.charEnh === 1 ? "" : "s"} (1 each)` +
+        (nUp ? ` + ${nUp} different Upgrade${nUp === 1 ? "" : "s"} on ${res.upgCount} unit${res.upgCount === 1 ? "" : "s"} (each different Upgrade counts 1; up to 3 units can share one)` : ""));
+    }
     for (const [lab, a] of Object.entries(allySum)) {
       const cap = size && a.al.caps ? a.al.caps[size.id] : null;
       if (cap != null && a.pts > cap) err(`${lab}: ${a.pts} / ${cap} pts of allied units`);

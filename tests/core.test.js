@@ -71,7 +71,7 @@ test("enhancement rules: eligibility, duplicates, upgrades, limits, detachment",
   assert.match(msgs(C.calcList(list("strikeforce", ["Det A"], [{ n: "Captain", set: w }, { n: "Drone", set: { enh: { det: "Det A", name: "Relic" } } }]), idx)), /only Characters/);
   const up = C.calcList(list("strikeforce", ["Det A"], [{ n: "Captain", set: w }, ...Array(3).fill({ n: "Drone", set: { enh: { det: "Det A", name: "Upgrade X" } } })]), idx);
   assert.equal(up.errors.length, 0, msgs(up)); assert.equal(up.enhCount, 1); assert.equal(up.enhancements, 30);
-  assert.match(msgs(C.calcList(list("strikeforce", ["Det A"], [{ n: "Captain", set: w }, ...Array(4).fill({ n: "Drone", set: { enh: { det: "Det A", name: "Upgrade X" } } })]), idx)), /max 3/);
+  assert.match(msgs(C.calcList(list("strikeforce", ["Det A"], [{ n: "Captain", set: w }, ...Array(4).fill({ n: "Drone", set: { enh: { det: "Det A", name: "Upgrade X" } } })]), idx)), /at most 3 units/);
   assert.match(msgs(C.calcList(list("strikeforce", ["Det A"], [{ n: "Captain", set: { ...w, enh: { det: "Det A", name: "Relic" } } }, { n: "Captain", set: { enh: { det: "Det A", name: "Relic" } } }]), idx)), /Relic taken 2 times/);
   assert.match(msgs(C.calcList(list("incursion", ["Det A", "Det B"], [{ n: "Captain", set: { ...w, enh: { det: "Det A", name: "Relic" } } }, { n: "Captain", set: { enh: { det: "Det B", name: "Sword" } } }, { n: "Old Guy", set: { enh: { det: "Det A", name: "Upgrade X" } } }]), idx)), /Enhancements: 3 \/ 2/);
   assert.match(msgs(C.calcList(list("strikeforce", ["Det A"], [{ n: "Captain", set: { ...w, enh: { det: "Det B", name: "Sword" } } }]), idx)), /needs detachment Det B/);

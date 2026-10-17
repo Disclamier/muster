@@ -1085,9 +1085,7 @@ html[data-theme="dark"] .pleft.left { color: #5fc95f; } html[data-theme="dark"] 
 /* characteristic changed by an enhancement: cyan box; dashed = conditional */
 .emod { display: inline-flex; align-items: baseline; gap: 1px; padding: 0 3px; border: 1.5px solid #19b6d4; border-radius: 3px; background: rgba(25,182,212,.12); font-weight: 700; cursor: help; white-space: nowrap; }
 .emod.cond { border-style: dashed; background: rgba(25,182,212,.06); }
-.emod .emd { font-size: 9px; font-weight: 600; color: #0e8aa3; margin-left: 1px; }
 html[data-theme="dark"] .emod { border-color: #3fd3ee; background: rgba(63,211,238,.14); }
-html[data-theme="dark"] .emod .emd { color: #7fe3f5; }
 .ds-emod-note { font-size: 11px; margin: 3px 0 6px; color: var(--gray); }
 .ds-emod-note ul { margin: 2px 0 0 16px; padding: 0; }
 .emod-key { display: inline-block; width: 10px; height: 10px; border: 1.5px solid #19b6d4; background: rgba(25,182,212,.12); border-radius: 2px; vertical-align: -1px; }
@@ -1095,9 +1093,7 @@ html[data-theme="dark"] .emod .emd { color: #7fe3f5; }
 .toast { white-space: pre-line; max-width: 90vw; }
 /* characteristic changed by a detachment rule: Detachments color (Colors settings); enhancement + detachment: both */
 .emod.det { border-color: var(--c-det, #39ff14); background: color-mix(in srgb, var(--c-det, #39ff14) 13%, transparent); }
-.emod.det .emd { color: var(--c-det, #39ff14); }
 html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); background: color-mix(in srgb, var(--c-det, #39ff14) 14%, transparent); }
-html[data-theme="dark"] .emod.det .emd { color: var(--c-det, #39ff14); }
 .emod.both, html[data-theme="dark"] .emod.both { border-color: #3fd3ee; outline: 1.5px solid var(--c-det, #39ff14); outline-offset: 1px; background: linear-gradient(135deg, rgba(63,211,238,.16) 50%, color-mix(in srgb, var(--c-det, #39ff14) 16%, transparent) 50%); }
 .emod-key.det { border-color: var(--c-det, #39ff14); background: color-mix(in srgb, var(--c-det, #39ff14) 13%, transparent); }
 

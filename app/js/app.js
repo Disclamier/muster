@@ -998,12 +998,9 @@
     const lines = [`${STAT_LBL[stat] || stat}: ${x.base || "-"} → ${x.v}`];
     for (const m of x.mods) lines.push(`${m.enh}${m.via ? ` (from ${m.via})` : ""}: ${desc(m)}${m.pick ? " (one selected weapon)" : ""}${m.cond ? ` – conditional: ${m.cond}` : ""}`);
     const tip = lines.join("\n");
-    const used = x.mods.filter((m) => (x.cond ? m.cond && !m.alt : !m.cond));
-    const first = used[0] || x.mods[0];
     const srcs = new Set(x.mods.map((m) => m.src || "enh"));
     const src = srcs.size > 1 ? " both" : srcs.has("det") ? " det" : "";
-    const sum = used.length > 1 && used.every((m) => m.op === "add") ? { op: "add", v: used.reduce((a, m) => a + m.v, 0) } : first;
-    return `<td${extra || ""}><span class="emod${src}${x.cond ? " cond" : ""}" data-testid="emod" data-stat="${esc(stat)}" data-base="${esc(x.base || "-")}" title="${esc(tip)}" data-action="emod-tip" data-tip="${esc(tip)}">${esc(x.v)}<small class="emd">${esc(sum.op === "set" ? "★" : desc(sum))}</small></span></td>`;
+    return `<td${extra || ""}><span class="emod${src}${x.cond ? " cond" : ""}" data-testid="emod" data-stat="${esc(stat)}" data-base="${esc(x.base || "-")}" title="${esc(tip)}" data-action="emod-tip" data-tip="${esc(tip)}">${esc(x.v)}</span></td>`;   // no +N/-N badge (James, 17 Oct): the box + tooltip explain the change
   }
   /* legend under the profile: which enhancement changed what; conditional changes listed with their condition */
   function emodNote(mods) {

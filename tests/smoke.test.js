@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v54/);
+  assert.match(read("sw.js"), /muster-shell-v55/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2479,6 +2479,9 @@ test("enhancement stat changes are highlighted in the unit panel and datasheet (
   assert.deepEqual(em, ["A:5->6", "S:12->13", "D:D3+3->D3+4"]);
   assert.ok(![...spear.querySelectorAll(".emod")].some((e) => e.classList.contains("cond")));
   assert.match(spear.querySelector("[data-testid=emod]").title, /Memento Moritoi.*: \+1/);
+  // no +N/-N badge next to modified stats (box + tooltip stay)
+  assert.equal(panel.querySelectorAll(".emod small, .emod .emd").length, 0);
+  for (const e of panel.querySelectorAll("[data-testid=emod]")) { assert.equal(e.children.length, 0, e.textContent); assert.ok(e.title && e.dataset.tip, "tooltip kept"); }
   assert.equal(panel.querySelector('[data-testid=ds-ranged] tr[data-weapon="Multi-melta"] [data-testid=emod]'), null, "ranged profile untouched");
   assert.match(panel.querySelector("[data-testid=emod-note]").textContent, /Memento Moritoi/);
   // datasheet window (PC) shows the same
