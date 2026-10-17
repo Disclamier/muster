@@ -58,6 +58,15 @@ ROLE_ORDER = ["Epic Hero", "Character", "Battleline", "Dedicated Transport", "In
               "Swarm", "Monster", "Vehicle", "Fortification", "Other"]
 
 
+
+_CTRL = __import__("re").compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+def strip_ctrl(o):
+    """drop stray control characters (e.g. \x07 bullets from the GW app text) from every string, keeping \n and \t"""
+    if isinstance(o, str): return _CTRL.sub("", o)
+    if isinstance(o, list): return [strip_ctrl(x) for x in o]
+    if isinstance(o, dict): return {k: strip_ctrl(v) for k, v in o.items()}
+    return o
+
 def norm(s):
     s = (s or "").lower().replace("’", "'").replace("‘", "'")
     s = re.sub(r"\[legends\]|\(legends\)", "", s)
@@ -670,8 +679,8 @@ def main():
                 merge.datasheets[fid] = prev_d["factions"][fid]
             print(f"  hold: {fid} kept at previously published data ({old['held']})", file=sys.stderr)
 
-    body = {"battle_sizes": sizes, "rules_text": (mfm.get("muster") or {}).get("rules_text", []),
-            "groups": groups, "factions": factions}
+    body = strip_ctrl( {"battle_sizes": sizes, "rules_text": (mfm.get("muster") or {}).get("rules_text", []),
+            "groups": groups, "factions": factions})
     content = json.dumps(body, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     h = hashlib.sha256(content.encode()).hexdigest()[:16]
     meta = {"v": 1, "fetched_at": mfm.get("fetched_at"), "mfm_version": mfm.get("source_version"),
@@ -742,6 +751,7 @@ def main():
     dsb = {"source": "Secondary rules data (profiles, abilities, keywords); Codex: Space Marines 11th ed. override (scraper/overrides)", "gs_fetched_at": gs.get("fetched_at"),
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
            "weapon_keywords": gs.get("weapon_keywords") or {}, "core_st": load_core_strats(), "factions": merge.datasheets}
+    dsb = strip_ctrl(dsb)
     # hash the content only (not the fetch time) so an unchanged GrimSlate isn't republished every day
     dsc = json.dumps({k: v for k, v in dsb.items() if k != "gs_fetched_at"}, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     dsh = hashlib.sha256(dsc.encode()).hexdigest()[:16]
