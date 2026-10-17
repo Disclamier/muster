@@ -2761,6 +2761,719 @@
      "mn": 1,
      "mx": 1
     }
+   },
+   "Custodian Wardens": {
+    "_src": "GW app v995 (40k.app, re-checked 17 Oct 2026): 2-3 Custodian Warden models; every model Guardian Spear; all can swap spear -> Castellan Axe; 1 model can take a Vexilla (replaces the pre-codex 4-5 model composition)",
+    "lo": {
+     "m": [
+      [
+       "Custodian Warden",
+       2,
+       3,
+       [],
+       [
+        [
+         "Guardian Spear",
+         [
+          [
+           "Guardian Spear",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Castellan Axe",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Guardian Spear"
+         ],
+         1,
+         1,
+         0
+        ],
+        [
+         "Vexilla",
+         [
+          [
+           "Vexilla",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 2,
+     "mx": 3
+    }
+   },
+   "Custodian Guard Sodality": {
+    "_src": "GW app v995 (40k.app, checked 17 Oct 2026): 3 Custodian Guard models, every model Guardian Spear; 1 model can be equipped with 1 Vexilla (GrimSlate 2026-10-17 dropped the Vexilla option)",
+    "lo": {
+     "m": [
+      [
+       "Custodian Guard Sodality",
+       3,
+       3,
+       [
+        "Guardian Spear"
+       ],
+       [
+        [
+         "Vexilla",
+         [
+          [
+           "Vexilla",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Sentinel Guard Sodality": {
+    "_src": "GW app v995 (40k.app, checked 17 Oct 2026): 3 Sentinel Guard models, every model Praesidium Shield + Sentinel Blade; 1 model can be equipped with 1 Vexilla (GrimSlate 2026-10-17 dropped the shield and the Vexilla option)",
+    "lo": {
+     "m": [
+      [
+       "Sentinel Guard Sodality",
+       3,
+       3,
+       [
+        "Praesidium Shield",
+        "Sentinel Blade"
+       ],
+       [
+        [
+         "Vexilla",
+         [
+          [
+           "Vexilla",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Aleya": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Aleya",
+       1,
+       1,
+       [
+        "Somnus"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Valerian": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Valerian",
+       1,
+       1,
+       [
+        "Gnosis"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Shield-Captain on Dawneagle Jetbike": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Shield-Captain on Dawneagle Jetbike",
+       1,
+       1,
+       [
+        "Interceptor lance"
+       ],
+       [
+        [
+         "equipped with",
+         [
+          [
+           "Salvo launcher",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Vertus hurricane bolter",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Salvo launcher"
+         ],
+         1,
+         null,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Anathema Psykana Rhino": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Anathema Psykana Rhino",
+       1,
+       1,
+       [
+        "Storm Bolter",
+        "Armoured tracks"
+       ],
+       [
+        [
+         "Hunter-killer missile",
+         [
+          [
+           "Hunter-killer missile",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         null,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Aquilon Terminators with Solarite Power Gauntlets": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Aquilon Terminators with Solarite Power Gauntlets",
+       3,
+       3,
+       [
+        "Adrathic Combi-destructor",
+        "Solarite Power Gauntlet"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Aquilon Terminators with Solarite Power Talons": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Aquilon Terminators with Solarite Power Talons",
+       3,
+       3,
+       [
+        "Solarite Power Talon"
+       ],
+       [
+        [
+         "Lastrum Storm Bolter",
+         [
+          [
+           "Lastrum Storm Bolter",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Infernus Firepike",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Lastrum Storm Bolter"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Custodian Guard Sodality with Adrasite Spears": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Custodian Guard Sodality with Adrasite Spears",
+       3,
+       3,
+       [
+        "Adrasite Spear"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Custodian Guard Sodality with Pyrithite Spears": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Custodian Guard Sodality with Pyrithite Spears",
+       3,
+       3,
+       [
+        "Pyrithite Spear"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Sagittarum Custodians Sodality": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Sagittarum Custodians Sodality",
+       3,
+       3,
+       [
+        "Adrastus Bolt Caliver",
+        "Misericordia"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Venatari with Kinetic Destroyers": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Venatari with Kinetic Destroyers",
+       3,
+       3,
+       [
+        "Kinetic Destroyer",
+        "Tarsus Buckler"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Venatari with Verutum Lances": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Venatari with Verutum Lances",
+       3,
+       3,
+       [
+        "Verutum Lance"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 3
+    }
+   },
+   "Vigilator Squad": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Vigilator Squad",
+       4,
+       10,
+       [
+        "Executioner Greatblade"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 4,
+     "mx": 10
+    }
+   },
+   "Gyrfalcon Jetbike Sodality": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Gyrfalcon Jetbike Sodality",
+       2,
+       2,
+       [
+        "Solarite Power Lance"
+       ],
+       [
+        [
+         "Lastrum Bolt Cannon",
+         [
+          [
+           "Lastrum Bolt Cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Adrathic Devastator",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Arachnus Volley Cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin Corvae Las-pulser",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Lastrum Bolt Cannon"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 2,
+     "mx": 2
+    }
+   },
+   "Vertus Praetors": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Vertus Praetor (Salvo Launcher)",
+       0,
+       3,
+       [
+        "Interceptor lance",
+        "Salvo launcher"
+       ],
+       [],
+       null,
+       null,
+       0
+      ],
+      [
+       "Vertus Praetor (Hurricane Bolter)",
+       0,
+       3,
+       [
+        "Interceptor lance",
+        "Vertus hurricane bolter"
+       ],
+       [],
+       "Vertus Praetor (Salvo Launcher)",
+       null,
+       0
+      ]
+     ],
+     "mn": 2,
+     "mx": 3
+    }
+   },
+   "Coronus Grav-carrier": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Coronus Grav-carrier",
+       1,
+       1,
+       [
+        "Armoured hull",
+        "Twin arachnus blaze cannon"
+       ],
+       [
+        [
+         "Twin Lastrum Bolt Cannon",
+         [
+          [
+           "Twin lastrum bolt cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin Neutronium Cascade Projectors",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Twin lastrum bolt cannon"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Pallas Grav-attack": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Pallas Grav-attack",
+       1,
+       1,
+       [
+        "Armoured hull"
+       ],
+       [
+        [
+         "Twin Arachnus Blaze Cannon",
+         [
+          [
+           "Twin arachnus blaze cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin Iliastus Accelerator Fusil",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Twin arachnus blaze cannon"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Venerable Land Raider": {
+    "_src": "loadout as published 17 Oct 2026 (checked against the GW app v995 by the Custodes tests: default gear + every wargear option); kept over the GrimSlate 2026-10-17 re-structure so saved loadouts keep their picks",
+    "lo": {
+     "m": [
+      [
+       "Venerable Land Raider",
+       1,
+       1,
+       [
+        "Armoured tracks",
+        "Godhammer lascannon",
+        "Godhammer lascannon",
+        "Twin heavy bolter"
+       ],
+       [
+        [
+         "Hunter-killer missile",
+         [
+          [
+           "Hunter-killer missile",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         null,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "u": [
+      [
+       "Storm bolter",
+       [
+        [
+         "Storm bolter",
+         1,
+         null,
+         null,
+         null
+        ]
+       ],
+       [],
+       0,
+       1,
+       1
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
    }
   }
  }

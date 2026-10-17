@@ -559,6 +559,7 @@
       if (e.warlord) {
         if (!isCharacter(u)) err(`${u.n} cannot be the Warlord (not a Character)`, e.uid);
         if (u.ally && u.ally.nw) err(`${u.n} cannot be the Warlord (${u.ally.label})`, e.uid);
+        if (u.wr && !u.wr.some((d) => (list.dets || []).includes(d))) err(`${u.n} cannot be the Warlord (only with the ${u.wr.join(" or ")} detachment)`, e.uid);
         warlords += 1;
       }
       if (u.ally) { const A = allySum[u.ally.label] = allySum[u.ally.label] || { pts: 0, al: u.ally, n: [], units: 0 }; A.pts += row.base + row.wargear + row.addons + row.enh; A.units++;

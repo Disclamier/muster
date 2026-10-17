@@ -69,9 +69,11 @@ test("enhancements: names and MFM costs match the GW app; no site text leaked in
 test("enhancement greying for every Custodes character follows the restriction text", () => {
   const en = (n) => F.f.dets.flatMap((d) => d.enh).find((e) => e[0].startsWith(n));
   const ok = (u, e) => C.enhEligible(U(u), en(e), F).ok;
-  const chars = ["Blade Champion", "Knight-Centura", "Shield-Captain", "Shield-Captain in Allarus Terminator Armour", "Shield-Captain on Dawneagle Jetbike"];
+  const chars = ["Blade Champion", "Shield-Captain", "Shield-Captain in Allarus Terminator Armour", "Shield-Captain on Dawneagle Jetbike"];
   for (const e of F.f.dets.flatMap((d) => d.enh)) { assert.ok(!C.enhEligible(U("Trajann Valoris"), e, F).ok, e[0]); assert.ok(!C.enhEligible(U("Valerian"), e, F).ok, e[0]); }
   for (const c of chars) assert.ok(ok(c, "Pareldor"), c);                          // ADEPTUS CUSTODES model only
+  // army rule ANATHEMA PSYKANA (GW app v995): they "do not have the ADEPTUS CUSTODES faction keyword"
+  assert.ok(!ok("Knight-Centura", "Pareldor")); assert.ok(!ok("Knight-Centura", "Superior Creation"));
   assert.ok(!ok("Shield-Captain on Dawneagle Jetbike", "Not a Shell Wasted"));      // INFANTRY only
   assert.ok(ok("Shield-Captain in Allarus Terminator Armour", "Leonine Ferocity")); assert.ok(!ok("Shield-Captain", "Leonine Ferocity"));
   assert.ok(ok("Shield-Captain on Dawneagle Jetbike", "Sally Forth")); assert.ok(!ok("Blade Champion", "Sally Forth"));
@@ -81,4 +83,37 @@ test("enhancement greying for every Custodes character follows the restriction t
   assert.ok(ok("Coronus Grav-carrier", "Combat Deployment")); assert.ok(!ok("Pallas Grav-attack", "Combat Deployment"));
   assert.ok(ok("Custodian Wardens", "Celeritous Sentries")); assert.ok(!ok("Allarus Custodians", "Celeritous Sentries"));
   assert.ok(ok("Telemon Heavy Dreadnought", "Augury Uplink")); assert.ok(!ok("Caladius Grav-tank", "Augury Uplink"));
+});
+
+test("loadout model counts follow the MFM unit sizes for every Custodes unit (Wardens are 2-3 models in the new codex)", () => {
+  for (const u of units) {
+    if (!u.lo) continue;
+    for (const N of [...new Set(u.t.flatMap((t) => t[2].map((c) => c[0])))]) {
+      const lo = C.getLoadout(u, null, N);
+      const tot = C.loadoutLines(u, lo).reduce((n, l) => n + l.count, 0);
+      assert.equal(tot, N, `${u.n} at ${N} models`);
+      assert.deepEqual(C.loadoutIssues(u, lo, N), [], `${u.n} at ${N} models`);
+    }
+  }
+  const w = U("Custodian Wardens");
+  assert.equal(w.lo.mn, 2); assert.equal(w.lo.mx, 3);
+  const lo = C.getLoadout(w, null, 3);
+  assert.deepEqual(C.loadoutLines(w, lo).map(C.loadoutText), ["3x Custodian Warden: Guardian Spear"]);
+  const axes = { c: lo.c, p: { ...lo.p, "Custodian Warden|Guardian Spear": { "Castellan Axe": 3 }, "Custodian Warden|Vexilla": { Vexilla: 1 } } };
+  assert.deepEqual(C.loadoutIssues(w, axes, 3), []);
+  assert.deepEqual(C.loadoutLines(w, axes).map(C.loadoutText), ["3x Custodian Warden: Castellan Axe, 1x Vexilla"]);
+});
+
+test("Anathema Psykana (army rule, GW app v995): own faction keyword, never detachment-locked, Warlord only with Null Maiden Vigil", () => {
+  for (const n of ["Knight-Centura", "Prosecutor Squad", "Vigilator Squad", "Witchseeker Squad", "Anathema Psykana Rhino", "Aleya"]) {
+    assert.equal(U(n).fk, "Anathema Psykana", n); assert.equal(U(n).req, undefined, n);
+    assert.ok(C.unitAllowed(U(n), { dets: ["Lions of the Emperor"] }).ok, n);
+  }
+  assert.deepEqual(U("Knight-Centura").wr, ["Null Maiden Vigil"]); assert.equal(U("Shield-Captain").wr, undefined);
+  const L = (dets) => ({ faction: "adeptus-custodes", size: "strikeforce", dets, disposition: "DISRUPTION",
+    entries: [{ uid: "k", unit: "Knight-Centura", models: 1, warlord: true }, { uid: "v", unit: "Vigilator Squad", models: 5 }] });
+  const wl = (dets) => C.calcList(L(dets), I).errors.filter((x) => /Warlord/.test(x.msg)).map((x) => x.msg);
+  assert.deepEqual(wl(["Lions of the Emperor"]), ["Knight-Centura cannot be the Warlord (only with the Null Maiden Vigil detachment)"]);
+  assert.deepEqual(wl(["Null Maiden Vigil"]), []);
+  assert.deepEqual(C.calcList(L(["Lions of the Emperor"]), I).errors.filter((x) => /only available/.test(x.msg)), []);
 });

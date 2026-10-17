@@ -90,6 +90,41 @@ def prev_gs_dets(fid):
     return _PREV.get(fid, [])
 
 
+_PREV_NAMES = None
+
+
+def pnorm(s):
+    """name key for keeping published display names: case / dash / apostrophe variants only ('[Legends]' kept)"""
+    return re.sub(r"[^a-z0-9]", "", (s or "").lower().replace("’", "'").replace("‘", "'"))
+
+
+def prev_names(fid):
+    """({pnorm: unit name}, {pnorm: detachment name}) of `fid` in the last published app/data/points.json"""
+    global _PREV_NAMES
+    if _PREV_NAMES is None:
+        _PREV_NAMES = {}
+        try:
+            for f in json.load(open(os.path.join(ROOT, "app", "data", "points.json"), encoding="utf-8"))["factions"]:
+                _PREV_NAMES[f["id"]] = ({pnorm(u["n"]): u["n"] for u in f.get("units", [])},
+                                        {pnorm(d["n"]): d["n"] for d in f.get("dets", [])})
+        except (OSError, ValueError, KeyError):
+            pass
+    return _PREV_NAMES.get(fid, ({}, {}))
+
+
+def keep_published_names(items, prev, stats, what):
+    """A source re-spelling a name (GrimSlate 17 Oct 2026: 'Caladius Annihilator Grav‑Tank' -> '... Grav-tank',
+    'Grav‑Assault Force' -> 'Grav-Assault Force') must not rename it: saved lists reference units / detachments by
+    display name. Same letters and digits as a published name -> keep the published spelling."""
+    taken = {x["n"] for x in items}
+    for x in items:
+        p = prev.get(pnorm(x["n"]))
+        if p and p != x["n"] and p not in taken:
+            taken.discard(x["n"]); taken.add(p)
+            x["n"] = p
+            stats[f"{what}_names_kept_from_previous_build"] += 1
+
+
 def title_name(s):
     """MFM names are upper case; GrimSlate has proper case. Fallback: smart title-case."""
     t = s.title()
@@ -338,6 +373,8 @@ def merge(mfm, gs):
             if seen_names[x["n"]] > 1:
                 x["n"] = f'{x["n"]} ({seen_names[x["n"]]})'
                 stats["renamed_duplicate_units"] += 1
+        prev_u, prev_d = prev_names(mf["id"])
+        keep_published_names(units, prev_u, stats, "unit")
         units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))
 
         gdets = {norm(d["name"]): d for d in (gf or {}).get("detachments", [])}
@@ -432,7 +469,9 @@ def merge(mfm, gs):
                              "enh": [[e["name"], e["points"], None, 1 if "(upgrade)" in e["name"].lower() else 0]
                                      for e in smd["enhancements"]], "st": [],
                              **({"rs": pd["rs"]} if pd.get("rs") else {})})
+        keep_published_names(dets, prev_d, stats, "detachment")
         dets.sort(key=lambda d: (d["src"] != "mfm", d["n"].lower()))
+        apply_army_groups(mf["id"], units, stats)
         apply_detachment_restrictions(mf, units, dets, stats)
         # datasheets (profiles / abilities) ship in a separate file: unit display name -> compact datasheet
         frules = (gf or {}).get("faction_rules") or []
@@ -455,11 +494,15 @@ def merge(mfm, gs):
         gwapp_datasheets.apply(mf["id"], units, f_ds, stats, merge.gwapp_ds_report)
         if mf["id"] == "adeptus-custodes":   # rules target DREADNOUGHT; the app's keyword list omits it on the walkers
             for u in units:
+                # GrimSlate 2026-10-17 tags every unit EMISSARIES: no such keyword in the GW app (v995) or the codex rules
+                if "Emissaries" in (u.get("kw") or []):
+                    u["kw"] = [k for k in u["kw"] if k != "Emissaries"]
                 if u["n"].endswith("Dreadnought") and "Dreadnought" not in (u.get("kw") or []):
                     u["kw"] = (u.get("kw") or []) + ["Dreadnought"]
         wahapedia_options.apply(mf["id"], units, stats)
         curated.apply(mf["id"], units, f_ds, stats)
         for u in units:   # roles of units whose keywords arrived late (GW-app-only datasheets) or that are still unsorted
+            u.pop("_army_group", None)
             if u.pop("_rerole", None) or u.get("r") == "Other":
                 r = role_from_keywords(u.get("kw"), u["n"], u.get("ldr"))
                 if r != u.get("r"):
@@ -564,6 +607,29 @@ def compact_ds(gu, frn):
     return out
 
 
+ARMY_GROUPS = os.path.join(HERE, "overrides", "army_groups.json")
+
+
+def apply_army_groups(fid, units, stats):
+    """Units an army rule lets into the army without the army's faction keyword (overrides/army_groups.json, e.g.
+    Adeptus Custodes ANATHEMA PSYKANA): their own faction keyword + group (so 'ADEPTUS CUSTODES model only'
+    enhancements and ADEPTUS CUSTODES stratagem targets exclude them), never detachment-locked, and Characters can
+    be the Warlord only with the detachments named (u["wr"])."""
+    try:
+        groups = json.load(open(ARMY_GROUPS, encoding="utf-8"))["factions"].get(fid) or []
+    except (OSError, ValueError, KeyError):
+        return
+    for g in groups:
+        for u in units:
+            if norm(g["keyword"]) not in {norm(k) for k in u.get("kw") or []}:
+                continue
+            u["fk"] = g["faction_keyword"]; u["grp"] = g["group"]; u["_army_group"] = 1
+            u.pop("req", None)
+            if g.get("warlord_detachments") and "character" in {k.lower() for k in u.get("kw") or []}:
+                u["wr"] = list(g["warlord_detachments"])
+            stats["army_group_units"] += 1
+
+
 def apply_detachment_restrictions(mf, units, dets, stats):
     """Units that can only be taken with particular detachments -> unit["req"] = [detachment names].
     Neither MFM nor GrimSlate has an explicit field, so this is derived from both (conservatively):
@@ -584,7 +650,8 @@ def apply_detachment_restrictions(mf, units, dets, stats):
     for g, us in groups.items():
         if norm(g) in ident:
             continue
-        outsiders = [u for u in us if u.get("fk") and norm(u["fk"]) not in ident and not ({norm(k) for k in u.get("kw") or []} & ident)]
+        outsiders = [u for u in us if u.get("fk") and norm(u["fk"]) not in ident and not ({norm(k) for k in u.get("kw") or []} & ident)
+                     and not u.get("_army_group")]
         if not outsiders:
             continue
         pat = re.compile(r"\b" + re.escape(g).replace(r"\ ", r"\s+") + r"\b", re.I)

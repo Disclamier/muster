@@ -1,0 +1,16 @@
+{
+ "note": "Army rules that let units into an army without the army's faction keyword. build_data.py (apply_army_groups) gives them their own faction keyword + group, never locks them to a detachment, and lets their Characters be the Warlord only with the detachments named. Edit by hand from the Warhammer 40,000 app.",
+ "factions": {
+  "adeptus-custodes": [
+   {
+    "keyword": "Anathema Psykana",
+    "faction_keyword": "Anathema Psykana",
+    "group": "Anathema Psykana",
+    "warlord_detachments": [
+     "Null Maiden Vigil"
+    ],
+    "_src": "Warhammer 40,000 app v995 (2026-10-16) via https://www.40k.app/factions/anathema-psykana/army-rules, checked 17 Oct 2026: army rule ANATHEMA PSYKANA - 'You can include ANATHEMA PSYKANA units in your army, even though they do not have the ADEPTUS CUSTODES faction keyword. When mustering your army, unless otherwise stated: You cannot select ANATHEMA PSYKANA as your army faction. You cannot select an ANATHEMA PSYKANA model to be your WARLORD.' Null Maiden Vigil (Silent Sisterhood): 'When mustering your army, you can select a friendly ANATHEMA PSYKANA CHARACTER model to be your WARLORD.'"
+   }
+  ]
+ }
+}

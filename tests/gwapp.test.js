@@ -104,10 +104,25 @@ test("compiled app data: version + every MFM detachment present", () => {
 });
 
 test("no site ad/shop lines leak into rules text (e.g. 'Play Tabletop RPGs' after an enhancement)", () => {
-  const bad = /Play Tabletop RPGs|Shop Miniatures|Become a supporter|Discover more|Forge World models/;
+  const bad = /Play Tabletop RPGs|Shop Miniatures|Become a supporter|Discover more|Forge World models|Faction guides|Try New Games|Join the Marines|Support Veterans|File a Trademark|\n(game|Marines)$/;
   for (const f of P.factions) for (const d of f.dets) {
     assert.doesNotMatch(d.rule[1], bad, `${f.id}: ${d.n} rule`);
     for (const e of d.enh) assert.doesNotMatch(e[2] || "", bad, `${f.id}/${d.n}/${e[0]}`);
     for (const s of d.st) assert.doesNotMatch(s[5], bad, `${f.id}/${d.n}/${s[0]}`);
   }
+});
+
+test("GW app v995 rules updates (40k.app 2026-10-16) are in: Penitent Host vows, Guided Retreat, Chant of Electrotraction, Unshrouded Truth, Apoplectic Frenzy", () => {
+  assert.ok(Number(OV.app_version) >= 995);
+  const det = (fid, dn) => P.factions.find((f) => f.id === fid).dets.find((d) => d.n === dn);
+  const st = (fid, dn, sn) => det(fid, dn).st.find((s) => s[0] === sn)[5];
+  const ph = det("adepta-sororitas", "Penitent Host");
+  assert.match(JSON.stringify(ph.rule), /At the start of your Command phase, you can select one of the following Vows of Atonement/);
+  assert.match(st("adeptus-mechanicus", "Haloscreed Battleclade", "Guided Retreat"), /can re-roll hazard rolls/);
+  assert.doesNotMatch(st("adeptus-mechanicus", "Luminen Auto-choir", "Chant of Electrotraction"), /BATTLECLADE/);
+  for (const fid of ["aeldari", "harlequins", "ynnari"]) {
+    const f = P.factions.find((x) => x.id === fid);
+    if (f && f.dets.some((d) => d.n === "Seer Council")) assert.match(st(fid, "Seer Council", "Unshrouded Truth"), /ingress move this phase \(including in your first turn\)/);
+  }
+  assert.match(st("world-eaters", "Berzerker Warband", "Apoplectic Frenzy"), /Movement phase, just after/);
 });

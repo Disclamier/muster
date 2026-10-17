@@ -1,7 +1,7 @@
 {
  "source": "Warhammer 40,000 app data (via 40k.app)",
- "app_version": "972",
- "released": "2026-10-02",
+ "app_version": "995",
+ "released": "2026-10-16",
  "factions": {
   "adepta-sororitas": [
    {
@@ -353,7 +353,7 @@
      "blocks": [
       [
        "Desperate for Redemption",
-       "At the start of the battle round, you can select one of the following Vows of Atonement to be active for your army until the start of the next battle round. You can only select each Vow of Atonement once per battle."
+       "At the start of your Command phase, you can select one of the following Vows of Atonement to be active for your army until the start of your next Command phase. You can only select each Vow of Atonement once per battle."
       ],
       [
        "The Path of the Penitent",
@@ -1540,7 +1540,7 @@
       "name": "Guided Retreat",
       "cp": 1,
       "category": "Battle Tactic",
-      "text": "WHEN: Your Movement phase, just after an ADEPTUS MECHANICUS unit from your army makes a Fall Back move.\nTARGET: That ADEPTUS MECHANICUS unit.\nEFFECT: Until the end of the turn, your unit is eligible to shoot and declare a charge in a turn in which it Fell Back, and, if it is a HALO OVERRIDE unit, you can re-roll Desperate Escape tests taken for it."
+      "text": "WHEN: Your Movement phase, just after an ADEPTUS MECHANICUS unit from your army is selected to make a Fall Back move.\nTARGET: That ADEPTUS MECHANICUS unit.\nEFFECT: ▫ If your unit is a HALO OVERRIDE unit, your unit can re-roll hazard rolls. ▫ That fall-back move does not prevent your unit from: ▫ Being eligible to shoot. ▫ Being eligible to declare a charge."
      },
      {
       "name": "Analytical Divination",
@@ -1624,7 +1624,7 @@
       "name": "Chant of Electrotraction",
       "cp": 1,
       "category": null,
-      "text": "WHEN: Your Movement phase, when a friendly ELECTRO-PRIESTS BATTLECLADE unit is selected to make an advance move.\nTARGET: That ELECTRO-PRIESTS unit.\nEFFECT: That move does not prevent your unit from being eligible to declare a charge."
+      "text": "WHEN: Your Movement phase, when a friendly ELECTRO-PRIESTS unit is selected to make an advance move.\nTARGET: That ELECTRO-PRIESTS unit.\nEFFECT: That move does not prevent your unit from being eligible to declare a charge."
      },
      {
       "name": "Echoes of the Conduit Wars",
@@ -2359,7 +2359,7 @@
       "name": "Unshrouded Truth",
       "cp": 1,
       "category": "Strategic Ploy",
-      "text": "WHEN: Your Movement phase.\nTARGET: One ASURYANI INFANTRY unit from your army (excluding WRAITH CONSTRUCT units) that has not been selected to move this phase, was not set up on the battlefield this phase, and is within 9\" of one or more friendly ASURYANI PSYKER models.\nEFFECT: Place your unit in strategic reserves.\nYour unit has Deep Strike.\nYour unit must make an ingress move this phase.\nRESTRICTION\nUntil the end of the phase, your unit is not eligible to be selected to move."
+      "text": "WHEN: Your Movement phase.\nTARGET: One ASURYANI INFANTRY unit from your army (excluding WRAITH CONSTRUCT units) that has not been selected to move this phase, was not set up on the battlefield this phase, and is within 9\" of one or more friendly ASURYANI PSYKER models.\nEFFECT: Place your unit in strategic reserves.\nYour unit has Deep Strike.\nYour unit must make an ingress move this phase (including in your first turn).\nRESTRICTION\nUntil the end of the phase, your unit is not eligible to be selected to move."
      },
      {
       "name": "Fate Inescapable",
@@ -5368,7 +5368,7 @@
       "name": "Apoplectic Frenzy",
       "cp": 1,
       "category": "Strategic Ploy",
-      "text": "WHEN: Your Movement phase, ,just after a KHORNE BERZERKERS unit from your army is selected to Advance.\nTARGET: That KHORNE BERZERKERS unit.\nEFFECT: Until the end of the turn, your unit is eligible to declare a charge in a turn in which it Advanced."
+      "text": "WHEN: Your Movement phase, just after a KHORNE BERZERKERS unit from your army is selected to Advance.\nTARGET: That KHORNE BERZERKERS unit.\nEFFECT: Until the end of the turn, your unit is eligible to declare a charge in a turn in which it Advanced."
      },
      {
       "name": "Berzerker's Wrath",
@@ -13361,7 +13361,7 @@
       "name": "Unshrouded Truth",
       "cp": 1,
       "category": "Strategic Ploy",
-      "text": "WHEN: Your Movement phase.\nTARGET: One ASURYANI INFANTRY unit from your army (excluding WRAITH CONSTRUCT units) that has not been selected to move this phase, was not set up on the battlefield this phase, and is within 9\" of one or more friendly ASURYANI PSYKER models.\nEFFECT: Place your unit in strategic reserves.\nYour unit has Deep Strike.\nYour unit must make an ingress move this phase.\nRESTRICTION\nUntil the end of the phase, your unit is not eligible to be selected to move."
+      "text": "WHEN: Your Movement phase.\nTARGET: One ASURYANI INFANTRY unit from your army (excluding WRAITH CONSTRUCT units) that has not been selected to move this phase, was not set up on the battlefield this phase, and is within 9\" of one or more friendly ASURYANI PSYKER models.\nEFFECT: Place your unit in strategic reserves.\nYour unit has Deep Strike.\nYour unit must make an ingress move this phase (including in your first turn).\nRESTRICTION\nUntil the end of the phase, your unit is not eligible to be selected to move."
      },
      {
       "name": "Fate Inescapable",
@@ -26948,7 +26948,7 @@
       "name": "Apoplectic Frenzy",
       "cp": 1,
       "category": "Strategic Ploy",
-      "text": "WHEN: Your Movement phase, ,just after a KHORNE BERZERKERS unit from your army is selected to Advance.\nTARGET: That KHORNE BERZERKERS unit.\nEFFECT: Until the end of the turn, your unit is eligible to declare a charge in a turn in which it Advanced."
+      "text": "WHEN: Your Movement phase, just after a KHORNE BERZERKERS unit from your army is selected to Advance.\nTARGET: That KHORNE BERZERKERS unit.\nEFFECT: Until the end of the turn, your unit is eligible to declare a charge in a turn in which it Advanced."
      },
      {
       "name": "Berzerker's Wrath",
@@ -27974,7 +27974,7 @@
       "name": "Unshrouded Truth",
       "cp": 1,
       "category": "Strategic Ploy",
-      "text": "WHEN: Your Movement phase.\nTARGET: One ASURYANI INFANTRY unit from your army (excluding WRAITH CONSTRUCT units) that has not been selected to move this phase, was not set up on the battlefield this phase, and is within 9\" of one or more friendly ASURYANI PSYKER models.\nEFFECT: Place your unit in strategic reserves.\nYour unit has Deep Strike.\nYour unit must make an ingress move this phase.\nRESTRICTION\nUntil the end of the phase, your unit is not eligible to be selected to move."
+      "text": "WHEN: Your Movement phase.\nTARGET: One ASURYANI INFANTRY unit from your army (excluding WRAITH CONSTRUCT units) that has not been selected to move this phase, was not set up on the battlefield this phase, and is within 9\" of one or more friendly ASURYANI PSYKER models.\nEFFECT: Place your unit in strategic reserves.\nYour unit has Deep Strike.\nYour unit must make an ingress move this phase (including in your first turn).\nRESTRICTION\nUntil the end of the phase, your unit is not eligible to be selected to move."
      },
      {
       "name": "Fate Inescapable",
