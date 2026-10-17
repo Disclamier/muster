@@ -1,15 +1,15 @@
 {
  "v": 1,
- "fetched_at": "2026-10-16T14:03:35+00:00",
+ "fetched_at": "2026-10-17T09:59:12+00:00",
  "mfm_version": "v1.6",
- "gs_fetched_at": "2026-10-16T14:04:18+00:00",
- "hash": "c9ca8660d9d7bcc2",
- "built_at": "2026-10-16T14:07:44+00:00",
+ "gs_fetched_at": "2026-10-17T09:59:50+00:00",
+ "hash": "ef5a37563dbd8949",
+ "built_at": "2026-10-17T10:05:41+00:00",
  "factions": 30,
  "units": 2840,
- "winrates_fetched_at": "2026-10-12T10:02:36Z",
- "winrates_range": "8 Oct - 13 Oct 2026",
- "winrates_hash": "2aad50b34d645cf6",
- "datasheets_hash": "ea524bf64e616e7b",
- "datasheets_version": "2026-10-13"
+ "winrates_fetched_at": "2026-10-17T10:05:33Z",
+ "winrates_range": "15 Oct - 20 Oct 2026",
+ "winrates_hash": "f5696b2bc228a71a",
+ "datasheets_hash": "31e8e74a55266918",
+ "datasheets_version": "2026-10-16"
 }
