@@ -752,6 +752,11 @@ def main():
            "data_version": gs.get("data_version"), "data_hash": gs.get("data_hash"), "game_system": gs.get("game_system"),
            "weapon_keywords": gs.get("weapon_keywords") or {}, "core_st": load_core_strats(), "factions": merge.datasheets}
     dsb = strip_ctrl(dsb)
+    # every datasheet carries the list fields the app iterates (a missing "wa" made the stats view throw)
+    for _f in dsb["factions"].values():
+        for _u in (_f.get("units") or {}).values():
+            for _k in ("ab", "wa", "cr", "fa", "wp", "ml"):
+                if not isinstance(_u.get(_k), list): _u[_k] = []
     # hash the content only (not the fetch time) so an unchanged GrimSlate isn't republished every day
     dsc = json.dumps({k: v for k, v in dsb.items() if k != "gs_fetched_at"}, ensure_ascii=False, separators=(",", ":"), sort_keys=True)
     dsh = hashlib.sha256(dsc.encode()).hexdigest()[:16]

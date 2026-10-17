@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v49/);
+  assert.match(read("sw.js"), /muster-shell-v50/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2550,4 +2550,54 @@ test("Berzerker Warband: +1 A boxed on World Eaters melee weapons (unit panel)",
   assert.ok(a.length >= 1 && a.every((e) => e.classList.contains("det") && !e.classList.contains("cond")));
   assert.match(a[0].title, /Berzerker Warband – Relentless Rage/);
   assert.equal(p.querySelector('[data-testid=ds-ranged] [data-testid=emod]'), null);
+});
+
+// Units with no datasheet in any source (no GrimSlate/GW-app profile exists): they show "No datasheet available" instead.
+const DS_NONE = new Set(["adeptus-custodes|Prosecutor Squad", "adeptus-custodes|Vigilator Squad", "adeptus-custodes|Witchseeker Squad", "chaos-daemons|Soul Grinder",
+  ...["Chaos Reaver Titan", "Chaos Warbringer Nemesis Titan", "Chaos Warhound Titan", "Chaos Warlord Titan"].map((n) => "chaos-titan-legions|" + n),
+  ...["Reaver Titan", "Warbringer Nemesis Titan", "Warhound Titan", "Warlord Titan"].map((n) => "titan-legions|" + n)]);
+
+test("datasheet sweep: every unit in every faction (own, Legends, locked, allies) renders its stats view without throwing", async () => {
+  const { w, d } = makeApp();
+  await until(() => w.Muster && w.Muster.S.ds && w.Muster.S.idx);
+  const M = w.Muster, bad = [], none = [];
+  let n = 0;
+  for (const [fid, F] of Object.entries(M.S.idx.factions)) {
+    for (const u of F.f.units) {
+      n++;
+      let html;
+      try { html = M.datasheetHtml(F, u, null); } catch (e) { bad.push(`${fid}|${u.n}: ${e.message}`); continue; }
+      if (/data-testid="ds-stats"/.test(html)) continue;
+      const key = `${fid}|${u.n}`;
+      if (/data-testid="ds-missing"/.test(html) && DS_NONE.has(key)) { none.push(key); continue; }
+      if (u.af && /data-testid="ds-missing"/.test(html)) { bad.push(`${key}: allied unit has no datasheet`); continue; }
+      bad.push(`${key}: no datasheet rendered`);
+    }
+  }
+  assert.ok(n > 2500, "swept " + n);
+  assert.deepEqual(bad, []);
+  assert.equal(none.length, DS_NONE.size, "known no-datasheet list is current");
+});
+
+test("datasheet data: every record has the list fields the stats view iterates; names with unicode hyphens resolve", () => {
+  for (const [fid, F] of Object.entries(DS.factions)) for (const [k, u] of Object.entries(F.units))
+    for (const f of ["ab", "wa", "cr", "fa", "wp", "ml"]) assert.ok(Array.isArray(u[f]), `${fid}|${k} .${f}`);
+  assert.ok(DS.factions["adeptus-custodes"].units["Caladius Annihilator Grav\u2011Tank"]);
+});
+
+test("Caladius Annihilator Grav-Tank (U+2011 name, record without wargear abilities): eye + unit click open its stats", async () => {
+  const l = { id: "cal", name: "Cal", faction: "adeptus-custodes", sub: "adeptus-custodes", size: "strikeforce", dets: [], app: "muster", schema: 1, updated: "2026-10-16T00:00:00Z",
+    entries: [{ uid: "c1", unit: "Caladius Annihilator Grav\u2011Tank", models: 1, wargear: {}, addons: [], enh: null }] };
+  const errs = [];
+  const { w, d } = makeApp({ storage: { "muster.lists": JSON.stringify([l]) }, beforeParse(win) { win.addEventListener("error", (e) => errs.push(e.message)); } });
+  await until(() => w.Muster && w.Muster.S.ds); await go(w, "#/list/cal"); await until(() => d.querySelector(".roster"));
+  click(w, [...d.querySelectorAll("[data-action=preview-unit]")].find((x) => /Annihilator/.test(x.dataset.unit)));
+  await until(() => d.querySelector(".panel [data-testid=ds-stats]"));
+  assert.match(d.querySelector(".panel [data-testid=ds-stats]").textContent, /14/);
+  click(w, d.querySelector("[data-action=ds-pop][data-uid=c1]"));
+  await until(() => d.querySelector("#modal [data-testid=ds-stats]"));
+  // the same lookup with a plain hyphen still finds it (unicode-normalized fallback)
+  const F = w.Muster.S.idx.factions["adeptus-custodes"];
+  assert.ok(w.Muster.dsOf(F, { n: "Caladius Annihilator Grav-Tank" }));
+  assert.deepEqual(errs, []);
 });

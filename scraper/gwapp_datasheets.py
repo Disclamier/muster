@@ -146,8 +146,8 @@ def apply(fid, units, f_ds, stats, report):
             new[key] = json.loads(json.dumps(d[key]))
         if d.get("inv"):
             new["inv"] = d["inv"]
-        if d.get("wa"):
-            new["wa"] = d["wa"]
+        new["wa"] = d.get("wa") or new.get("wa") or []   # always a list: the app filters it (a missing key broke the stats view)
+        new.setdefault("ml", [])
         if d.get("wo"):
             new["wo"] = d["wo"]
         new["src"] = "gwapp"

@@ -954,7 +954,20 @@
       <div class="meta">${[s[3], s[2], s[4]].filter(Boolean).map(esc).join(" · ")}</div><div class="txt">${esc(clean(s[5]))}</div></div>`;
   }
   /* ---------------------------------------------------------------- datasheet / Profiles (New Recruit style) */
-  function dsOf(F, u) { const f = S.ds && S.ds.factions && F && S.ds.factions[F.f.id]; return (f && u && f.units[u.n]) || null; }
+  // datasheet lookup: exact name, else unicode-normalized name (‑ – — vs -, nbsp, curly quotes, case); missing list fields default to []
+  const DS_LISTS = ["ab", "wa", "cr", "fa", "wp", "ml"];
+  function dsOf(F, u) {
+    const f = S.ds && S.ds.factions && F && S.ds.factions[F.f.id]; if (!f || !u || !f.units) return null;
+    let d = f.units[u.n];
+    if (!d) {
+      if (!f._byNorm) { Object.defineProperty(f, "_byNorm", { value: {}, enumerable: false }); for (const k of Object.keys(f.units)) if (!f._byNorm[C.norm(k)]) f._byNorm[C.norm(k)] = f.units[k]; }
+      d = f._byNorm[C.norm(u.n)];
+    }
+    if (!d) return null;
+    for (const k of DS_LISTS) if (!Array.isArray(d[k])) d[k] = [];
+    if (!d.s || typeof d.s !== "object") d.s = {};
+    return d;
+  }
   const kwTip = (k) => { const g = S.ds && S.ds.weapon_keywords; const base = String(k).replace(/\s+[\dD+\-"]+$/, "").replace(/^\[|\]$/g, "");
     const t = g && (g[k] || g[base] || g[C.title ? base : base]); return t ? ` title="${esc(clean(t).slice(0, 400))}"` : ""; };
   /* what the unit currently carries: weapon name -> count, picked option names; null when unknown */
@@ -2143,6 +2156,6 @@
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open], details.cfg-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
     if (ev.key === "Escape") { if (dialogOpen()) closeModal(); else if (topFloat()) closeFloat(topFloat()); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
-  window.Muster = { S, SY, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
+  window.Muster = { S, SY, datasheetHtml, combinedDatasheet, dsOf, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();
