@@ -5,19 +5,6 @@ const I = C.indexData(P);
 const ds = (f, n) => D.factions[f].units[n];
 const unit = (f, n) => P.factions.find((x) => x.id === f).units.find((u) => u.n === n);
 
-test("Anathema Psykana squads match New Recruit (James's screenshots / BSData): Witchseekers, Prosecutors, Vigilators", () => {
-  const w = ds("adeptus-custodes", "Witchseeker Squad");
-  assert.deepEqual(w.s, { M: '6"', T: "3", SV: "3+", W: "1", LD: "6+", OC: "1" }); assert.equal(w.inv, undefined);
-  assert.deepEqual(w.wp[0], ["Witchseeker Flamer", "r", [[null, '12"', "D6", "N/A", "4", "0", "1", ["Ignores Cover", "Torrent"]]]]);
-  assert.deepEqual(w.cr, ['Scouts 6"']); assert.deepEqual(w.ab.map((a) => a[0]), ["Sanctified Flames", "Daughters of the Abyss"]);
-  const p = ds("adeptus-custodes", "Prosecutor Squad");
-  assert.equal(p.s.OC, "2"); assert.deepEqual(p.wp[0][2][0], [null, '24"', "1", "3+", "5", "-1", "1", ["Rapid Fire 1"]]);
-  assert.match(p.ab[0][1], /\[PRECISION\] and \[DEVASTATING WOUNDS\]/);
-  const v = ds("adeptus-custodes", "Vigilator Squad");
-  assert.deepEqual(v.wp[0][2][0], [null, "Melee", "2", "3+", "5", "-2", "2", ["Anti-Psyker 5+", "Devastating Wounds"]]);
-  for (const n of ["Witchseeker Squad", "Prosecutor Squad", "Vigilator Squad"]) assert.ok(unit("adeptus-custodes", n).kw.includes("Anathema Psykana"), n);
-});
-
 test("every curated datasheet and two-source fix is in the published data (the daily build applies the same file)", () => {
   for (const [fid, us] of Object.entries(CUR.factions)) for (const [n, rec] of Object.entries(us)) {
     const d = ds(fid, n); assert.ok(d, `${fid}|${n}`); assert.deepEqual(d.s, rec.s, `${fid}|${n}`);

@@ -141,6 +141,14 @@ def apply(fid, units, f_ds, stats, report):
             continue
         if not u.get("kw") and d.get("kw"):   # new codex units have no MFM/GrimSlate keywords
             u["kw"] = [u["n"]] + d["kw"]
+            u["_rerole"] = 1                  # role was guessed from the name before keywords existed
+        elif d.get("kw"):                     # keywords the app adds (e.g. GRAV-ASSAULT for Grav-Assault Force enhancements)
+            have = {k.lower() for k in u.get("kw") or []}
+            add = [k for k in d["kw"] if k.lower() not in have and k.lower() not in ("epic hero",)]
+            if add:
+                u["kw"] = (u.get("kw") or []) + add
+                stats["gwapp_keywords_added"] = stats.get("gwapp_keywords_added", 0) + len(add)
+                rep.append(f'{u["n"]}: +keywords {", ".join(add)}')
         new = dict(old or {"n": u["n"]})
         for key in ("s", "wp", "ab", "cr", "fa"):
             new[key] = json.loads(json.dumps(d[key]))

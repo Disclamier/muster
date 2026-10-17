@@ -1,0 +1,837 @@
+{
+ "note": "Warhammer 40,000 app v995 (2026-10-16) via 40k.app: Adeptus Custodes + Anathema Psykana unit pages and detachments",
+ "units": {
+  "Aleya": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     55
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Somnus"
+   ]
+  },
+  "Allarus Custodians": {
+   "led": [
+    "TRAJANN VALORIS",
+    "SHIELD‑CAPTAIN IN ALLARUS TERMINATOR ARMOUR"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     2,
+     180
+    ],
+    [
+     3,
+     270
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Balistus Grenade Launcher",
+    "Guardian Spear"
+   ]
+  },
+  "Anathema Psykana Rhino": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     70
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Armoured Tracks",
+    "Storm Bolter"
+   ]
+  },
+  "Aquilon Terminators with Solarite Power Gauntlets": {
+   "led": [
+    "TRAJANN VALORIS",
+    "SHIELD‑CAPTAIN IN ALLARUS TERMINATOR ARMOUR"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     285
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Adrathic Combi‑destructor",
+    "Solarite Power Gauntlet"
+   ]
+  },
+  "Aquilon Terminators with Solarite Power Talons": {
+   "led": [
+    "SHIELD‑CAPTAIN IN ALLARUS TERMINATOR ARMOUR",
+    "TRAJANN VALORIS",
+    "WARGEAR OPTIONS"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     275
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Lastrum Storm Bolter",
+    "Solarite Power Talon"
+   ]
+  },
+  "Ares Gunship": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     580
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Arachnus Heavy Blaze Cannon",
+    "Arachnus Heavy Blaze Cannon",
+    "Arachnus Magna-blaze Cannon",
+    "Armoured Hull"
+   ]
+  },
+  "Blade Champion": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     175
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Vaultswords"
+   ]
+  },
+  "Caladius Annihilator Grav‑Tank": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     250
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Arachnus Blaze Carronade",
+    "Armoured Hull",
+    "Twin Lastrum Bolt Cannon"
+   ]
+  },
+  "Caladius Grav‑Tank": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     230
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Armoured Hull",
+    "Iliastus Accelerator Cannon",
+    "Twin Lastrum Bolt Cannon"
+   ]
+  },
+  "Contemptor‑Achillus Dreadnought": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     230
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Dreadspear",
+    "Lastrum Storm Bolter",
+    "Lastrum Storm Bolter"
+   ]
+  },
+  "Contemptor‑Galatus Dreadnought": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     220
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Warblade"
+   ]
+  },
+  "Coronus Grav‑Carrier": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     225
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Armoured Hull",
+    "Twin Arachnus Blaze Cannon",
+    "Twin Lastrum Bolt Cannon"
+   ]
+  },
+  "Custodian Guard Sodality with Adrasite Spears": {
+   "led": [
+    "VALERIAN",
+    "TRAJANN VALORIS",
+    "SHIELD‑CAPTAIN"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     200
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Adrasite Spear"
+   ]
+  },
+  "Custodian Guard Sodality with Pyrithite Spears": {
+   "led": [
+    "VALERIAN",
+    "TRAJANN VALORIS",
+    "SHIELD‑CAPTAIN"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     215
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Pyrithite Spear"
+   ]
+  },
+  "Custodian Guard Sodality": {
+   "led": [
+    "TRAJANN VALORIS",
+    "BLADE CHAMPION",
+    "SHIELD‑CAPTAIN",
+    "VALERIAN",
+    "WARGEAR OPTIONS"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     240
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Guardian Spear"
+   ]
+  },
+  "Custodian Wardens": {
+   "led": [
+    "TRAJANN VALORIS",
+    "BLADE CHAMPION",
+    "SHIELD‑CAPTAIN",
+    "VALERIAN",
+    "WARGEAR OPTIONS"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     2,
+     200
+    ],
+    [
+     3,
+     295
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Guardian Spear"
+   ]
+  },
+  "Gyrfalcon Jetbike Sodality": {
+   "led": [
+    "SHIELD‑CAPTAIN ON DAWNEAGLE JETBIKE"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     2,
+     260
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Lastrum Bolt Cannon",
+    "Solarite Power Lance"
+   ]
+  },
+  "Knight‑Centura": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     55
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Executioner Greatblade"
+   ]
+  },
+  "Orion Assault Dropship": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     690
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Arachnus Heavy Blaze Cannon",
+    "Arachnus Heavy Blaze Cannon",
+    "Armoured Hull",
+    "Spiculus Heavy Bolt Launcher",
+    "Spiculus Heavy Bolt Launcher",
+    "Twin Lastrum Bolt Cannon",
+    "Twin Lastrum Bolt Cannon"
+   ]
+  },
+  "Pallas Grav‑Attack": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     135
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Armoured Hull",
+    "Twin Arachnus Blaze Cannon"
+   ]
+  },
+  "Prosecutor Squad": {
+   "led": [
+    "ALEYA"
+   ],
+   "sup": [
+    "KNIGHT‑CENTURA"
+   ],
+   "costs": [
+    [
+     4,
+     45
+    ],
+    [
+     5,
+     50
+    ],
+    [
+     9,
+     80
+    ],
+    [
+     10,
+     90
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Boltgun",
+    "Gun Stock"
+   ]
+  },
+  "Sagittarum Custodians Sodality": {
+   "led": [
+    "VALERIAN",
+    "TRAJANN VALORIS",
+    "SHIELD‑CAPTAIN"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     185
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Adrastus Bolt Caliver",
+    "Misericordia"
+   ]
+  },
+  "Sentinel Guard Sodality": {
+   "led": [
+    "TRAJANN VALORIS",
+    "BLADE CHAMPION",
+    "SHIELD‑CAPTAIN",
+    "VALERIAN",
+    "WARGEAR OPTIONS"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     240
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Praesidium Shield",
+    "Sentinel Blade"
+   ]
+  },
+  "Shield‑Captain in Allarus Terminator Armour": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     185
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Balistus Grenade Launcher",
+    "Guardian Spear"
+   ]
+  },
+  "Shield‑Captain on Dawneagle Jetbike": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     205
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Interceptor Lance",
+    "Salvo Launcher"
+   ]
+  },
+  "Shield‑Captain": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     180
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Praesidium Shield",
+    "Pyrithite Spear"
+   ]
+  },
+  "Telemon Heavy Dreadnought": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     280
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Dual Caestus Fists",
+    "Spiculus Bolt Launcher",
+    "Twin Neutronium Cascade Projectors",
+    "Twin Neutronium Cascade Projectors"
+   ]
+  },
+  "Trajann Valoris": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     265
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Eagle’s Scream",
+    "Watcher’s Axe"
+   ]
+  },
+  "Valerian": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     130
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Gnosis"
+   ]
+  },
+  "Venatari with Kinetic Destroyers": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     255
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Kinetic Destroyer",
+    "Tarsus Buckler"
+   ]
+  },
+  "Venatari with Verutum Lances": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     3,
+     270
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Verutum Lance"
+   ]
+  },
+  "Venerable Contemptor Dreadnought": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     220
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Combi-bolter",
+    "Contemptor Fist",
+    "Multi-melta"
+   ]
+  },
+  "Venerable Land Raider": {
+   "led": [],
+   "sup": [],
+   "costs": [
+    [
+     1,
+     230
+    ]
+   ],
+   "legend": true,
+   "equip": [
+    "Armoured Tracks",
+    "Godhammer Lascannon",
+    "Godhammer Lascannon",
+    "Twin Heavy Bolter"
+   ]
+  },
+  "Vertus Praetors": {
+   "led": [
+    "SHIELD‑CAPTAIN ON DAWNEAGLE JETBIKE"
+   ],
+   "sup": [],
+   "costs": [
+    [
+     2,
+     220
+    ],
+    [
+     3,
+     330
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Interceptor Lance",
+    "Salvo Launcher"
+   ]
+  },
+  "Vigilator Squad": {
+   "led": [
+    "ALEYA"
+   ],
+   "sup": [
+    "KNIGHT‑CENTURA"
+   ],
+   "costs": [
+    [
+     4,
+     50
+    ],
+    [
+     5,
+     55
+    ],
+    [
+     9,
+     90
+    ],
+    [
+     10,
+     100
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Executioner Greatblade"
+   ]
+  },
+  "Witchseeker Squad": {
+   "led": [
+    "ALEYA"
+   ],
+   "sup": [
+    "KNIGHT‑CENTURA"
+   ],
+   "costs": [
+    [
+     4,
+     55
+    ],
+    [
+     5,
+     60
+    ],
+    [
+     9,
+     100
+    ],
+    [
+     10,
+     110
+    ]
+   ],
+   "legend": false,
+   "equip": [
+    "Flamer",
+    "Gun Stock"
+   ]
+  }
+ },
+ "detachments": [
+  {
+   "name": "Aquilan Shield",
+   "enh": [
+    [
+     "Not a Shell Wasted",
+     10
+    ],
+    [
+     "Pareldor's Caducatrix",
+     30
+    ]
+   ]
+  },
+  {
+   "name": "Auric Champions",
+   "enh": [
+    [
+     "Inspirational Exemplar",
+     10
+    ],
+    [
+     "Shroud of the Hidden Blade",
+     20
+    ],
+    [
+     "Superior Creation",
+     30
+    ]
+   ]
+  },
+  {
+   "name": "Dread Host",
+   "enh": [
+    [
+     "Auric Exemplar",
+     15
+    ],
+    [
+     "Flawless Bladework",
+     15
+    ]
+   ]
+  },
+  {
+   "name": "Emissaries Imperatus",
+   "enh": [
+    [
+     "Auriferous Orb",
+     20
+    ],
+    [
+     "Edge of the Blade",
+     15
+    ]
+   ]
+  },
+  {
+   "name": "Emperor's Chosen",
+   "enh": [
+    [
+     "From the Hall of Armouries",
+     15
+    ],
+    [
+     "Radiant Mantle",
+     40
+    ]
+   ]
+  },
+  {
+   "name": "Grav-Assault Force",
+   "enh": [
+    [
+     "Anti-Gravitic Mobility (upgrade)",
+     15
+    ],
+    [
+     "Combat Deployment (upgrade)",
+     20
+    ]
+   ]
+  },
+  {
+   "name": "Guardians of the Throne",
+   "enh": [
+    [
+     "Bane of Abominations",
+     20
+    ],
+    [
+     "Castellan's Mark",
+     25
+    ],
+    [
+     "Eagle's Eye",
+     30
+    ],
+    [
+     "Emperor's Light",
+     15
+    ]
+   ]
+  },
+  {
+   "name": "Honoured Companions",
+   "enh": [
+    [
+     "Arae-Shrike",
+     20
+    ],
+    [
+     "Celeritous Sentries (upgrade)",
+     15
+    ]
+   ]
+  },
+  {
+   "name": "Lions of the Emperor",
+   "enh": [
+    [
+     "Leonine Ferocity",
+     20
+    ],
+    [
+     "Lightning Descent",
+     20
+    ]
+   ]
+  },
+  {
+   "name": "Might of the Moritoi",
+   "enh": [
+    [
+     "Augury Uplink (one Per Army) (upgrade)",
+     30
+    ],
+    [
+     "Memento Moritoi (one Per Army) (upgrade)",
+     30
+    ]
+   ]
+  },
+  {
+   "name": "Null Maiden Vigil",
+   "enh": [
+    [
+     "Huntress' Eye",
+     10
+    ],
+    [
+     "Oblivion Knight",
+     15
+    ]
+   ]
+  },
+  {
+   "name": "Shadowkeepers",
+   "enh": [
+    [
+     "Genalchemic Warding",
+     30
+    ],
+    [
+     "Unstoppable Destroyer",
+     25
+    ]
+   ]
+  },
+  {
+   "name": "Solar Watch",
+   "enh": [
+    [
+     "Auric Eagle (upgrade)",
+     15
+    ],
+    [
+     "Sally Forth",
+     30
+    ]
+   ]
+  }
+ ]
+}

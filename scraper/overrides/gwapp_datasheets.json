@@ -1723,7 +1723,7 @@
   },
   "adeptus-custodes": {
    "source": "Warhammer 40,000 app via https://www.40k.app/factions/adeptus-custodes",
-   "version": "981",
+   "version": "995",
    "units": {
     "Aleya": {
      "s": {
@@ -1913,6 +1913,96 @@
       "Imperium",
       "Infantry",
       "Terminator"
+     ]
+    },
+    "Anathema Psykana Rhino": {
+     "s": {
+      "M": "12\"",
+      "T": "9",
+      "SV": "3+",
+      "W": "10",
+      "LD": "6+",
+      "OC": "2"
+     },
+     "wp": [
+      [
+       "Hunter-killer Missile",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "1",
+         "2+",
+         "14",
+         "-3",
+         "D3+3",
+         [
+          "One Shot"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Storm Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Rapid Fire 2"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Tracks",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "4+",
+         "6",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "cr": [
+      "Deadly Demise D3",
+      "Firing Deck 2"
+     ],
+     "fa": [
+      "Daughters of the Abyss"
+     ],
+     "ab": [
+      [
+       "Assault Vehicle",
+       "In your Movement phase, when this unit ends an advance move, units embarked within this unit can make a shock disembark move.\nTRANSPORT\nThis model has a transport capacity of 12 ANATHEMA PSYKANA INFANTRY models."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "This model can be equipped with 1 Hunter‑killer Missile."
+     ],
+     "kw": [
+      "Anathema Psykana",
+      "Dedicated Transport",
+      "Frame",
+      "Imperium",
+      "Smoke",
+      "Transport",
+      "Vehicle"
      ]
     },
     "Aquilon Terminators with Solarite Power Gauntlets": {
@@ -3223,6 +3313,123 @@
       "Mounted"
      ]
     },
+    "Knight‑Centura": {
+     "s": {
+      "M": "7\"",
+      "T": "3",
+      "SV": "3+",
+      "W": "4",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Master-crafted Boltgun",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "2+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Anti-Psyker 4+",
+          "Assault",
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Master-crafted Flamer",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "4",
+         "N/A",
+         "4",
+         "-1",
+         "1",
+         [
+          "Anti-Psyker 4+",
+          "Assault",
+          "Blast 2",
+          "Torrent"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Executioner Greatblade",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "4",
+         "2+",
+         "5",
+         "-2",
+         "2",
+         [
+          "Anti-Psyker 5+",
+          "Cleave 1",
+          "Devastating Wounds: Psyker"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Gun Stock",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "2+",
+         "3",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "inv": "5+",
+     "cr": [
+      "Scouts 7\"",
+      "Support"
+     ],
+     "fa": [
+      "Daughters of the Abyss"
+     ],
+     "ab": [
+      [
+       "Seeker’s Instincts",
+       "This unit has +2\" M.\nThis unit can re‑roll advance rolls and charge rolls."
+      ],
+      [
+       "Corner the Quarry",
+       "When an enemy unit (excluding MONSTER/VEHICLE units) engaged with this unit makes a fall‑back move, that enemy unit must use the desperate escape mode. If that enemy unit is battle‑shocked, -1 from those hazard rolls."
+      ]
+     ],
+     "wa": [],
+     "wo": [
+      "This model’s Executioner Greatblade can be replaced with one of the following: ▫ 1 Master‑crafted Boltgun and 1 Gun Stock ▫ 1 Master‑crafted Flamer and 1 Gun Stock"
+     ],
+     "kw": [
+      "Anathema Psykana",
+      "Character",
+      "Imperium",
+      "Infantry"
+     ]
+    },
     "Orion Assault Dropship": {
      "s": {
       "M": "14\"",
@@ -3415,6 +3622,71 @@
       "Grav-assault",
       "Imperium",
       "Vehicle"
+     ]
+    },
+    "Prosecutor Squad": {
+     "s": {
+      "M": "7\"",
+      "T": "3",
+      "SV": "3+",
+      "W": "1",
+      "LD": "6+",
+      "OC": "2"
+     },
+     "wp": [
+      [
+       "Boltgun",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "1",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Anti-Psyker 4+",
+          "Assault",
+          "Rapid Fire 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Gun Stock",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "2",
+         "3+",
+         "3",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "cr": [],
+     "fa": [
+      "Daughters of the Abyss"
+     ],
+     "ab": [
+      [
+       "Purity of Execution",
+       "In your Shooting phase, you can select one visible enemy unit within 18\" of this unit. That unit is detected:\n■ While a unit is detected, that unit has +3\" detection range."
+      ]
+     ],
+     "wa": [],
+     "wo": [],
+     "kw": [
+      "Anathema Psykana",
+      "Imperium",
+      "Infantry"
      ]
     },
     "Sagittarum Custodians Sodality": {
@@ -4775,6 +5047,122 @@
       "Fly",
       "Imperium",
       "Mounted"
+     ]
+    },
+    "Vigilator Squad": {
+     "s": {
+      "M": "7\"",
+      "T": "3",
+      "SV": "3+",
+      "W": "1",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Executioner Greatblade",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "3",
+         "3+",
+         "5",
+         "-2",
+         "2",
+         [
+          "Anti-Psyker 5+",
+          "Devastating Wounds: Psyker"
+         ]
+        ]
+       ]
+      ]
+     ],
+     "cr": [],
+     "fa": [
+      "Daughters of the Abyss"
+     ],
+     "ab": [
+      [
+       "Deft Parry",
+       "Melee attacks that target this unit have -1 to hit rolls."
+      ]
+     ],
+     "wa": [],
+     "wo": [],
+     "kw": [
+      "Anathema Psykana",
+      "Imperium",
+      "Infantry"
+     ]
+    },
+    "Witchseeker Squad": {
+     "s": {
+      "M": "7\"",
+      "T": "3",
+      "SV": "3+",
+      "W": "1",
+      "LD": "6+",
+      "OC": "1"
+     },
+     "wp": [
+      [
+       "Flamer",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "3",
+         "N/A",
+         "4",
+         "-1",
+         "1",
+         [
+          "Anti-Psyker 4+",
+          "Assault",
+          "Blast 1",
+          "Torrent"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Gun Stock",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "2",
+         "3+",
+         "3",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ]
+     ],
+     "cr": [
+      "Scouts 7\""
+     ],
+     "fa": [
+      "Daughters of the Abyss"
+     ],
+     "ab": [
+      [
+       "Sanctified Flames",
+       "In your Shooting phase, when this unit has shot, you can select one enemy unit hit by those attacks. That enemy unit makes a battle‑shock roll, with -1 to that battle‑shock roll if that enemy unit is a PSYKER unit."
+      ]
+     ],
+     "wa": [],
+     "wo": [],
+     "kw": [
+      "Anathema Psykana",
+      "Imperium",
+      "Infantry"
      ]
     }
    }

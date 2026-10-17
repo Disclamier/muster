@@ -1,273 +1,7 @@
 {
  "note": "Curated datasheets for units with no GrimSlate / GW-app / codex datasheet. Applied by build_data.py after every other datasheet layer (only fills units that still have no datasheet, so a real source always wins). Edit by hand; regenerate helpers: scraper/wahapedia_ds.py, scraper/bsdata_ds.py.",
  "factions": {
-  "adeptus-custodes": {
-   "Witchseeker Squad": {
-    "s": {
-     "M": "6\"",
-     "T": "3",
-     "SV": "3+",
-     "W": "1",
-     "LD": "6+",
-     "OC": "1"
-    },
-    "wp": [
-     [
-      "Witchseeker Flamer",
-      "r",
-      [
-       [
-        null,
-        "12\"",
-        "D6",
-        "N/A",
-        "4",
-        "0",
-        "1",
-        [
-         "Ignores Cover",
-         "Torrent"
-        ]
-       ]
-      ]
-     ],
-     [
-      "Close Combat Weapon",
-      "m",
-      [
-       [
-        null,
-        "Melee",
-        "2",
-        "3+",
-        "3",
-        "0",
-        "1",
-        []
-       ]
-      ]
-     ]
-    ],
-    "cr": [
-     "Scouts 6\""
-    ],
-    "fa": [],
-    "ab": [
-     [
-      "Sanctified Flames",
-      "In your Shooting phase, after this unit has shot, select one enemy unit that was hit by one or more of those attacks. That unit must take a Battle-shock test."
-     ],
-     [
-      "Daughters of the Abyss",
-      "Models in this unit have the Feel No Pain 3+ ability against Psychic Attacks and mortal wounds."
-     ]
-    ],
-    "wa": [],
-    "wo": [],
-    "ml": [
-     [
-      "Witchseeker Sister Superior",
-      [
-       "Witchseeker Flamer",
-       "Close Combat Weapon"
-      ]
-     ],
-     [
-      "Witchseeker",
-      [
-       "Witchseeker Flamer",
-       "Close Combat Weapon"
-      ]
-     ]
-    ],
-    "kw": [
-     "Infantry",
-     "Witchseekers",
-     "Anathema Psykana",
-     "Imperium"
-    ],
-    "comp": [
-     "1 Witchseeker Sister Superior",
-     "9 Witchseekers",
-     "Every model is equipped with: 1 Witchseeker flamer; 1 Close combat weapon."
-    ],
-    "src": "curated: New Recruit (BSData wh40k-11e) via James's screenshots",
-    "fkw": [
-     "Adeptus Custodes",
-     "Anathema Psykana"
-    ],
-    "r": "Infantry"
-   },
-   "Prosecutor Squad": {
-    "s": {
-     "M": "6\"",
-     "T": "3",
-     "SV": "3+",
-     "W": "1",
-     "LD": "6+",
-     "OC": "2"
-    },
-    "wp": [
-     [
-      "Boltgun",
-      "r",
-      [
-       [
-        null,
-        "24\"",
-        "1",
-        "3+",
-        "5",
-        "-1",
-        "1",
-        [
-         "Rapid Fire 1"
-        ]
-       ]
-      ]
-     ],
-     [
-      "Close Combat Weapon",
-      "m",
-      [
-       [
-        null,
-        "Melee",
-        "2",
-        "3+",
-        "3",
-        "0",
-        "1",
-        []
-       ]
-      ]
-     ]
-    ],
-    "cr": [],
-    "fa": [],
-    "ab": [
-     [
-      "Purity of Execution",
-      "Each time a model in this unit makes a ranged attack that targets a Psyker unit, that attack has the [PRECISION] and [DEVASTATING WOUNDS] abilities."
-     ],
-     [
-      "Daughters of the Abyss",
-      "Models in this unit have the Feel No Pain 3+ ability against Psychic Attacks and mortal wounds."
-     ]
-    ],
-    "wa": [],
-    "wo": [],
-    "ml": [
-     [
-      "Prosecutor Sister Superior",
-      [
-       "Boltgun",
-       "Close Combat Weapon"
-      ]
-     ],
-     [
-      "Prosecutor",
-      [
-       "Boltgun",
-       "Close Combat Weapon"
-      ]
-     ]
-    ],
-    "kw": [
-     "Infantry",
-     "Prosecutors",
-     "Anathema Psykana",
-     "Imperium"
-    ],
-    "comp": [
-     "1 Prosecutor Sister Superior",
-     "3 Prosecutors",
-     "Every model is equipped with: 1 Boltgun; 1 Close combat weapon."
-    ],
-    "src": "curated: New Recruit (BSData wh40k-11e) via James's screenshots",
-    "fkw": [
-     "Adeptus Custodes",
-     "Anathema Psykana"
-    ],
-    "r": "Infantry"
-   },
-   "Vigilator Squad": {
-    "s": {
-     "M": "6\"",
-     "T": "3",
-     "SV": "3+",
-     "W": "1",
-     "LD": "6+",
-     "OC": "1"
-    },
-    "wp": [
-     [
-      "Executioner Greatblade",
-      "m",
-      [
-       [
-        null,
-        "Melee",
-        "2",
-        "3+",
-        "5",
-        "-2",
-        "2",
-        [
-         "Anti-Psyker 5+",
-         "Devastating Wounds"
-        ]
-       ]
-      ]
-     ]
-    ],
-    "cr": [],
-    "fa": [],
-    "ab": [
-     [
-      "Deft Parry",
-      "Each time a melee attack targets this unit, subtract 1 from the Hit roll."
-     ],
-     [
-      "Daughters of the Abyss",
-      "Models in this unit have the Feel No Pain 3+ ability against Psychic Attacks and mortal wounds."
-     ]
-    ],
-    "wa": [],
-    "wo": [],
-    "ml": [
-     [
-      "Vigilator Sister Superior",
-      [
-       "Executioner Greatblade"
-      ]
-     ],
-     [
-      "Vigilator",
-      [
-       "Executioner Greatblade"
-      ]
-     ]
-    ],
-    "kw": [
-     "Infantry",
-     "Vigilators",
-     "Anathema Psykana",
-     "Imperium"
-    ],
-    "comp": [
-     "1 Vigilator Sister Superior",
-     "3-9 Vigilators",
-     "Every model is equipped with: 1 Executioner greatblade."
-    ],
-    "src": "curated: New Recruit (BSData wh40k-11e); weapon + Deft Parry confirmed by Wahapedia",
-    "fkw": [
-     "Adeptus Custodes",
-     "Anathema Psykana"
-    ],
-    "r": "Infantry"
-   }
-  },
+  "adeptus-custodes": {},
   "chaos-daemons": {
    "Soul Grinder": {
     "s": {
@@ -2801,7 +2535,7 @@
     }
    },
    "Witchseeker Squad": {
-    "_src": "James's New Recruit screenshots (datasheet weapons)",
+    "_src": "GW app v995 (Every model: 1 Flamer; 1 Gun Stock) + Wahapedia",
     "lo": {
      "m": [
       [
@@ -2809,8 +2543,8 @@
        4,
        10,
        [
-        "Witchseeker Flamer",
-        "Close Combat Weapon"
+        "Flamer",
+        "Gun Stock"
        ],
        [],
        null,
@@ -2823,7 +2557,7 @@
     }
    },
    "Prosecutor Squad": {
-    "_src": "James's New Recruit screenshots (datasheet weapons)",
+    "_src": "GW app v995 (Every model: 1 Boltgun; 1 Gun Stock) + Wahapedia",
     "lo": {
      "m": [
       [
@@ -2832,7 +2566,7 @@
        10,
        [
         "Boltgun",
-        "Close Combat Weapon"
+        "Gun Stock"
        ],
        [],
        null,
@@ -2842,6 +2576,190 @@
      ],
      "mn": 4,
      "mx": 10
+    }
+   },
+   "Knight-Centura": {
+    "_src": "GW app v995",
+    "lo": {
+     "m": [
+      [
+       "Knight-Centura",
+       1,
+       1,
+       [],
+       [
+        [
+         "Executioner Greatblade",
+         [
+          [
+           "Executioner Greatblade",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Master-crafted Boltgun + Gun Stock",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Master-crafted Flamer + Gun Stock",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Executioner Greatblade"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Allarus Custodians": {
+    "_src": "GW app v995: every model Balistus Grenade Launcher + Guardian Spear; all can swap spear -> Castellan Axe; 1 model can take a Vexilla",
+    "lo": {
+     "m": [
+      [
+       "Allarus Custodians",
+       2,
+       3,
+       [
+        "Balistus Grenade Launcher"
+       ],
+       [
+        [
+         "Guardian Spear",
+         [
+          [
+           "Guardian Spear",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Castellan Axe",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Guardian Spear"
+         ],
+         1,
+         1,
+         0
+        ],
+        [
+         "Vexilla",
+         [
+          [
+           "Vexilla",
+           1,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         1,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 2,
+     "mx": 3
+    }
+   },
+   "Contemptor-Galatus Dreadnought": {
+    "_src": "GW app v995",
+    "lo": {
+     "m": [
+      [
+       "Contemptor-Galatus Dreadnought",
+       1,
+       1,
+       [
+        "Warblade"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Venerable Contemptor Dreadnought": {
+    "_src": "GW app v995 (Legends)",
+    "lo": {
+     "m": [
+      [
+       "Venerable Contemptor Dreadnought",
+       1,
+       1,
+       [
+        "Combi-bolter",
+        "Contemptor Fist"
+       ],
+       [
+        [
+         "Multi-melta",
+         [
+          [
+           "Multi-melta",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Kheres-pattern Assault Cannon",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Multi-melta"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
     }
    }
   }

@@ -519,7 +519,7 @@
      {
       "name": "Pareldor's Caducatrix",
       "pts": 30,
-      "text": "ADEPTUS CUSTODES model only. (Once per battle, per army) At the start of any phase, this model heals D3+3 wounds.\nWarhammer model kits\nWarhammer rulebooks\ngames\nGames"
+      "text": "ADEPTUS CUSTODES model only. (Once per battle, per army) At the start of any phase, this model heals D3+3 wounds."
      }
     ],
     "stratagems": [
@@ -861,7 +861,7 @@
      {
       "name": "Celeritous Sentries (upgrade)",
       "pts": 15,
-      "text": "TRUSTED SENTINEL unit only. (Once per phase, per unit) You can target this unit with the Heroic Intervention stratagem, regardless of any other uses of that stratagem this phase. If you do:\nThat use is -1 CP.\nThat use does not prevent any uses of that stratagem on other units this phase.\nWarhammer model kits\nWarhammer rulebooks"
+      "text": "TRUSTED SENTINEL unit only. (Once per phase, per unit) You can target this unit with the Heroic Intervention stratagem, regardless of any other uses of that stratagem this phase. If you do:\nThat use is -1 CP.\nThat use does not prevent any uses of that stratagem on other units this phase."
      }
     ],
     "stratagems": [
@@ -1086,7 +1086,7 @@
      {
       "name": "Sally Forth",
       "pts": 30,
-      "text": "ADEPTUS CUSTODES SHIELD-CAPTAIN model only. At the start of your Charge phase, select one friendly ADEPTUS CUSTODES INFANTRY unit within 6\" of this model. If that unit made an advance move this turn, that advance move does not prevent that unit from being eligible to declare a charge.\nWarhammer model kits\nWarhammer rulebooks"
+      "text": "ADEPTUS CUSTODES SHIELD-CAPTAIN model only. At the start of your Charge phase, select one friendly ADEPTUS CUSTODES INFANTRY unit within 6\" of this model. If that unit made an advance move this turn, that advance move does not prevent that unit from being eligible to declare a charge."
      }
     ],
     "stratagems": [
@@ -28349,8 +28349,8 @@
  },
  "faction_versions": {
   "adeptus-custodes": {
-   "app_version": "981",
-   "released": "2026-10-14"
+   "app_version": "995",
+   "released": "2026-10-16"
   }
  }
 }

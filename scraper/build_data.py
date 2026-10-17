@@ -459,6 +459,12 @@ def merge(mfm, gs):
                     u["kw"] = (u.get("kw") or []) + ["Dreadnought"]
         wahapedia_options.apply(mf["id"], units, stats)
         curated.apply(mf["id"], units, f_ds, stats)
+        for u in units:   # roles of units whose keywords arrived late (GW-app-only datasheets) or that are still unsorted
+            if u.pop("_rerole", None) or u.get("r") == "Other":
+                r = role_from_keywords(u.get("kw"), u["n"], u.get("ldr"))
+                if r != u.get("r"):
+                    stats["roles_from_late_keywords"] = stats.get("roles_from_late_keywords", 0) + 1
+                    u["r"] = r
         if mf["id"] == "chaos-space-marines":
             # Marks of Chaos are a wargear choice only on the two Daemon Princes (their datasheet); for everything else
             # the mark is a keyword chosen under the Pactbound Zealots rule (entry.mark in the app). Cultists: no boons.
