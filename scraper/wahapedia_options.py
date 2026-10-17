@@ -100,23 +100,101 @@ def known(name, have):
     return k in have or any(len(h) > 5 and (k in h or h in k) for h in have)
 
 
+FAC = {"imperial-agents": "AoI", "astra-militarum": "AM", "genestealer-cults": "GC", "necrons": "NEC", "aeldari": "AE",
+       "titan-legions": "TL", "chaos-titan-legions": "TL", "orks": "ORK", "grey-knights": "GK", "tau-empire": "TAU",
+       "leagues-of-votann": "LoV", "adeptus-mechanicus": "AdM", "thousand-sons": "TS", "death-guard": "DG",
+       "emperors-children": "EC", "world-eaters": "WE", "chaos-knights": "QT", "chaos-daemons": "CD", "imperial-knights": "QI",
+       "space-marines": "SM", "tyranids": "TYR", "adeptus-custodes": "AC", "adepta-sororitas": "AS",
+       "chaos-space-marines": "CSM", "drukhari": "DRU", "black-templars": "SM", "blood-angels": "SM", "dark-angels": "SM",
+       "deathwatch": "SM", "space-wolves": "SM"}
+
+
+def base_loadout(u, d, wargear, comp, lines):
+    """A unit with no loadout at all (e.g. a datasheet that only exists in the GW app / new codex): one model type,
+    size from the MFM tiers, default gear = the Wahapedia loadout line, else its wargear minus the items the options offer."""
+    if len(comp) != 1:
+        return None
+    m = re.match(r"^\s*(\d+)(?:-(\d+))?\s+(.+?)(?:\s+models?)?\s*$", comp[0].strip())
+    if not m:
+        return None
+    sizes = [c[0] for t in u.get("t") or [] for c in t[2] if isinstance(c[0], int)]
+    lo_n, hi_n = (min(sizes), max(sizes)) if sizes else (int(m.group(1)), int(m.group(2) or m.group(1)))
+    gear = []
+    ld = re.sub(r"<[^>]+>", "", html.unescape(d.get("loadout") or ""))
+    lm = re.search(r"equipped with:?\s*(.*)$", ld)
+    if lm:
+        for x in lm.group(1).split(";"):
+            x = x.strip(" .")
+            mc = re.match(r"^(\d+)\s+(.+)$", x)
+            if x:
+                gear += [mc.group(2)] * int(mc.group(1)) if mc else [x]
+    if not gear:
+        offered = set()
+        for t in lines:
+            mm = re.search(r"(?:replaced with|equipped with)(.*)$", t)
+            if mm:
+                for x in re.split(r"[;▫•]|\bone of the following:?", mm.group(1)):
+                    x = re.sub(r"^\s*\d+\s+", "", x).strip(" .*")
+                    if x:
+                        offered.add(K(x))
+        seen = []
+        for w in wargear:
+            b = re.split(r"\s+[–-]\s+", w)[0].strip()
+            if b and K(b) not in offered and b not in seen:
+                seen.append(b)
+        gear = seen
+    if not gear:
+        return None
+    bases = [re.split(r"\s+[–-]\s+", w)[0].strip() for w in wargear]
+    sing = lambda x: re.sub(r"s$", "", re.sub(r"ies$", "y", N(x)))
+    gear = [next((b for b in bases if sing(b) == sing(g) or K(b) == K(g)), g) for g in gear]   # '3 ardex-defensor maulers' -> profile name
+    gear = [g[:1].upper() + g[1:] for g in gear]
+    return {"m": [[u["n"], lo_n, hi_n, gear, [], None, None, 0]], "mn": lo_n, "mx": hi_n}
+
+
 def compile_options(cache=None):
     P = json.load(open(os.path.join(ROOT, "app", "data", "points.json")))
     DS, OP = rd("Datasheets.csv", cache), rd("Datasheets_options.csv", cache)
-    last = rd("Last_update.csv", cache)
+    try:
+        last = rd("Last_update.csv", cache)
+    except Exception:
+        last = []
     ops = {}
     for o in OP:
         ops.setdefault(o["datasheet_id"], []).append(re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ; ", o["description"]))).strip())
-    units = {}
+    WG = {}
+    for w in rd("Datasheets_wargear.csv", cache):
+        WG.setdefault(w["datasheet_id"], []).append(w["name"])
+    COMP = {}
+    for c in rd("Datasheets_unit_composition.csv", cache):
+        COMP.setdefault(c["datasheet_id"], []).append(re.sub(r"<[^>]+>", "", c["description"]))
+    by, anyn = {}, {}
+    for d in DS:
+        if d.get("virtual") == "true":
+            continue
+        by.setdefault((d["faction_id"], N(d["name"])), d)
+        anyn.setdefault(N(d["name"]), []).append(d)
+    prev = json.load(open(PATH)) if os.path.exists(PATH) else {"factions": {}}
+    out, skipped, n = {}, [], 0
+    # every Muster unit (every faction, incl. chapter/ally copies) gets the option lines of ITS faction's Wahapedia datasheet
+    pairs = []
     for f in P["factions"]:
         for u in f["units"]:
-            units.setdefault(N(re.sub(r"\s*\[Legends\]", "", u["n"])), []).append((f["id"], u))
-    out, skipped, n = {}, [], 0
-    for d in DS:
-        for fid, u in units.get(N(d["name"]), [])[:1]:
+            k = N(re.sub(r"\s*\[Legends\]", "", u["n"].replace("\u2011", "-")))
+            if f["id"] == "chaos-titan-legions":
+                k = re.sub(r"^chaos", "", k)
+            d = by.get((FAC.get(f["id"]), k)) or (anyn[k][0] if len(anyn.get(k, [])) == 1 else None)
+            if d:
+                pairs.append((d, f["id"], u))
+    for d, fid, u in pairs:
+        if True:
             lo = u.get("lo") or {}
             if not lo.get("m"):
-                continue
+                lo = base_loadout(u, d, WG.get(d["id"], []), COMP.get(d["id"], []), ops.get(d["id"], []))
+                if not lo:
+                    continue
+                out.setdefault(fid, {}).setdefault(u["n"], []).append({"base": lo, "text": "base loadout (Wahapedia wargear/composition)"})
+                lo = json.loads(json.dumps(lo)); n += 1
             have = have_names(lo)
             for t in ops.get(d["id"], []):
                 patch = None
@@ -153,6 +231,12 @@ def compile_options(cache=None):
                     out.setdefault(fid, {}).setdefault(u["n"], []).append(patch); n += 1
                 elif m and not (lst if "lst" in dir() else None):
                     pass
+    for fid, us in prev.get("factions", {}).items():
+        for un, ps in us.items():
+            cur = out.setdefault(fid, {}).setdefault(un, [])
+            for p in ps:
+                if not any(x.get("text") == p.get("text") for x in cur):
+                    cur.append(p)
     json.dump({"note": __doc__.strip().split("\n")[0], "source": BASE + "Datasheets_options.csv",
                "wahapedia_updated": last[0].get("last_update") if last else None, "factions": out}, open(PATH, "w"), indent=1, ensure_ascii=False)
     return n
@@ -164,6 +248,11 @@ def apply(fid, units, stats):
     ov = json.load(open(PATH))["factions"].get(fid) or {}
     for u in units:
         for p in ov.get(u["n"], []):
+            if "base" in p:
+                if not (u.get("lo") or {}).get("m"):
+                    u["lo"] = json.loads(json.dumps(p["base"]))
+                    stats["wahapedia_base_loadouts"] = stats.get("wahapedia_base_loadouts", 0) + 1
+                continue
             lo = u.get("lo") or {}
             mt = next((m for m in lo.get("m") or [] if m[0] == p["model"]), None)
             if not mt or any(s[0] == p["slot"] for s in mt[4]):

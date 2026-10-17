@@ -1,9 +1,473 @@
 {
  "note": "Wargear options the secondary loadout data misses, from Wahapedia's data export (wh40k11ed/Datasheets_options.csv).",
  "source": "https://wahapedia.ru/wh40k11ed/Datasheets_options.csv",
- "wahapedia_updated": "2026-10-13 19:05:11",
+ "wahapedia_updated": null,
  "factions": {
   "adeptus-custodes": {
+   "Caladius Annihilator Grav‑Tank": [
+    {
+     "base": {
+      "m": [
+       [
+        "Caladius Annihilator Grav‑Tank",
+        1,
+        1,
+        [
+         "Arachnus Blaze Carronade",
+         "Armoured Hull",
+         "Twin Lastrum Bolt Cannon"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Caladius Annihilator Grav‑Tank",
+     "swap": "Twin Lastrum Bolt Cannon",
+     "slot": "Twin Lastrum Bolt Cannon",
+     "opts": [
+      [
+       "Twin Neutronium Cascade Projectors",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Twin Lastrum Bolt Cannon can be replaced with 1 Twin Neutronium Cascade Projectors."
+    }
+   ],
+   "Caladius Grav-tank": [
+    {
+     "model": "Caladius Grav-tank",
+     "swap": "Twin lastrum bolt cannon",
+     "slot": "Twin Lastrum Bolt Cannon",
+     "opts": [
+      [
+       "Twin Neutronium Cascade Projectors",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Twin Lastrum Bolt Cannon can be replaced with 1 Twin Neutronium Cascade Projectors."
+    }
+   ],
+   "Coronus Grav-carrier": [
+    {
+     "model": "Coronus Grav-carrier",
+     "swap": "Twin lastrum bolt cannon",
+     "slot": "Twin Lastrum Bolt Cannon",
+     "opts": [
+      [
+       "Twin Neutronium Cascade Projectors",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Twin Lastrum Bolt Cannon can be replaced with 1 Twin Neutronium Cascade Projectors."
+    }
+   ],
+   "Gyrfalcon Jetbike Sodality": [
+    {
+     "base": {
+      "m": [
+       [
+        "Gyrfalcon Jetbike Sodality",
+        2,
+        2,
+        [
+         "Lastrum Bolt Cannon",
+         "Solarite Power Lance"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 2,
+      "mx": 2
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Gyrfalcon Jetbike Sodality",
+     "swap": "Lastrum Bolt Cannon",
+     "slot": "Lastrum Bolt Cannon",
+     "opts": [
+      [
+       "Adrathic Devastator",
+       null
+      ],
+      [
+       "Arachnus Volley Cannon",
+       null
+      ],
+      [
+       "Twin Corvae Las-pulser",
+       null
+      ]
+     ],
+     "count": {
+      "each": true
+     },
+     "text": "All models in this unit can each have their Lastrum Bolt Cannon replaced with one of the following: ; ; 1 Adrathic Devastator ; ; 1 Arachnus Volley Cannon ; ; 1 Twin Corvae Las-pulser ; ;"
+    }
+   ],
+   "Pallas Grav-attack": [
+    {
+     "model": "Pallas Grav-attack",
+     "swap": "Twin arachnus blaze cannon",
+     "slot": "Twin Arachnus Blaze Cannon",
+     "opts": [
+      [
+       "Twin Iliastus Accelerator Fusil",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Twin Arachnus Blaze Cannon can be replaced with 1 Twin Iliastus Accelerator Fusil."
+    }
+   ],
+   "Aquilon Terminators with Solarite Power Gauntlets": [
+    {
+     "base": {
+      "m": [
+       [
+        "Aquilon Terminators with Solarite Power Gauntlets",
+        3,
+        3,
+        [
+         "Adrathic Combi-destructor",
+         "Solarite Power Gauntlet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Aquilon Terminators with Solarite Power Talons": [
+    {
+     "base": {
+      "m": [
+       [
+        "Aquilon Terminators with Solarite Power Talons",
+        3,
+        3,
+        [
+         "Lastrum Storm Bolter",
+         "Solarite Power Talon"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Aquilon Terminators with Solarite Power Talons",
+     "swap": "Lastrum Storm Bolter",
+     "slot": "Lastrum Storm Bolter",
+     "opts": [
+      [
+       "Infernus Firepike",
+       null
+      ]
+     ],
+     "count": {
+      "each": true
+     },
+     "text": "All models in this unit can each have their Lastrum Storm Bolter replaced with 1 Infernus Firepike."
+    }
+   ],
+   "Custodian Guard Sodality": [
+    {
+     "base": {
+      "m": [
+       [
+        "Custodian Guard Sodality",
+        3,
+        3,
+        [
+         "Guardian Spear"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Custodian Guard Sodality",
+     "slot": "Vexilla",
+     "opts": [
+      [
+       "Vexilla",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model can be equipped with 1 Vexilla."
+    }
+   ],
+   "Custodian Guard Sodality with Adrasite Spears": [
+    {
+     "base": {
+      "m": [
+       [
+        "Custodian Guard Sodality with Adrasite Spears",
+        3,
+        3,
+        [
+         "Adrasite Spear"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Custodian Guard Sodality with Pyrithite Spears": [
+    {
+     "base": {
+      "m": [
+       [
+        "Custodian Guard Sodality with Pyrithite Spears",
+        3,
+        3,
+        [
+         "Pyrithite Spear"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Prosecutor Squad": [
+    {
+     "base": {
+      "m": [
+       [
+        "Prosecutor Squad",
+        4,
+        10,
+        [
+         "Boltgun",
+         "Gun Stock"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 4,
+      "mx": 10
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Sagittarum Custodians Sodality": [
+    {
+     "base": {
+      "m": [
+       [
+        "Sagittarum Custodians Sodality",
+        3,
+        3,
+        [
+         "Adrastus Bolt Caliver",
+         "Misericordia"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Sentinel Guard Sodality": [
+    {
+     "base": {
+      "m": [
+       [
+        "Sentinel Guard Sodality",
+        3,
+        3,
+        [
+         "Praesidium Shield",
+         "Sentinel Blade"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Sentinel Guard Sodality",
+     "slot": "Vexilla",
+     "opts": [
+      [
+       "Vexilla",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 model can be equipped with 1 Vexilla."
+    }
+   ],
+   "Venatari with Kinetic Destroyers": [
+    {
+     "base": {
+      "m": [
+       [
+        "Venatari with Kinetic Destroyers",
+        3,
+        3,
+        [
+         "Kinetic Destroyer",
+         "Tarsus Buckler"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Venatari with Verutum Lances": [
+    {
+     "base": {
+      "m": [
+       [
+        "Venatari with Verutum Lances",
+        3,
+        3,
+        [
+         "Verutum Lance"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 3,
+      "mx": 3
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Vigilator Squad": [
+    {
+     "base": {
+      "m": [
+       [
+        "Vigilator Squad",
+        4,
+        10,
+        [
+         "Executioner Greatblade"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 4,
+      "mx": 10
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
+   "Witchseeker Squad": [
+    {
+     "base": {
+      "m": [
+       [
+        "Witchseeker Squad",
+        4,
+        10,
+        [
+         "Flamer",
+         "Gun Stock"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 4,
+      "mx": 10
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    }
+   ],
    "Custodian Wardens": [
     {
      "model": "Custodian Warden (Guardian Spear)",
@@ -39,6 +503,23 @@
    ]
   },
   "adeptus-mechanicus": {
+   "Onager Dunecrawler": [
+    {
+     "model": "Onager Dunecrawler",
+     "slot": "Additional cognis heavy stubber",
+     "opts": [
+      [
+       "cognis heavy stubber",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "This model can be equipped with 1 additional cognis heavy stubber."
+    }
+   ],
    "Skitarii Rangers": [
     {
      "model": "Skitarii Ranger w/ galvanic rifle",
@@ -77,23 +558,6 @@
       "n": 1
      },
      "text": "1 Skitarii Vanguard equipped with a radium carbine can be equipped with one of the following: ; ; 1 enhanced data-tether* ; ; 1 omnispex* ; ;"
-    }
-   ],
-   "Onager Dunecrawler": [
-    {
-     "model": "Onager Dunecrawler",
-     "slot": "Additional cognis heavy stubber",
-     "opts": [
-      [
-       "cognis heavy stubber",
-       1
-      ]
-     ],
-     "count": {
-      "n": 1
-     },
-     "max_each": 1,
-     "text": "This model can be equipped with 1 additional cognis heavy stubber."
     }
    ],
    "Secutarii Hoplites": [
@@ -185,6 +649,826 @@
       "n": 1
      },
      "text": "The Arena Champion can be equipped with 1 agoniser."
+    }
+   ]
+  },
+  "chaos-daemons": {
+   "Soul Grinder": [
+    {
+     "base": {
+      "m": [
+       [
+        "Soul Grinder",
+        1,
+        1,
+        [
+         "Harvester cannon",
+         "Iron claw",
+         "Warpsword"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Soul Grinder",
+     "swap": "Warpsword",
+     "slot": "Warpsword",
+     "opts": [
+      [
+       "warpclaw",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s warpsword can be replaced with 1 warpclaw."
+    }
+   ]
+  },
+  "chaos-titan-legions": {
+   "Chaos Reaver Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Chaos Reaver Titan",
+        1,
+        1,
+        [
+         "Reaver apocalypse launcher",
+         "Reaver gatling blaster",
+         "Reaver laser blaster",
+         "Reaver feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Chaos Reaver Titan",
+     "swap": "Reaver gatling blaster",
+     "slot": "Reaver gatling blaster",
+     "opts": [
+      [
+       "Reaver laser blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ],
+      [
+       "Reaver power fist",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver gatling blaster can be replaced with one of the following: ; ; 1 Reaver laser blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ; 1 Reaver power fist ; ;"
+    },
+    {
+     "model": "Chaos Reaver Titan",
+     "swap": "Reaver laser blaster",
+     "slot": "Reaver laser blaster",
+     "opts": [
+      [
+       "Reaver gatling blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver laser blaster can be replaced with one of the following: ; ; 1 Reaver gatling blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ;"
+    }
+   ],
+   "Chaos Warbringer Nemesis Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Chaos Warbringer Nemesis Titan",
+        1,
+        1,
+        [
+         "Anvillus defence battery",
+         "Anvillus defence battery",
+         "Ardex-defensor mauler",
+         "Ardex-defensor mauler",
+         "Ardex-defensor mauler",
+         "Nemesis quake cannon",
+         "Reaver gatling blaster",
+         "Reaver laser blaster",
+         "Nemesis feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Chaos Warbringer Nemesis Titan",
+     "swap": "Nemesis quake cannon",
+     "slot": "Nemesis quake cannon",
+     "opts": [
+      [
+       "Nemesis volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Nemesis quake cannon can be replaced with 1 Nemesis volcano cannon."
+    },
+    {
+     "model": "Chaos Warbringer Nemesis Titan",
+     "swap": "Reaver gatling blaster",
+     "slot": "Reaver gatling blaster",
+     "opts": [
+      [
+       "Reaver laser blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver gatling blaster can be replaced with one of the following: ; ; 1 Reaver laser blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ;"
+    },
+    {
+     "model": "Chaos Warbringer Nemesis Titan",
+     "swap": "Reaver laser blaster",
+     "slot": "Reaver laser blaster",
+     "opts": [
+      [
+       "Reaver gatling blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver laser blaster can be replaced with one of the following: ; ; 1 Reaver gatling blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ;"
+    }
+   ],
+   "Chaos Warhound Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Chaos Warhound Titan",
+        1,
+        1,
+        [
+         "Warhound plasma blastgun",
+         "Warhound vulcan mega-bolter",
+         "Warhound feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Chaos Warhound Titan",
+     "swap": "Warhound plasma blastgun",
+     "slot": "Warhound plasma blastgun",
+     "opts": [
+      [
+       "Warhound inferno gun",
+       null
+      ],
+      [
+       "Warhound turbo-laser destructor",
+       null
+      ],
+      [
+       "Warhound vulcan mega-bolter",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Warhound plasma blastgun can be replaced with one of the following: ; ; 1 Warhound inferno gun ; ; 1 Warhound turbo-laser destructor ; ; 1 Warhound vulcan mega-bolter ; ;"
+    },
+    {
+     "model": "Chaos Warhound Titan",
+     "swap": "Warhound vulcan mega-bolter",
+     "slot": "Warhound vulcan mega-bolter",
+     "opts": [
+      [
+       "Warhound inferno gun",
+       null
+      ],
+      [
+       "Warhound plasma blastgun",
+       null
+      ],
+      [
+       "Warhound turbo-laser destructor",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Warhound vulcan mega-bolter can be replaced with one of the following: ; ; 1 Warhound inferno gun ; ; 1 Warhound plasma blastgun ; ; 1 Warhound turbo-laser destructor ; ;"
+    }
+   ],
+   "Chaos Warlord Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Chaos Warlord Titan",
+        1,
+        1,
+        [
+         "Apocalypse launcher",
+         "Apocalypse launcher",
+         "Ardex-defensor lascannon",
+         "Ardex-defensor lascannon",
+         "Ardex-defensor mauler",
+         "Ardex-defensor mauler",
+         "Macro gatling blaster",
+         "Arioch power claw",
+         "Warlord feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Chaos Warlord Titan",
+     "swap": "Arioch power claw",
+     "slot": "Arioch power claw",
+     "opts": [
+      [
+       "belicosa volcano cannon",
+       null
+      ],
+      [
+       "macro gatling blaster",
+       null
+      ],
+      [
+       "mori quake cannon",
+       null
+      ],
+      [
+       "sunfury plasma annihilator",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s arioch power claw can be replaced with one of the following: ; ; 1 belicosa volcano cannon ; ; 1 macro gatling blaster ; ; 1 mori quake cannon ; ; 1 sunfury plasma annihilator ; ;"
+    },
+    {
+     "model": "Chaos Warlord Titan",
+     "swap": "Macro gatling blaster",
+     "slot": "Macro gatling blaster",
+     "opts": [
+      [
+       "arioch power claw",
+       null
+      ],
+      [
+       "belicosa volcano cannon",
+       null
+      ],
+      [
+       "mori quake cannon",
+       null
+      ],
+      [
+       "sunfury plasma annihilator",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s macro gatling blaster can be replaced with one of the following: ; ; 1 arioch power claw ; ; 1 belicosa volcano cannon ; ; 1 mori quake cannon ; ; 1 sunfury plasma annihilator ; ;"
+    }
+   ]
+  },
+  "death-guard": {
+   "Deathshroud Terminators": [
+    {
+     "model": "Deathshroud Terminator Champion",
+     "slot": "Additional plaguespurt gauntlet",
+     "opts": [
+      [
+       "plaguespurt gauntlet",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "The Deathshroud Champion can be equipped with 1 additional plaguespurt gauntlet."
+    }
+   ]
+  },
+  "grey-knights": {
+   "Rhino": [
+    {
+     "model": "Rhino",
+     "slot": "Additional storm bolter",
+     "opts": [
+      [
+       "storm bolter",
+       1
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "max_each": 1,
+     "text": "This model can be equipped with 1 additional storm bolter."
+    }
+   ],
+   "Brotherhood Terminator Squad": [
+    {
+     "model": "Terminator",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "Apothecary’s narthecium",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Terminator can have its storm bolter replaced with 1 Apothecary’s narthecium."
+    },
+    {
+     "model": "Terminator",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "incinerator + Ancient’s banner",
+       null
+      ],
+      [
+       "psilencer + Ancient’s banner",
+       null
+      ],
+      [
+       "psycannon + Ancient’s banner",
+       null
+      ],
+      [
+       "storm bolter + Ancient’s banner",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Terminator’s storm bolter can be replaced with one of the following: ; ; 1 incinerator and 1 Ancient’s banner ; ; 1 psilencer and 1 Ancient’s banner ; ; 1 psycannon and 1 Ancient’s banner ; ; 1 storm bolter and 1 Ancient’s banner* ; ;"
+    }
+   ],
+   "Paladin Squad": [
+    {
+     "model": "Paladin",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "Apothecary’s narthecium",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Paladin can have its storm bolter replaced with 1 Apothecary’s narthecium."
+    },
+    {
+     "model": "Paladin",
+     "swap": "Storm bolter",
+     "slot": "Storm bolter",
+     "opts": [
+      [
+       "incinerator + Ancient’s banner",
+       null
+      ],
+      [
+       "psilencer + Ancient’s banner",
+       null
+      ],
+      [
+       "psycannon + Ancient’s banner",
+       null
+      ],
+      [
+       "storm bolter + Ancient’s banner",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "1 Paladin’s storm bolter can be replaced with one of the following: ; ; 1 incinerator and 1 Ancient’s banner ; ; 1 psilencer and 1 Ancient’s banner ; ; 1 psycannon and 1 Ancient’s banner ; ; 1 storm bolter and 1 Ancient’s banner* ; ;"
+    }
+   ]
+  },
+  "titan-legions": {
+   "Reaver Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Reaver Titan",
+        1,
+        1,
+        [
+         "Reaver apocalypse launcher",
+         "Reaver gatling blaster",
+         "Reaver laser blaster",
+         "Reaver feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Reaver Titan",
+     "swap": "Reaver gatling blaster",
+     "slot": "Reaver gatling blaster",
+     "opts": [
+      [
+       "Reaver laser blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ],
+      [
+       "Reaver power fist",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver gatling blaster can be replaced with one of the following: ; ; 1 Reaver laser blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ; 1 Reaver power fist ; ;"
+    },
+    {
+     "model": "Reaver Titan",
+     "swap": "Reaver laser blaster",
+     "slot": "Reaver laser blaster",
+     "opts": [
+      [
+       "Reaver gatling blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver laser blaster can be replaced with one of the following: ; ; 1 Reaver gatling blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ;"
+    }
+   ],
+   "Warbringer Nemesis Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Warbringer Nemesis Titan",
+        1,
+        1,
+        [
+         "Anvillus defence battery",
+         "Anvillus defence battery",
+         "Ardex-defensor mauler",
+         "Ardex-defensor mauler",
+         "Ardex-defensor mauler",
+         "Nemesis quake cannon",
+         "Reaver gatling blaster",
+         "Reaver laser blaster",
+         "Nemesis feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Warbringer Nemesis Titan",
+     "swap": "Nemesis quake cannon",
+     "slot": "Nemesis quake cannon",
+     "opts": [
+      [
+       "Nemesis volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Nemesis quake cannon can be replaced with 1 Nemesis volcano cannon."
+    },
+    {
+     "model": "Warbringer Nemesis Titan",
+     "swap": "Reaver gatling blaster",
+     "slot": "Reaver gatling blaster",
+     "opts": [
+      [
+       "Reaver laser blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver gatling blaster can be replaced with one of the following: ; ; 1 Reaver laser blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ;"
+    },
+    {
+     "model": "Warbringer Nemesis Titan",
+     "swap": "Reaver laser blaster",
+     "slot": "Reaver laser blaster",
+     "opts": [
+      [
+       "Reaver gatling blaster",
+       null
+      ],
+      [
+       "Reaver melta cannon",
+       null
+      ],
+      [
+       "Reaver volcano cannon",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Reaver laser blaster can be replaced with one of the following: ; ; 1 Reaver gatling blaster ; ; 1 Reaver melta cannon ; ; 1 Reaver volcano cannon ; ;"
+    }
+   ],
+   "Warhound Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Warhound Titan",
+        1,
+        1,
+        [
+         "Warhound plasma blastgun",
+         "Warhound vulcan mega-bolter",
+         "Warhound feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Warhound Titan",
+     "swap": "Warhound plasma blastgun",
+     "slot": "Warhound plasma blastgun",
+     "opts": [
+      [
+       "Warhound inferno gun",
+       null
+      ],
+      [
+       "Warhound turbo-laser destructor",
+       null
+      ],
+      [
+       "Warhound vulcan mega-bolter",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Warhound plasma blastgun can be replaced with one of the following: ; ; 1 Warhound inferno gun ; ; 1 Warhound turbo-laser destructor ; ; 1 Warhound vulcan mega-bolter ; ;"
+    },
+    {
+     "model": "Warhound Titan",
+     "swap": "Warhound vulcan mega-bolter",
+     "slot": "Warhound vulcan mega-bolter",
+     "opts": [
+      [
+       "Warhound inferno gun",
+       null
+      ],
+      [
+       "Warhound plasma blastgun",
+       null
+      ],
+      [
+       "Warhound turbo-laser destructor",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s Warhound vulcan mega-bolter can be replaced with one of the following: ; ; 1 Warhound inferno gun ; ; 1 Warhound plasma blastgun ; ; 1 Warhound turbo-laser destructor ; ;"
+    }
+   ],
+   "Warlord Titan": [
+    {
+     "base": {
+      "m": [
+       [
+        "Warlord Titan",
+        1,
+        1,
+        [
+         "Apocalypse launcher",
+         "Apocalypse launcher",
+         "Ardex-defensor lascannon",
+         "Ardex-defensor lascannon",
+         "Ardex-defensor mauler",
+         "Ardex-defensor mauler",
+         "Macro gatling blaster",
+         "Arioch power claw",
+         "Warlord feet"
+        ],
+        [],
+        null,
+        null,
+        0
+       ]
+      ],
+      "mn": 1,
+      "mx": 1
+     },
+     "text": "base loadout (Wahapedia wargear/composition)"
+    },
+    {
+     "model": "Warlord Titan",
+     "swap": "Arioch power claw",
+     "slot": "Arioch power claw",
+     "opts": [
+      [
+       "belicosa volcano cannon",
+       null
+      ],
+      [
+       "macro gatling blaster",
+       null
+      ],
+      [
+       "mori quake cannon",
+       null
+      ],
+      [
+       "sunfury plasma annihilator",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s arioch power claw can be replaced with one of the following: ; ; 1 belicosa volcano cannon ; ; 1 macro gatling blaster ; ; 1 mori quake cannon ; ; 1 sunfury plasma annihilator ; ;"
+    },
+    {
+     "model": "Warlord Titan",
+     "swap": "Macro gatling blaster",
+     "slot": "Macro gatling blaster",
+     "opts": [
+      [
+       "arioch power claw",
+       null
+      ],
+      [
+       "belicosa volcano cannon",
+       null
+      ],
+      [
+       "mori quake cannon",
+       null
+      ],
+      [
+       "sunfury plasma annihilator",
+       null
+      ]
+     ],
+     "count": {
+      "n": 1
+     },
+     "text": "This model’s macro gatling blaster can be replaced with one of the following: ; ; 1 arioch power claw ; ; 1 belicosa volcano cannon ; ; 1 mori quake cannon ; ; 1 sunfury plasma annihilator ; ;"
     }
    ]
   },
@@ -319,115 +1603,6 @@
       "n": 1
      },
      "text": "One Celestian Insidiant’s condemnor bolt pistol can be replaced with 1 denuncia oratory."
-    }
-   ]
-  },
-  "death-guard": {
-   "Deathshroud Terminators": [
-    {
-     "model": "Deathshroud Terminator Champion",
-     "slot": "Additional plaguespurt gauntlet",
-     "opts": [
-      [
-       "plaguespurt gauntlet",
-       1
-      ]
-     ],
-     "count": {
-      "n": 1
-     },
-     "max_each": 1,
-     "text": "The Deathshroud Champion can be equipped with 1 additional plaguespurt gauntlet."
-    }
-   ]
-  },
-  "grey-knights": {
-   "Brotherhood Terminator Squad": [
-    {
-     "model": "Terminator",
-     "swap": "Storm bolter",
-     "slot": "Storm bolter",
-     "opts": [
-      [
-       "Apothecary’s narthecium",
-       null
-      ]
-     ],
-     "count": {
-      "n": 1
-     },
-     "text": "1 Terminator can have its storm bolter replaced with 1 Apothecary’s narthecium."
-    },
-    {
-     "model": "Terminator",
-     "swap": "Storm bolter",
-     "slot": "Storm bolter",
-     "opts": [
-      [
-       "incinerator + Ancient’s banner",
-       null
-      ],
-      [
-       "psilencer + Ancient’s banner",
-       null
-      ],
-      [
-       "psycannon + Ancient’s banner",
-       null
-      ],
-      [
-       "storm bolter + Ancient’s banner",
-       null
-      ]
-     ],
-     "count": {
-      "n": 1
-     },
-     "text": "1 Terminator’s storm bolter can be replaced with one of the following: ; ; 1 incinerator and 1 Ancient’s banner ; ; 1 psilencer and 1 Ancient’s banner ; ; 1 psycannon and 1 Ancient’s banner ; ; 1 storm bolter and 1 Ancient’s banner* ; ;"
-    }
-   ],
-   "Paladin Squad": [
-    {
-     "model": "Paladin",
-     "swap": "Storm bolter",
-     "slot": "Storm bolter",
-     "opts": [
-      [
-       "Apothecary’s narthecium",
-       null
-      ]
-     ],
-     "count": {
-      "n": 1
-     },
-     "text": "1 Paladin can have its storm bolter replaced with 1 Apothecary’s narthecium."
-    },
-    {
-     "model": "Paladin",
-     "swap": "Storm bolter",
-     "slot": "Storm bolter",
-     "opts": [
-      [
-       "incinerator + Ancient’s banner",
-       null
-      ],
-      [
-       "psilencer + Ancient’s banner",
-       null
-      ],
-      [
-       "psycannon + Ancient’s banner",
-       null
-      ],
-      [
-       "storm bolter + Ancient’s banner",
-       null
-      ]
-     ],
-     "count": {
-      "n": 1
-     },
-     "text": "1 Paladin’s storm bolter can be replaced with one of the following: ; ; 1 incinerator and 1 Ancient’s banner ; ; 1 psilencer and 1 Ancient’s banner ; ; 1 psycannon and 1 Ancient’s banner ; ; 1 storm bolter and 1 Ancient’s banner* ; ;"
     }
    ]
   },

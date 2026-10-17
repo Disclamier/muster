@@ -2527,6 +2527,323 @@
      ]
     ]
    }
+  },
+  "adeptus-custodes": {
+   "Caladius Grav-tank": {
+    "_src": "GW app datasheet (codex Oct 17)",
+    "lo": {
+     "m": [
+      [
+       "Caladius Grav-tank",
+       1,
+       1,
+       [
+        "Armoured Hull",
+        "Iliastus Accelerator Cannon"
+       ],
+       [
+        [
+         "Twin Lastrum Bolt Cannon",
+         [
+          [
+           "Twin Lastrum Bolt Cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin Neutronium Cascade Projectors",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Twin Lastrum Bolt Cannon"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Caladius Annihilator Grav‑Tank": {
+    "_src": "GW app datasheet (codex Oct 17) + James's screenshot",
+    "lo": {
+     "m": [
+      [
+       "Caladius Annihilator Grav‑Tank",
+       1,
+       1,
+       [
+        "Arachnus Blaze Carronade",
+        "Armoured Hull"
+       ],
+       [
+        [
+         "Twin Lastrum Bolt Cannon",
+         [
+          [
+           "Twin Lastrum Bolt Cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin Neutronium Cascade Projectors",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Twin Lastrum Bolt Cannon"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Contemptor-Achillus Dreadnought": {
+    "_src": "GW app datasheet (codex Oct 17)",
+    "lo": {
+     "m": [
+      [
+       "Contemptor-Achillus Dreadnought",
+       1,
+       1,
+       [
+        "Dreadspear"
+       ],
+       [
+        [
+         "2 Lastrum Storm Bolters",
+         [
+          [
+           "Lastrum Storm Bolter + Lastrum Storm Bolter",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Adrathic Combi-destructor + Adrathic Combi-destructor",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin Infernus Incinerator + Twin Infernus Incinerator",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Lastrum Storm Bolter + Lastrum Storm Bolter"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Telemon Heavy Dreadnought": {
+    "_src": "GW app datasheet (codex Oct 17)",
+    "lo": {
+     "m": [
+      [
+       "Telemon Heavy Dreadnought",
+       1,
+       1,
+       [
+        "Spiculus Bolt Launcher",
+        "Twin Neutronium Cascade Projectors"
+       ],
+       [
+        [
+         "Dual Caestus Fists and 1 Twin Neutronium Cascade Projectors",
+         [
+          [
+           "Dual Caestus Fists + Twin Neutronium Cascade Projectors",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Adrathic Desolator + Caestus Fist",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Arachnus Storm Cannon + Caestus Fist",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Iliastus Accelerator Culverin + Caestus Fist",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Dual Caestus Fists + Twin Neutronium Cascade Projectors"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Shield-Captain": {
+    "_src": "GW app datasheet (codex Oct 17)",
+    "lo": {
+     "m": [
+      [
+       "Shield-Captain",
+       1,
+       1,
+       [],
+       [
+        [
+         "Pyrithite Spear and Praesidium Shield",
+         [
+          [
+           "Pyrithite Spear + Praesidium Shield",
+           null,
+           null,
+           0,
+           null
+          ],
+          [
+           "Eternity-pattern Paragon Blade + Praesidium Shield",
+           null,
+           null,
+           0,
+           null
+          ],
+          [
+           "Castellan Axe",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Guardian Spear",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Pyrithite Spear + Praesidium Shield"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   },
+   "Witchseeker Squad": {
+    "_src": "James's New Recruit screenshots (datasheet weapons)",
+    "lo": {
+     "m": [
+      [
+       "Witchseeker Squad",
+       4,
+       10,
+       [
+        "Witchseeker Flamer",
+        "Close Combat Weapon"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 4,
+     "mx": 10
+    }
+   },
+   "Prosecutor Squad": {
+    "_src": "James's New Recruit screenshots (datasheet weapons)",
+    "lo": {
+     "m": [
+      [
+       "Prosecutor Squad",
+       4,
+       10,
+       [
+        "Boltgun",
+        "Close Combat Weapon"
+       ],
+       [],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 4,
+     "mx": 10
+    }
+   }
   }
  }
 }
