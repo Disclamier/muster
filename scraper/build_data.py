@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gwapp_override  # noqa: E402  newest rules text (Warhammer 40,000 app detachments), applied last
 import wahapedia_options  # noqa: E402  wargear options the secondary loadout data misses (Wahapedia export)
 import gwapp_datasheets  # noqa: E402  Warhammer 40,000 app datasheets for chapter units the codex does not cover
+import curated  # noqa: E402  curated datasheets + two-source corrections (overrides/curated_datasheets.json), applied last
 import codex_override  # noqa: E402  committed codex override layer (Space Marines 11th-ed codex)
 
 MULTI_LEADER = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "multi_leader.json")))
@@ -457,6 +458,7 @@ def merge(mfm, gs):
                 if u["n"].endswith("Dreadnought") and "Dreadnought" not in (u.get("kw") or []):
                     u["kw"] = (u.get("kw") or []) + ["Dreadnought"]
         wahapedia_options.apply(mf["id"], units, stats)
+        curated.apply(mf["id"], units, f_ds, stats)
         if mf["id"] == "chaos-space-marines":
             # Marks of Chaos are a wargear choice only on the two Daemon Princes (their datasheet); for everything else
             # the mark is a keyword chosen under the Pactbound Zealots rule (entry.mark in the app). Cultists: no boons.

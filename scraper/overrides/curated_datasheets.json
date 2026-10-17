@@ -1,0 +1,2532 @@
+{
+ "note": "Curated datasheets for units with no GrimSlate / GW-app / codex datasheet. Applied by build_data.py after every other datasheet layer (only fills units that still have no datasheet, so a real source always wins). Edit by hand; regenerate helpers: scraper/wahapedia_ds.py, scraper/bsdata_ds.py.",
+ "factions": {
+  "adeptus-custodes": {
+   "Witchseeker Squad": {
+    "s": {
+     "M": "6\"",
+     "T": "3",
+     "SV": "3+",
+     "W": "1",
+     "LD": "6+",
+     "OC": "1"
+    },
+    "wp": [
+     [
+      "Witchseeker Flamer",
+      "r",
+      [
+       [
+        null,
+        "12\"",
+        "D6",
+        "N/A",
+        "4",
+        "0",
+        "1",
+        [
+         "Ignores Cover",
+         "Torrent"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Close Combat Weapon",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "2",
+        "3+",
+        "3",
+        "0",
+        "1",
+        []
+       ]
+      ]
+     ]
+    ],
+    "cr": [
+     "Scouts 6\""
+    ],
+    "fa": [],
+    "ab": [
+     [
+      "Sanctified Flames",
+      "In your Shooting phase, after this unit has shot, select one enemy unit that was hit by one or more of those attacks. That unit must take a Battle-shock test."
+     ],
+     [
+      "Daughters of the Abyss",
+      "Models in this unit have the Feel No Pain 3+ ability against Psychic Attacks and mortal wounds."
+     ]
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [
+     [
+      "Witchseeker Sister Superior",
+      [
+       "Witchseeker Flamer",
+       "Close Combat Weapon"
+      ]
+     ],
+     [
+      "Witchseeker",
+      [
+       "Witchseeker Flamer",
+       "Close Combat Weapon"
+      ]
+     ]
+    ],
+    "kw": [
+     "Infantry",
+     "Witchseekers",
+     "Anathema Psykana",
+     "Imperium"
+    ],
+    "comp": [
+     "1 Witchseeker Sister Superior",
+     "9 Witchseekers",
+     "Every model is equipped with: 1 Witchseeker flamer; 1 Close combat weapon."
+    ],
+    "src": "curated: New Recruit (BSData wh40k-11e) via James's screenshots",
+    "fkw": [
+     "Adeptus Custodes",
+     "Anathema Psykana"
+    ],
+    "r": "Infantry"
+   },
+   "Prosecutor Squad": {
+    "s": {
+     "M": "6\"",
+     "T": "3",
+     "SV": "3+",
+     "W": "1",
+     "LD": "6+",
+     "OC": "2"
+    },
+    "wp": [
+     [
+      "Boltgun",
+      "r",
+      [
+       [
+        null,
+        "24\"",
+        "1",
+        "3+",
+        "5",
+        "-1",
+        "1",
+        [
+         "Rapid Fire 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Close Combat Weapon",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "2",
+        "3+",
+        "3",
+        "0",
+        "1",
+        []
+       ]
+      ]
+     ]
+    ],
+    "cr": [],
+    "fa": [],
+    "ab": [
+     [
+      "Purity of Execution",
+      "Each time a model in this unit makes a ranged attack that targets a Psyker unit, that attack has the [PRECISION] and [DEVASTATING WOUNDS] abilities."
+     ],
+     [
+      "Daughters of the Abyss",
+      "Models in this unit have the Feel No Pain 3+ ability against Psychic Attacks and mortal wounds."
+     ]
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [
+     [
+      "Prosecutor Sister Superior",
+      [
+       "Boltgun",
+       "Close Combat Weapon"
+      ]
+     ],
+     [
+      "Prosecutor",
+      [
+       "Boltgun",
+       "Close Combat Weapon"
+      ]
+     ]
+    ],
+    "kw": [
+     "Infantry",
+     "Prosecutors",
+     "Anathema Psykana",
+     "Imperium"
+    ],
+    "comp": [
+     "1 Prosecutor Sister Superior",
+     "3 Prosecutors",
+     "Every model is equipped with: 1 Boltgun; 1 Close combat weapon."
+    ],
+    "src": "curated: New Recruit (BSData wh40k-11e) via James's screenshots",
+    "fkw": [
+     "Adeptus Custodes",
+     "Anathema Psykana"
+    ],
+    "r": "Infantry"
+   },
+   "Vigilator Squad": {
+    "s": {
+     "M": "6\"",
+     "T": "3",
+     "SV": "3+",
+     "W": "1",
+     "LD": "6+",
+     "OC": "1"
+    },
+    "wp": [
+     [
+      "Executioner Greatblade",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "2",
+        "3+",
+        "5",
+        "-2",
+        "2",
+        [
+         "Anti-Psyker 5+",
+         "Devastating Wounds"
+        ]
+       ]
+      ]
+     ]
+    ],
+    "cr": [],
+    "fa": [],
+    "ab": [
+     [
+      "Deft Parry",
+      "Each time a melee attack targets this unit, subtract 1 from the Hit roll."
+     ],
+     [
+      "Daughters of the Abyss",
+      "Models in this unit have the Feel No Pain 3+ ability against Psychic Attacks and mortal wounds."
+     ]
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [
+     [
+      "Vigilator Sister Superior",
+      [
+       "Executioner Greatblade"
+      ]
+     ],
+     [
+      "Vigilator",
+      [
+       "Executioner Greatblade"
+      ]
+     ]
+    ],
+    "kw": [
+     "Infantry",
+     "Vigilators",
+     "Anathema Psykana",
+     "Imperium"
+    ],
+    "comp": [
+     "1 Vigilator Sister Superior",
+     "3-9 Vigilators",
+     "Every model is equipped with: 1 Executioner greatblade."
+    ],
+    "src": "curated: New Recruit (BSData wh40k-11e); weapon + Deft Parry confirmed by Wahapedia",
+    "fkw": [
+     "Adeptus Custodes",
+     "Anathema Psykana"
+    ],
+    "r": "Infantry"
+   }
+  },
+  "chaos-daemons": {
+   "Soul Grinder": {
+    "s": {
+     "M": "8\"",
+     "T": "11",
+     "SV": "3+",
+     "W": "14",
+     "LD": "7+",
+     "OC": "5"
+    },
+    "wp": [
+     [
+      "Harvester cannon",
+      "r",
+      [
+       [
+        null,
+        "36\"",
+        "3",
+        "3+",
+        "10",
+        "-1",
+        "3",
+        []
+       ]
+      ]
+     ],
+     [
+      "Torrent of burning blood",
+      "r",
+      [
+       [
+        null,
+        "12\"",
+        "2D6",
+        "N/A",
+        "5",
+        "-1",
+        "1",
+        [
+         "Ignores Cover",
+         "Torrent"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Phlegm bombardment",
+      "r",
+      [
+       [
+        null,
+        "36\"",
+        "D6+1",
+        "3+",
+        "7",
+        "-1",
+        "2",
+        [
+         "Blast",
+         "Indirect Fire",
+         "Lethal Hits"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Scream of despair",
+      "r",
+      [
+       [
+        null,
+        "24\"",
+        "6",
+        "3+",
+        "9",
+        "-2",
+        "2",
+        [
+         "Devastating Wounds",
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warp gaze",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "D3",
+        "3+",
+        "12",
+        "-2",
+        "D6+2",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Iron claw",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "5",
+        "3+",
+        "16",
+        "-3",
+        "D6+2",
+        []
+       ]
+      ]
+     ],
+     [
+      "Warpclaw",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "6",
+        "3+",
+        "8",
+        "-1",
+        "2",
+        [
+         "Extra Attacks"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warpsword",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "3",
+        "3+",
+        "8",
+        "-2",
+        "D6",
+        [
+         "Extra Attacks"
+        ]
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Scuttling Walker",
+      "Each time this model makes a Normal or Advance move, it can move over friendly Monster and Vehicle models and terrain features that are 4\" or less in height as if they were not there."
+     ],
+     [
+      "DAEMONIC ALLEGIANCE",
+      "When you select this model to include in your army, you must select one of the keywords below. Until the end of the battle, this model has that keyword and the additional wargear stated for that keyword below:\nKHORNE – This model is additionally equipped with: torrent of burning blood\nTZEENTCH – This model is additionally equipped with: warp gaze\nNURGLE – This model is additionally equipped with: phlegm bombardment\nSLAANESH – This model is additionally equipped with: scream of despair"
+     ]
+    ],
+    "cr": [
+     "Deadly Demise D3",
+     "Deep Strike"
+    ],
+    "fa": [
+     "The Shadow of Chaos"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 4+ InSv confirmed by New Recruit (BSData)",
+    "inv": "4+",
+    "kw": [
+     "Vehicle",
+     "Daemon",
+     "Chaos",
+     "Walker",
+     "Shadow Legion",
+     "Soul Grinder"
+    ]
+   }
+  },
+  "titan-legions": {
+   "Warhound Titan": {
+    "s": {
+     "M": "14\"",
+     "T": "13",
+     "SV": "2+",
+     "W": "40",
+     "LD": "6+",
+     "OC": "16"
+    },
+    "wp": [
+     [
+      "Warhound inferno gun",
+      "r",
+      [
+       [
+        null,
+        "24\"",
+        "3D6",
+        "N/A",
+        "7",
+        "-2",
+        "3",
+        [
+         "Ignores Cover",
+         "Torrent"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound plasma blastgun",
+      "r",
+      [
+       [
+        "standard",
+        "72\"",
+        "2D6+3",
+        "3+",
+        "9",
+        "-3",
+        "4",
+        [
+         "Blast"
+        ]
+       ],
+       [
+        "supercharge",
+        "72\"",
+        "2D6+3",
+        "3+",
+        "10",
+        "-3",
+        "5",
+        [
+         "Blast",
+         "Hazardous"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound turbo-laser destructor",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "D3+3",
+        "3+",
+        "20",
+        "-3",
+        "2D6",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound vulcan mega-bolter",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "20",
+        "3+",
+        "6",
+        "-1",
+        "2",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "8",
+        "4+",
+        "10",
+        "-1",
+        "2",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend twice that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "Flank Speed",
+      "Each time this model Advances, do not make an Advance roll for it. Instead, until the end of the phase, add 8\" to the Move characteristic of this model."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise 2D6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Imperium",
+     "Vehicle",
+     "Walker",
+     "Titanic",
+     "Towering",
+     "Frame",
+     "Warhound Titan"
+    ]
+   },
+   "Reaver Titan": {
+    "s": {
+     "M": "12\"",
+     "T": "14",
+     "SV": "2+",
+     "W": "60",
+     "LD": "6+",
+     "OC": "20"
+    },
+    "wp": [
+     [
+      "Reaver apocalypse launcher",
+      "r",
+      [
+       [
+        null,
+        "200\"",
+        "3D6",
+        "3+",
+        "7",
+        "-1",
+        "2",
+        [
+         "Blast",
+         "Indirect Fire"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver gatling blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "12",
+        "3+",
+        "8",
+        "-2",
+        "3",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver laser blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "8",
+        "3+",
+        "20",
+        "-3",
+        "D6+2",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver melta cannon",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "D6+2",
+        "3+",
+        "13",
+        "-4",
+        "6",
+        [
+         "Blast",
+         "Melta 4"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+1",
+        "3+",
+        "24",
+        "-5",
+        "14",
+        [
+         "Blast",
+         "Heavy"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "8",
+        "4+",
+        "12",
+        "-2",
+        "4",
+        []
+       ]
+      ]
+     ],
+     [
+      "Reaver power fist",
+      "m",
+      [
+       [
+        "strike",
+        "Melee",
+        "6",
+        "4+",
+        "20",
+        "-4",
+        "14",
+        []
+       ],
+       [
+        "sweep",
+        "Melee",
+        "12",
+        "4+",
+        "12",
+        "-3",
+        "6",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend three times that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "God-machine",
+      "This model is eligible to shoot and declare a charge in a turn in which it Fell Back."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise D6+6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Imperium",
+     "Towering",
+     "Titanic",
+     "Reaver Titan",
+     "Frame",
+     "Vehicle",
+     "Walker"
+    ]
+   },
+   "Warlord Titan": {
+    "s": {
+     "M": "10\"",
+     "T": "16",
+     "SV": "2+",
+     "W": "100",
+     "LD": "6+",
+     "OC": "30"
+    },
+    "wp": [
+     [
+      "Apocalypse launcher",
+      "r",
+      [
+       [
+        null,
+        "200\"",
+        "20",
+        "3+",
+        "8",
+        "-2",
+        "2",
+        [
+         "Blast",
+         "Indirect Fire"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Ardex-defensor lascannon",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "1",
+        "3+",
+        "12",
+        "-3",
+        "D6+1",
+        []
+       ]
+      ]
+     ],
+     [
+      "Ardex-defensor mauler",
+      "r",
+      [
+       [
+        null,
+        "36\"",
+        "6",
+        "3+",
+        "6",
+        "-2",
+        "2",
+        []
+       ]
+      ]
+     ],
+     [
+      "Arioch power claw",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "20",
+        "3+",
+        "6",
+        "-1",
+        "2",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Belicosa volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+3",
+        "3+",
+        "32",
+        "-5",
+        "18",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Laser blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "6",
+        "3+",
+        "16",
+        "-4",
+        "D6+3",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Macro gatling blaster",
+      "r",
+      [
+       [
+        null,
+        "100\"",
+        "30",
+        "3+",
+        "9",
+        "-2",
+        "3",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Mori quake cannon",
+      "r",
+      [
+       [
+        null,
+        "280\"",
+        "3D6",
+        "3+",
+        "16",
+        "-4",
+        "6",
+        [
+         "Blast",
+         "Ignores Cover"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Sunfury plasma annihilator",
+      "r",
+      [
+       [
+        "standard",
+        "72\"",
+        "2D6+6",
+        "3+",
+        "10",
+        "-3",
+        "5",
+        [
+         "Blast"
+        ]
+       ],
+       [
+        "supercharge",
+        "72\"",
+        "2D6+6",
+        "3+",
+        "12",
+        "-3",
+        "8",
+        [
+         "Blast",
+         "Hazardous"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Arioch power claw",
+      "m",
+      [
+       [
+        "strike",
+        "Melee",
+        "6",
+        "4+",
+        "20",
+        "-4",
+        "24",
+        []
+       ],
+       [
+        "sweep",
+        "Melee",
+        "12",
+        "4+",
+        "12",
+        "-3",
+        "8",
+        []
+       ]
+      ]
+     ],
+     [
+      "Warlord feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "6",
+        "4+",
+        "12",
+        "-2",
+        "4",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend four times that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "Wrath of the Omnissiah",
+      "In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. That unit must take a Battle-shock test."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise 2D6+6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Titanic",
+     "Warlord Titan",
+     "Imperium",
+     "Frame",
+     "Towering",
+     "Walker",
+     "Vehicle"
+    ]
+   },
+   "Warbringer Nemesis Titan": {
+    "s": {
+     "M": "12\"",
+     "T": "14",
+     "SV": "2+",
+     "W": "80",
+     "LD": "6+",
+     "OC": "20"
+    },
+    "wp": [
+     [
+      "Anvillus defence battery",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "8",
+        "3+",
+        "8",
+        "-1",
+        "2",
+        [
+         "Anti-fly 4+"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Ardex-defensor mauler",
+      "r",
+      [
+       [
+        null,
+        "36\"",
+        "6",
+        "3+",
+        "6",
+        "-2",
+        "2",
+        []
+       ]
+      ]
+     ],
+     [
+      "Nemesis quake cannon",
+      "r",
+      [
+       [
+        null,
+        "480\"",
+        "D6+6",
+        "3+",
+        "16",
+        "-4",
+        "4",
+        [
+         "Blast",
+         "Indirect Fire"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Nemesis volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+3",
+        "3+",
+        "24",
+        "-5",
+        "14",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver gatling blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "12",
+        "3+",
+        "8",
+        "-2",
+        "3",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver laser blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "8",
+        "3+",
+        "20",
+        "-3",
+        "D6+2",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver melta cannon",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "D6+2",
+        "3+",
+        "13",
+        "-4",
+        "6",
+        [
+         "Blast",
+         "Melta 4"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+1",
+        "3+",
+        "24",
+        "-5",
+        "14",
+        [
+         "Blast",
+         "Heavy"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Nemesis feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "6",
+        "4+",
+        "12",
+        "-2",
+        "4",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend three times that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "Titanic Fire Support",
+      "In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. Until the end of the phase, each time a friendly Imperium model makes an attack that targets that enemy unit, on a Critical Wound, improve the Armour Penetration characteristic of that attack by 1."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise D6+6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Titanic",
+     "Walker",
+     "Vehicle",
+     "Towering",
+     "Frame",
+     "Imperium",
+     "Warbringer Nemesis Titan"
+    ]
+   }
+  },
+  "chaos-titan-legions": {
+   "Chaos Warhound Titan": {
+    "s": {
+     "M": "14\"",
+     "T": "13",
+     "SV": "2+",
+     "W": "40",
+     "LD": "6+",
+     "OC": "16"
+    },
+    "wp": [
+     [
+      "Warhound inferno gun",
+      "r",
+      [
+       [
+        null,
+        "24\"",
+        "3D6",
+        "N/A",
+        "7",
+        "-2",
+        "3",
+        [
+         "Ignores Cover",
+         "Torrent"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound plasma blastgun",
+      "r",
+      [
+       [
+        "standard",
+        "72\"",
+        "2D6+3",
+        "3+",
+        "9",
+        "-3",
+        "4",
+        [
+         "Blast"
+        ]
+       ],
+       [
+        "supercharge",
+        "72\"",
+        "2D6+3",
+        "3+",
+        "10",
+        "-3",
+        "5",
+        [
+         "Blast",
+         "Hazardous"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound turbo-laser destructor",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "D3+3",
+        "3+",
+        "20",
+        "-3",
+        "2D6",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound vulcan mega-bolter",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "20",
+        "3+",
+        "6",
+        "-1",
+        "2",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Warhound feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "8",
+        "4+",
+        "10",
+        "-1",
+        "2",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend twice that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "Flank Speed",
+      "Each time this model Advances, do not make an Advance roll for it. Instead, until the end of the phase, add 8\" to the Move characteristic of this model."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise 2D6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Imperium",
+     "Vehicle",
+     "Walker",
+     "Titanic",
+     "Towering",
+     "Frame",
+     "Warhound Titan"
+    ]
+   },
+   "Chaos Reaver Titan": {
+    "s": {
+     "M": "12\"",
+     "T": "14",
+     "SV": "2+",
+     "W": "60",
+     "LD": "6+",
+     "OC": "20"
+    },
+    "wp": [
+     [
+      "Reaver apocalypse launcher",
+      "r",
+      [
+       [
+        null,
+        "200\"",
+        "3D6",
+        "3+",
+        "7",
+        "-1",
+        "2",
+        [
+         "Blast",
+         "Indirect Fire"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver gatling blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "12",
+        "3+",
+        "8",
+        "-2",
+        "3",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver laser blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "8",
+        "3+",
+        "20",
+        "-3",
+        "D6+2",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver melta cannon",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "D6+2",
+        "3+",
+        "13",
+        "-4",
+        "6",
+        [
+         "Blast",
+         "Melta 4"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+1",
+        "3+",
+        "24",
+        "-5",
+        "14",
+        [
+         "Blast",
+         "Heavy"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "8",
+        "4+",
+        "12",
+        "-2",
+        "4",
+        []
+       ]
+      ]
+     ],
+     [
+      "Reaver power fist",
+      "m",
+      [
+       [
+        "strike",
+        "Melee",
+        "6",
+        "4+",
+        "20",
+        "-4",
+        "14",
+        []
+       ],
+       [
+        "sweep",
+        "Melee",
+        "12",
+        "4+",
+        "12",
+        "-3",
+        "6",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend three times that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "God-machine",
+      "This model is eligible to shoot and declare a charge in a turn in which it Fell Back."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise D6+6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Imperium",
+     "Towering",
+     "Titanic",
+     "Reaver Titan",
+     "Frame",
+     "Vehicle",
+     "Walker"
+    ]
+   },
+   "Chaos Warlord Titan": {
+    "s": {
+     "M": "10\"",
+     "T": "16",
+     "SV": "2+",
+     "W": "100",
+     "LD": "6+",
+     "OC": "30"
+    },
+    "wp": [
+     [
+      "Apocalypse launcher",
+      "r",
+      [
+       [
+        null,
+        "200\"",
+        "20",
+        "3+",
+        "8",
+        "-2",
+        "2",
+        [
+         "Blast",
+         "Indirect Fire"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Ardex-defensor lascannon",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "1",
+        "3+",
+        "12",
+        "-3",
+        "D6+1",
+        []
+       ]
+      ]
+     ],
+     [
+      "Ardex-defensor mauler",
+      "r",
+      [
+       [
+        null,
+        "36\"",
+        "6",
+        "3+",
+        "6",
+        "-2",
+        "2",
+        []
+       ]
+      ]
+     ],
+     [
+      "Arioch power claw",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "20",
+        "3+",
+        "6",
+        "-1",
+        "2",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Belicosa volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+3",
+        "3+",
+        "32",
+        "-5",
+        "18",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Laser blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "6",
+        "3+",
+        "16",
+        "-4",
+        "D6+3",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Macro gatling blaster",
+      "r",
+      [
+       [
+        null,
+        "100\"",
+        "30",
+        "3+",
+        "9",
+        "-2",
+        "3",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Mori quake cannon",
+      "r",
+      [
+       [
+        null,
+        "280\"",
+        "3D6",
+        "3+",
+        "16",
+        "-4",
+        "6",
+        [
+         "Blast",
+         "Ignores Cover"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Sunfury plasma annihilator",
+      "r",
+      [
+       [
+        "standard",
+        "72\"",
+        "2D6+6",
+        "3+",
+        "10",
+        "-3",
+        "5",
+        [
+         "Blast"
+        ]
+       ],
+       [
+        "supercharge",
+        "72\"",
+        "2D6+6",
+        "3+",
+        "12",
+        "-3",
+        "8",
+        [
+         "Blast",
+         "Hazardous"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Arioch power claw",
+      "m",
+      [
+       [
+        "strike",
+        "Melee",
+        "6",
+        "4+",
+        "20",
+        "-4",
+        "24",
+        []
+       ],
+       [
+        "sweep",
+        "Melee",
+        "12",
+        "4+",
+        "12",
+        "-3",
+        "8",
+        []
+       ]
+      ]
+     ],
+     [
+      "Warlord feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "6",
+        "4+",
+        "12",
+        "-2",
+        "4",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend four times that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "Wrath of the Omnissiah",
+      "In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. That unit must take a Battle-shock test."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise 2D6+6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Titanic",
+     "Warlord Titan",
+     "Imperium",
+     "Frame",
+     "Towering",
+     "Walker",
+     "Vehicle"
+    ]
+   },
+   "Chaos Warbringer Nemesis Titan": {
+    "s": {
+     "M": "12\"",
+     "T": "14",
+     "SV": "2+",
+     "W": "80",
+     "LD": "6+",
+     "OC": "20"
+    },
+    "wp": [
+     [
+      "Anvillus defence battery",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "8",
+        "3+",
+        "8",
+        "-1",
+        "2",
+        [
+         "Anti-fly 4+"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Ardex-defensor mauler",
+      "r",
+      [
+       [
+        null,
+        "36\"",
+        "6",
+        "3+",
+        "6",
+        "-2",
+        "2",
+        []
+       ]
+      ]
+     ],
+     [
+      "Nemesis quake cannon",
+      "r",
+      [
+       [
+        null,
+        "480\"",
+        "D6+6",
+        "3+",
+        "16",
+        "-4",
+        "4",
+        [
+         "Blast",
+         "Indirect Fire"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Nemesis volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+3",
+        "3+",
+        "24",
+        "-5",
+        "14",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver gatling blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "12",
+        "3+",
+        "8",
+        "-2",
+        "3",
+        [
+         "Sustained Hits 1"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver laser blaster",
+      "r",
+      [
+       [
+        null,
+        "72\"",
+        "8",
+        "3+",
+        "20",
+        "-3",
+        "D6+2",
+        [
+         "Blast"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver melta cannon",
+      "r",
+      [
+       [
+        null,
+        "48\"",
+        "D6+2",
+        "3+",
+        "13",
+        "-4",
+        "6",
+        [
+         "Blast",
+         "Melta 4"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Reaver volcano cannon",
+      "r",
+      [
+       [
+        null,
+        "120\"",
+        "D3+1",
+        "3+",
+        "24",
+        "-5",
+        "14",
+        [
+         "Blast",
+         "Heavy"
+        ]
+       ]
+      ]
+     ],
+     [
+      "Nemesis feet",
+      "m",
+      [
+       [
+        null,
+        "Melee",
+        "6",
+        "4+",
+        "12",
+        "-2",
+        "4",
+        []
+       ]
+      ]
+     ]
+    ],
+    "ab": [
+     [
+      "Striding Colossus",
+      "Each time you target this model with a Stratagem, you must spend three times that Stratagem’s stated CP cost to do so."
+     ],
+     [
+      "Titanic Fire Support",
+      "In your Shooting phase, after this model has shot, select one enemy unit hit by one or more of those attacks. Until the end of the phase, each time a friendly Imperium model makes an attack that targets that enemy unit, on a Critical Wound, improve the Armour Penetration characteristic of that attack by 1."
+     ]
+    ],
+    "cr": [
+     "Deadly Demise D6+6"
+    ],
+    "fa": [
+     "Super-heavy Walker"
+    ],
+    "wa": [],
+    "wo": [],
+    "ml": [],
+    "src": "curated: Wahapedia wh40k11ed; statline + 5+ InSv (ranged) confirmed by New Recruit (BSData)",
+    "inv": "5+",
+    "kw": [
+     "Titanic",
+     "Walker",
+     "Vehicle",
+     "Towering",
+     "Frame",
+     "Imperium",
+     "Warbringer Nemesis Titan"
+    ]
+   }
+  }
+ },
+ "fixes": {
+  "note": "Datasheet corrections where New Recruit (BSData wh40k-11e) and Wahapedia (wh40k11ed) agree and Muster's source differed. 's'/'sx' patch the stat line(s); 'replace' swaps the whole datasheet; 'lo' replaces the unit's loadout model in points.json. Faction '*' = every faction that has the unit.",
+  "chaos-daemons": {
+   "Pink Horrors": {
+    "s": {
+     "LD": "7+",
+     "OC": "2"
+    }
+   }
+  },
+  "thousand-sons": {
+   "Pink Horrors": {
+    "s": {
+     "LD": "7+",
+     "OC": "1"
+    }
+   }
+  },
+  "space-wolves": {
+   "Wolf Scouts": {
+    "s": {
+     "M": "8\"",
+     "T": "4",
+     "SV": "3+",
+     "W": "2",
+     "LD": "6+",
+     "OC": "1"
+    },
+    "sx": [
+     [
+      "Hunting Wolf",
+      {
+       "M": "10\"",
+       "T": "4",
+       "SV": "6+",
+       "W": "1",
+       "LD": "8+",
+       "OC": "0"
+      },
+      null
+     ]
+    ]
+   },
+   "Venerable Dreadnought [Legends]": {
+    "replace": {
+     "s": {
+      "M": "6\"",
+      "T": "9",
+      "SV": "2+",
+      "W": "8",
+      "LD": "6+",
+      "OC": "3"
+     },
+     "wp": [
+      [
+       "Assault Cannon",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "6",
+         "3+",
+         "6",
+         "-2",
+         "1",
+         [
+          "Sustained Hits 1"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Dreadnought Inferno Cannon",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "7",
+         "N/A",
+         "6",
+         "-1",
+         "1",
+         [
+          "Blast 2",
+          "Torrent"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Heavy Flamer",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "3",
+         "N/A",
+         "5",
+         "-1",
+         "1",
+         [
+          "Torrent",
+          "Blast 2"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Heavy Plasma Cannon",
+       "r",
+       [
+        [
+         "standard",
+         "36\"",
+         "3",
+         "3+",
+         "9",
+         "-2",
+         "2",
+         [
+          "Blast 1",
+          "Heavy"
+         ]
+        ],
+        [
+         "supercharge",
+         "36\"",
+         "3",
+         "3+",
+         "10",
+         "-3",
+         "3",
+         [
+          "Hazardous",
+          "Blast 1",
+          "Heavy"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Missile Launcher",
+       "r",
+       [
+        [
+         "frag",
+         "48\"",
+         "4",
+         "3+",
+         "4",
+         "-1",
+         "1",
+         [
+          "Blast 1",
+          "Heavy"
+         ]
+        ],
+        [
+         "krak",
+         "48\"",
+         "1",
+         "3+",
+         "10",
+         "-2",
+         "D3+3",
+         []
+        ]
+       ]
+      ],
+      [
+       "Multi-melta",
+       "r",
+       [
+        [
+         null,
+         "18\"",
+         "2",
+         "3+",
+         "10",
+         "-3",
+         "D3+2",
+         [
+          "Melta 3"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Storm Bolter",
+       "r",
+       [
+        [
+         null,
+         "24\"",
+         "2",
+         "3+",
+         "5",
+         "-1",
+         "1",
+         [
+          "Rapid Fire 2"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Twin Autocannon",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "2",
+         "3+",
+         "9",
+         "-1",
+         "3",
+         [
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Twin Heavy Bolter",
+       "r",
+       [
+        [
+         null,
+         "36\"",
+         "3",
+         "3+",
+         "5",
+         "-1",
+         "2",
+         [
+          "Sustained Hits 1",
+          "Rapid Fire 2",
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Twin Heavy Flamer",
+       "r",
+       [
+        [
+         null,
+         "12\"",
+         "3",
+         "N/A",
+         "5",
+         "-1",
+         "1",
+         [
+          "Blast 2",
+          "Twin-linked",
+          "Torrent"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Twin Lascannon",
+       "r",
+       [
+        [
+         null,
+         "48\"",
+         "1",
+         "3+",
+         "12",
+         "-3",
+         "D3+3",
+         [
+          "Twin-linked"
+         ]
+        ]
+       ]
+      ],
+      [
+       "Armoured Feet",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "5",
+         "3+",
+         "6",
+         "0",
+         "1",
+         []
+        ]
+       ]
+      ],
+      [
+       "Dreadnought Fist",
+       "m",
+       [
+        [
+         null,
+         "Melee",
+         "5",
+         "3+",
+         "12",
+         "-2",
+         "3",
+         []
+        ]
+       ]
+      ]
+     ],
+     "ab": [
+      [
+       "Wisdom of the Ancients",
+       "While a friendly Adeptus Astartes Infantry unit is within 6\" of this unit, this unit’s attacks can re-roll hit rolls of 1."
+      ]
+     ],
+     "cr": [
+      "Deadly Demise 1"
+     ],
+     "fa": [
+      "Combat Doctrines"
+     ],
+     "wa": [],
+     "wo": [],
+     "ml": [],
+     "src": "curated: generic Legends Venerable Dreadnought (Wahapedia wh40k11ed 000000120), weapons confirmed by New Recruit (BSData)",
+     "kw": [
+      "Walker",
+      "Vehicle",
+      "Imperium",
+      "Smoke",
+      "Deathwing",
+      "Dreadnought"
+     ]
+    },
+    "lo": {
+     "m": [
+      [
+       "Venerable Dreadnought",
+       1,
+       1,
+       [
+        "Armoured feet"
+       ],
+       [
+        [
+         "Assault cannon",
+         [
+          [
+           "Assault cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Dreadnought inferno cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Heavy plasma cannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Multi-melta",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin autocannon",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin heavy bolter",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin heavy flamer",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin lascannon",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Assault cannon"
+         ],
+         1,
+         null,
+         0
+        ],
+        [
+         "Dreadnought fist and storm bolter",
+         [
+          [
+           "Dreadnought fist and storm bolter",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Dreadnought fist and heavy flamer",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Missile launcher",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin autocannon",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Dreadnought fist and storm bolter"
+         ],
+         1,
+         null,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 1,
+     "mx": 1
+    }
+   }
+  },
+  "blood-angels": {
+   "Death Company Dreadnought": {
+    "s": {
+     "M": "10\""
+    }
+   }
+  },
+  "*": {
+   "Deathwatch Kill Team": {
+    "s": {
+     "T": "5"
+    }
+   }
+  },
+  "astra-militarum": {
+   "Death Korps of Krieg": {
+    "wa_add": [
+     [
+      "Vox-caster",
+      "Vox-caster",
+      "Each time you target the bearer’s unit with a Stratagem, roll one D6, adding 1 to the result if there are one or more friendly Officer models within 6\": on a 5+, you gain 1CP."
+     ]
+    ]
+   }
+  },
+  "genestealer-cults": {
+   "Death Korps of Krieg": {
+    "wa_add": [
+     [
+      "Vox-caster",
+      "Vox-caster",
+      "Each time you target the bearer’s unit with a Stratagem, roll one D6, adding 1 to the result if there are one or more friendly Officer models within 6\": on a 5+, you gain 1CP."
+     ]
+    ]
+   }
+  }
+ }
+}

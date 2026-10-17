@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v50/);
+  assert.match(read("sw.js"), /muster-shell-v51/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2552,10 +2552,8 @@ test("Berzerker Warband: +1 A boxed on World Eaters melee weapons (unit panel)",
   assert.equal(p.querySelector('[data-testid=ds-ranged] [data-testid=emod]'), null);
 });
 
-// Units with no datasheet in any source (no GrimSlate/GW-app profile exists): they show "No datasheet available" instead.
-const DS_NONE = new Set(["adeptus-custodes|Prosecutor Squad", "adeptus-custodes|Vigilator Squad", "adeptus-custodes|Witchseeker Squad", "chaos-daemons|Soul Grinder",
-  ...["Chaos Reaver Titan", "Chaos Warbringer Nemesis Titan", "Chaos Warhound Titan", "Chaos Warlord Titan"].map((n) => "chaos-titan-legions|" + n),
-  ...["Reaver Titan", "Warbringer Nemesis Titan", "Warhound Titan", "Warlord Titan"].map((n) => "titan-legions|" + n)]);
+// Units allowed to show "No datasheet available" (none left).
+const DS_NONE = new Set([]);   // every unit now has a datasheet (curated ones: scraper/overrides/curated_datasheets.json)
 
 test("datasheet sweep: every unit in every faction (own, Legends, locked, allies) renders its stats view without throwing", async () => {
   const { w, d } = makeApp();
@@ -2581,7 +2579,7 @@ test("datasheet sweep: every unit in every faction (own, Legends, locked, allies
 
 test("datasheet data: every record has the list fields the stats view iterates; names with unicode hyphens resolve", () => {
   for (const [fid, F] of Object.entries(DS.factions)) for (const [k, u] of Object.entries(F.units))
-    for (const f of ["ab", "wa", "cr", "fa", "wp", "ml"]) assert.ok(Array.isArray(u[f]), `${fid}|${k} .${f}`);
+    { for (const f of ["ab", "wa", "cr", "fa", "wp", "ml"]) assert.ok(Array.isArray(u[f]), `${fid}|${k} .${f}`); if (u.comp !== undefined) assert.ok(Array.isArray(u.comp), `${fid}|${k} .comp`); }
   assert.ok(DS.factions["adeptus-custodes"].units["Caladius Annihilator Grav\u2011Tank"]);
 });
 
