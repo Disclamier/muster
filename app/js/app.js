@@ -431,7 +431,7 @@
     if (ver ? (ver.datasheets_hash && (!S.ds || S.ds.hash !== ver.datasheets_hash)) : !S.ds) {
       try {
         const ds = await fetchJSON(`data/datasheets.json?v=${encodeURIComponent((ver && ver.datasheets_hash) || "")}`, { cache: ver ? "no-store" : "default" });
-        if (ds && ds.factions) { S.ds = ds; out.dsUpdated = true; await idb.set("datasheets", ds); }
+        if (ds && ds.factions) { S.ds = ds; C.setUnitAbilities(ds); out.dsUpdated = true; await idb.set("datasheets", ds); }
       } catch (e) { /* datasheets are optional: the unit view says so when missing */ }
     }
     if (manual) {
@@ -450,7 +450,7 @@
     const cached = await idb.get("points");
     if (cached && cached.factions) setData(cached);
     S.wr = (await idb.get("winrates")) || null;
-    S.ds = (await idb.get("datasheets")) || null;
+    S.ds = (await idb.get("datasheets")) || null; if (S.ds) C.setUnitAbilities(S.ds);
     await syncReady;
     if (S.data) route();
     const r = await checkForUpdates(false);
@@ -999,18 +999,18 @@
     for (const m of x.mods) lines.push(`${m.enh}${m.via ? ` (from ${m.via})` : ""}: ${desc(m)}${m.pick ? " (one selected weapon)" : ""}${m.cond ? ` – conditional: ${m.cond}` : ""}`);
     const tip = lines.join("\n");
     const srcs = new Set(x.mods.map((m) => m.src || "enh"));
-    const src = srcs.size > 1 ? " both" : srcs.has("det") ? " det" : "";
+    const src = srcs.has("det") && srcs.size > 1 ? " both" : srcs.has("det") ? " det" : "";   // wargear/mark picks style like an enhancement
     return `<td${extra || ""}><span class="emod${src}${x.cond ? " cond" : ""}" data-testid="emod" data-stat="${esc(stat)}" data-base="${esc(x.base || "-")}" title="${esc(tip)}" data-action="emod-tip" data-tip="${esc(tip)}">${esc(x.v)}</span></td>`;   // no +N/-N badge (James, 17 Oct): the box + tooltip explain the change
   }
   /* legend under the profile: which enhancement changed what; conditional changes listed with their condition */
   function emodNote(mods) {
     const nm = (src) => [...new Set(mods.filter((m) => (m.src || "enh") === src).map((m) => m.enh + (m.via ? ` (${m.via})` : "")))];
-    const names = nm("enh"), dnames = nm("det");
+    const names = nm("enh"), dnames = nm("det"), gnames = nm("gear");
     // conditions; choose-one rules: the lead-in once, then its options
     const groups = new Map();
     for (const m of mods.filter((x) => x.cond)) { const [g, o] = m.cond.includes(" … ") ? m.cond.split(" … ") : [m.cond, null]; if (!groups.has(g)) groups.set(g, new Set()); if (o) groups.get(g).add(o); }
     const cond = [...groups].map(([g, os]) => os.size ? `${g}<ul>${[...os].map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : g);
-    return `<div class="ds-emod-note" data-testid="emod-note">${names.length ? `<span class="emod-key"></span> Changed by enhancement: <b>${esc(names.join(", "))}</b>` : ""}${dnames.length ? `${names.length ? " · " : ""}<span class="emod-key det"></span> Detachment rule: <b>${esc(dnames.join(", "))}</b>` : ""}${cond.length ? ` · <span class="emod-key cond"></span> dashed = only ${cond.length === 1 ? "when" : "when (see below)"}:<ul>${[...groups].map(([g, os]) => `<li>${esc(g)}${os.size ? `<ul>${[...os].map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}</li>`).join("")}</ul>` : ""}</div>`;
+    return `<div class="ds-emod-note" data-testid="emod-note">${names.length ? `<span class="emod-key"></span> Changed by enhancement: <b>${esc(names.join(", "))}</b>` : ""}${gnames.length ? `${names.length ? " · " : ""}<span class="emod-key"></span> Changed by wargear: <b>${esc(gnames.join(", "))}</b>` : ""}${dnames.length ? `${names.length || gnames.length ? " · " : ""}<span class="emod-key det"></span> Detachment rule: <b>${esc(dnames.join(", "))}</b>` : ""}${cond.length ? ` · <span class="emod-key cond"></span> dashed = only ${cond.length === 1 ? "when" : "when (see below)"}:<ul>${[...groups].map(([g, os]) => `<li>${esc(g)}${os.size ? `<ul>${[...os].map((o) => `<li>${esc(o)}</li>`).join("")}</ul>` : ""}</li>`).join("")}</ul>` : ""}</div>`;
   }
   function datasheetHtml(F, u, r, o) {
     o = o || {};
@@ -1022,12 +1022,13 @@
     let html = "";
     if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "No datasheet available for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
     else {
-      const smods = r ? C.entryStatMods(F, r, (CUR && CUR.dets) || []) : [];
+      const wpn = ds.wp.map((x) => x[0]);
+      const smods = r ? C.entryStatMods(F, r, (CUR && CUR.dets) || [], wpn) : [];
       const umods = smods.filter((m) => m.scope === "unit");            // other model types in the unit: unit-wide mods only
       const srow = (name, x, inv, mm, tid) => `<tr${tid || ""}><td class="nm">${esc(name)}</td>${statCell("M", x.M, mm)}${statCell("T", x.T, mm)}${statCell("SV", x.SV || x.Sv, mm)}${statCell("W", x.W, mm)}${statCell("LD", x.LD || x.Ld, mm)}${statCell("OC", x.OC, mm)}${statCell("INV", inv, mm, ' data-testid="ds-inv"')}</tr>`;
       if (!filt) html += `<table class="ds-t ds-unit" data-testid="ds-stats"><tr><th class="nm">Unit</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>
         ${srow(u.n, st, ds.inv, smods)}${(ds.sx || []).map((x) => srow(x[0], x[1], x[2], umods, ' data-testid="ds-sx"')).join("")}</table>${smods.length ? emodNote(smods) : ""}${ds.src === "codex" ? `<div class="ds-src muted" data-testid="ds-codex">Source: Codex: Space Marines (11th edition)</div>` : ""}`;
-      const wmods = (r ? C.entryStatMods(F, r, (CUR && CUR.dets) || []) : []).filter((m) => ["RANGE", "A", "WS", "BS", "S", "AP", "D"].includes(m.stat));
+      const wmods = (r ? C.entryStatMods(F, r, (CUR && CUR.dets) || [], wpn) : []).filter((m) => ["RANGE", "A", "WS", "BS", "S", "AP", "D"].includes(m.stat));
       if (filt && wmods.length) html += emodNote(wmods);
       const wtab = (kind, label, skill) => {
         let ws = ds.wp.filter((w) => w[1] === kind && matchItem(w[0]));

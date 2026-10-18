@@ -170,8 +170,24 @@
     return (F._vocab = v);
   }
   /* {ok, reason} - keyword/unit restriction written in the enhancement text. Unparseable restrictions allow. */
+  /* datasheet abilities per unit (core + unit abilities), registered by the app once datasheets are loaded:
+     'HERETIC ASTARTES model with the Deep Strike ability only' (Warpstrike Champions) needs them */
+  let _unitAb = null;
+  function setUnitAbilities(ds) {
+    _unitAb = new Map();
+    for (const [fid, f] of Object.entries((ds && ds.factions) || {})) for (const [n, d] of Object.entries(f.units || {}))
+      _unitAb.set(fid + "|" + n, new Set([...(d.cr || []), ...(d.ab || []).map((a) => a[0])].map((x) => norm(String(x).replace(/\s*\(aura\)/i, "")))));
+  }
+  function abilityGate(u, en, F) {
+    const a = (stripMd(en[2] || "").match(/\bwith the ([A-Z][\w'’ -]*?) ability only\b/) || [])[1];
+    if (!a || !_unitAb || !F) return null;
+    const have = _unitAb.get(F.f.id + "|" + u.n); if (!have) return null;   // no datasheet: unknown, allowed
+    return [...have].some((x) => x === norm(a) || x.startsWith(norm(a))) ? null : `${a} ability only (this unit's datasheet has no ${a}).`;
+  }
   function enhEligible(u, en, F) {
     if (!u) return { ok: false, reason: "" };
+    const gate = abilityGate(u, en, F);
+    if (gate) return { ok: false, reason: gate };
     if (u.ally && u.ally.ne) return { ok: false, reason: `${u.ally.label} units cannot be given Enhancements` };
     const baseOf = (x) => isEpicHero(x) ? "Epic Heroes cannot take enhancements" : !en[3] && !isCharacter(x) ? "Characters only" : "";
     const base = baseOf(u);
@@ -447,7 +463,14 @@
       let n = 1; const m = part.match(/^(\d+)\s*[x×]?\s+(.*)$/i) || part.match(/^(one|a|an|two|three|four|five|six|pair of)\s+(.*)$/i);
       if (m) { n = /^\d/.test(m[1]) ? +m[1] : m[1].toLowerCase() === "pair of" ? 2 : NUMW[m[1].toLowerCase()]; part = m[2]; }
       let hit = exact(part);
-      if (!hit) { const np = gnorm(sing(part.toLowerCase())); const c = W.filter((w) => w[2].length > 3 && (np.includes(w[2]) || w[2].includes(np))).sort((a, b) => b[2].length - a[2].length); hit = c[0] && c[0][0]; }
+      if (!hit) {
+        // partial name: a profile that starts with the part beats a longer one that merely contains it
+        // ('Axe and flail': 'Axe' -> Axe of Khorne, not Great axe of Khorne; 'flail' -> Bloodflail)
+        const np = gnorm(sing(part.toLowerCase()));
+        const c = W.filter((w) => w[2].length > 3 && (np.includes(w[2]) || w[2].includes(np)))
+          .sort((a, b) => (b[2].startsWith(np) - a[2].startsWith(np)) || (b[2].length - a[2].length));
+        hit = c[0] && c[0][0];
+      }
       if (hit) out.push([hit, n]);
     }
     return out;
@@ -1645,7 +1668,7 @@
     }
     return out;
   }
-  function emWeaponFilter(ctx) {
+  function emWeaponFilter(ctx, wp) {
     const f = {};
     if (/\bmelee\b/i.test(ctx) && !/\branged\b/i.test(ctx)) f.kind = "m";
     else if (/\branged\b/i.test(ctx) && !/\bmelee\b/i.test(ctx)) f.kind = "r";
@@ -1656,6 +1679,13 @@
     if (/\bpistols?\b/i.test(ctx)) f.kw = "PISTOL";
     const nm = ctx.match(/(?:bearer's|model's|this model's) ((?:[A-Z][\w'’-]*\s+){0,3}[A-Z][\w'’-]*) weapons?\b/);
     if (nm && !/^(?:Psychic|Torrent|Pistol|Melee|Ranged)$/i.test(nm[1])) f.name = nm[1];
+    // a datasheet weapon named in lower case ("this model's infernal cannon", "its hellforged weapons")
+    if (!f.name && wp && wp.length) {
+      const lc = String(ctx).toLowerCase().replace(/’/g, "'");
+      const hit = wp.filter((w) => { const n = String(w).toLowerCase(); return n.length > 3 && new RegExp(`(?:model's|bearer's|its|this model's)\\s+${n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`).test(lc); })
+        .sort((a, b) => b.length - a.length)[0];
+      if (hit) f.name = hit;
+    }
     return f;
   }
   function emScope(ctx, stat) {
@@ -1672,10 +1702,13 @@
       // condition: a conditional phrase before the change (same sentence or list header), 'instead', or a gate
       const pre = sen.ctx.slice(0, sen.ctx.length - sen.s.length + (at || 0));
       const cond = EM_COND.test(pre) || /\binstead\b|\bfor every\b/i.test(sen.s) || !!sen.gate;
-      m.cond = cond ? ((sen.gate && sen.gate !== sen.s ? sen.gate + " … " : "") + sen.s.replace(/^or:\s*/i, "")) : null;
+      // a list item ('+2 S.') under a conditional lead-in ('In the Fight phase, when ... makes a Dark Pact, ... have:') names that lead-in
+      const head = sen.ctx !== sen.s ? sen.ctx.slice(0, sen.ctx.length - sen.s.length).trim() : "";
+      const lead = sen.gate && sen.gate !== sen.s ? sen.gate : (head && EM_COND.test(head) ? head.replace(/:$/, "") : "");
+      m.cond = cond ? ((lead ? lead + " … " : "") + sen.s.replace(/^or:\s*/i, "")) : null;
       if (m.stat === "RANGE" && /abilit/i.test(sen.s) && !/weapon/i.test(sen.s)) return;
       if (/\bselect one\b/i.test(sen.ctx)) m.pick = true;
-      if (EM_WEAPON.has(m.stat)) { m.filter = emWeaponFilter(sen.ctx); if (pick && !m.filter.name && /that weapon/i.test(sen.ctx)) { m.filter.name = pick; m.pick = true; } }
+      if (EM_WEAPON.has(m.stat)) { m.filter = emWeaponFilter(sen.ctx, opt.wp); if (pick && !m.filter.name && /that weapon/i.test(sen.ctx)) { m.filter.name = pick; m.pick = true; } }
       m.scope = emScope(sen.ctx, m.stat);
       if (m.stat === "INV" && /against (ranged|melee) attacks/i.test(sen.s)) m.cond = sen.s;
       Object.defineProperty(m, "_ctx", { value: sen.ctx }); Object.defineProperty(m, "_gate", { value: sen.gate || "" }); Object.defineProperty(m, "_last", { value: sen.lastKw || "" });
@@ -1690,7 +1723,7 @@
       if (/\bfollowing weapon\b/i.test(sen.ctx)) continue;
       let m;
       // 'Add 3 to the Strength and add 1 to the Attacks characteristics' / 'Add 2" to the Move characteristic'
-      const reAdd = new RegExp(`\\b(add|subtract)\\s+(\\d+)"?\\s+to\\s+(?:the\\s+)?(?:bearer's\\s+)?((?:${EM_LONG})(?:(?:,\\s*|\\s+and\\s+)(?:${EM_LONG}))*)`, "gi");
+      const reAdd = new RegExp(`\\b(add|subtract)\\s+(\\d+)"?\\s+to\\s+(?:the\\s+)?(?:(?:bearer|this model|this unit|its)(?:['’]s)?\\s+)?((?:${EM_LONG})(?:(?:,\\s*|\\s+and\\s+)(?:${EM_LONG}))*)`, "gi");
       while ((m = reAdd.exec(s))) {
         const n = (+m[2]) * (m[1].toLowerCase() === "subtract" ? -1 : 1);
         for (const w of m[3].toLowerCase().split(/,\s*|\s+and\s+/)) push({ stat: EM_STAT[w], op: "add", v: n }, sen, m.index);
@@ -1771,27 +1804,45 @@
     const pos = ph.filter((x) => !x.excl);
     return !pos.length || pos.some((x) => kwMatch(x.p, set));
   }
-  function detStatMods(d) {
+  function detStatMods(d, wp) {
     if (!d || !d.rule || !d.rule[1]) return [];
     const grant = {};
     for (const line of d.rule[1].split(/\n|(?<=\.)\s+/)) {
       const g = line.match(/^(.*?)\b(?:units?|models?)\b[^.]*?\b(?:gains?|have|has) the ([A-Z][A-Z'’ -]*[A-Z]) keyword/);
       if (g && !/BATTLELINE/.test(g[2])) { const subj = emPhrases(g[1]).filter((x) => !x.excl).map((x) => x.p); grant[g[2]] = subj.length ? subj : null; }
     }
-    return enhStatMods(d.rule[1], { det: true }).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
+    return enhStatMods(d.rule[1], { det: true, wp }).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
   }
-  function entryStatMods(F, r, dets) {
+  /* picked loadout options whose text changes a characteristic (Daemon Prince Mark of Chaos: 'Add 3 to the Attacks
+     characteristic of this model's infernal cannon') -> [{name: 'Mark of Chaos: Tzeentch', text}] */
+  function pickedGearTexts(u, lo) {
+    const M = loModel(u); if (!M || !lo || !lo.p) return [];
+    const out = [];
+    const scan = (owner, slots) => { for (const s of slots) for (const o of s.opts) if (o.text && ((lo.p[`${owner}|${s.name}`] || {})[o.name] || 0) > 0) out.push({ slot: s.name, name: o.name, text: o.text }); };
+    for (const t of M.types) scan(t.name, t.slots);
+    scan("*", M.unit);
+    return out;
+  }
+  function entryStatMods(F, r, dets, wp) {
     const out = [];
     const of = (x, unitOnly) => {
       const en = x && x.entry && x.entry.enh; if (!en || !F) return;
       const d = F.dets[en.det]; const e = d && d.enh.find((y) => y[0] === en.name); if (!e || !e[2]) return;
-      for (const m of enhStatMods(e[2])) if (!unitOnly || m.scope === "unit") out.push(Object.assign({ enh: e[0], via: unitOnly ? x.name || (x.unit && x.unit.n) : null }, m));
+      for (const m of enhStatMods(e[2], { wp })) if (!unitOnly || m.scope === "unit") out.push(Object.assign({ enh: e[0], via: unitOnly ? x.name || (x.unit && x.unit.n) : null }, m));
     };
     of(r, false);
     for (const x of (r && r.attached) || []) of(x, true);
+    // wargear / Mark of Chaos picks with a characteristic change (stack with the enhancement and the detachment rule)
+    const gear = r && r.unit ? pickedGearTexts(r.unit, r.lo) : [];
+    // in a multi-model unit a bearer-only change (one model's storm shield / mutation) is not the unit's profile
+    const nModels = r && r.lo && r.lo.c ? Object.values(r.lo.c).reduce((a, b) => a + (b || 0), 0) : 1;
+    for (const g of gear) for (const m of enhStatMods(g.text, { wp })) if (nModels <= 1 || m.scope === "unit") out.push(Object.assign({ enh: `${g.slot}: ${g.name}`, src: "gear", via: null }, m));
+    // a picked Mark of Chaos is a keyword ('excluding KHORNE units' then skips a Khorne Daemon Prince)
+    const marks = gear.filter((g) => /^marks? of chaos$/i.test(g.slot)).map((g) => g.name);
     for (const dn of dets || []) {
       const d = F && F.dets[dn]; if (!d || !r || !r.unit) continue;
-      for (const m of detStatMods(d)) if (detModEligible(m, r.unit, F)) out.push(Object.assign({ enh: `${d.n} – ${d.rule[0]}`, src: "det", via: null }, m, { scope: "unit" }));
+      const u = marks.length ? Object.assign({}, r.unit, { kw: (r.unit.kw || []).concat(marks) }) : r.unit;
+      for (const m of detStatMods(d, wp)) if (detModEligible(m, u, F)) out.push(Object.assign({ enh: `${d.n} – ${d.rule[0]}`, src: "det", via: null }, m, { scope: "unit" }));
     }
     return out;
   }
@@ -1818,7 +1869,7 @@
     return true;
   }
 
-  return { gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
