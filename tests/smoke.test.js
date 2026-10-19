@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v60/);
+  assert.match(read("sw.js"), /muster-shell-v61/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2721,4 +2721,27 @@ test("Daemonic Pact allies in the CSM catalog: cap + per-god ratio chips, would-
   assert.match(fh.textContent, /Add a KHORNE BATTLELINE unit first/);
   assert.match(sect.querySelector('[data-testid=locked-unit][data-unit="Be\'lakor"]').textContent, /Would exceed the Daemonic Pact cap/);
   assert.ok(sect.querySelector('.crow:not(.locked)[data-unit="Bloodletters"]') && sect.querySelector('.crow:not(.locked)[data-unit="Soul Grinder"]'));
+});
+
+test("Colors: a Gold preset (#d4af37) on every color slot; works with the brightness slider and rides in the musterColors bundle", async () => {
+  const { w, d } = makeApp(); await until(() => d.querySelector(".lists-page"));
+  const MC = w.MusterColors, root = d.documentElement;
+  await openFactionList(w, d, "adeptus-custodes");
+  click(w, d.querySelector("#hdr [data-action=colors]"));
+  const rows = [...d.querySelectorAll("#modal [data-testid=color-row]")];
+  assert.equal(rows.length, MC.CATS.length);
+  for (const r of rows) { const g = r.querySelector('[data-action=color-pick][data-v="#d4af37"]'); assert.ok(g, r.dataset.ck); assert.equal(g.dataset.name, "Gold"); assert.match(g.getAttribute("aria-label"), /: Gold$/); }
+  for (const k of ["det", "disp-disruption"]) {
+    click(w, d.querySelector(`#modal [data-action=color-pick][data-k="${k}"][data-v="#d4af37"]`));
+    assert.equal(MC.get(k), "#d4af37"); assert.equal(root.style.getPropertyValue(`--c-${k}`), "#d4af37");
+    assert.ok(d.querySelector(`#modal .cset[data-ck="${k}"] [data-v="#d4af37"]`).classList.contains("on"), "Gold swatch marked selected");
+  }
+  const sl = d.querySelector('#modal input[type=range][data-k=det]'); assert.ok(!sl.disabled);
+  sl.value = "20"; sl.dispatchEvent(new w.Event("input", { bubbles: true }));
+  assert.equal(root.style.getPropertyValue("--c-det"), MC.shade("#d4af37", 20));
+  const b = MC.bundle(); assert.equal(b.f["adeptus-custodes"].det, "#d4af37"); assert.equal(b.f["adeptus-custodes"].det_b, 20); assert.equal(b.shared["disp-disruption"], "#d4af37");
+  // a bundle from the account restores Gold on another device
+  const o = makeApp(); await until(() => o.d.querySelector(".lists-page"));
+  assert.ok(o.w.MusterColors.setBundle(JSON.parse(JSON.stringify(b))));
+  assert.equal(JSON.parse(o.w.localStorage.getItem("muster.colors.f.adeptus-custodes")).det, "#d4af37");
 });

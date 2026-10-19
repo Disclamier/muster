@@ -1882,8 +1882,10 @@
   }
   /* ------------------------------------------------------------------ Colors setting (per device) */
   const MC = window.MusterColors;
-  const SW_TEXT = ["#39ff14", "#ffd60a", "#ff9f1c", "#ff4d6d", "#ff5cf0", "#b388ff", "#4d8dff", "#00e5ff"];
-  const SW_DISP = ["#1e8a2e", "#0b5fa5", "#b3261e", "#c9a100", "#0b8a80", "#6a3fb5", "#c25e00", "#3c4043"];
+  const GOLD = "#d4af37";   // metallic gold preset, offered for every color slot (text and Force Disposition)
+  const SW_TEXT = ["#39ff14", "#ffd60a", "#ff9f1c", "#ff4d6d", "#ff5cf0", "#b388ff", "#4d8dff", "#00e5ff", GOLD];
+  const SW_DISP = ["#1e8a2e", "#0b5fa5", "#b3261e", "#c9a100", "#0b8a80", "#6a3fb5", "#c25e00", "#3c4043", GOLD];
+  const SW_NAME = { [GOLD]: "Gold" };
   const SAMPLE = { det: "Gladius Task Force", strat: "Armour of Contempt", cat: "Intercessor Squad", list: "Bloodletters", abil: "Deep Strike", aura: "Aura", enh: "Artificer Armour" };
   const isDark = () => document.documentElement.getAttribute("data-theme") === "dark";
   // what the picker shows when a category is still on its default
@@ -1917,7 +1919,7 @@
       <div class="cs-top"><div class="cs-t">${c.desc ? `<small>${esc(c.desc)}</small>` : ""}</div>
         <button class="btn secondary sm cs-reset" data-action="color-reset" data-k="${esc(c.k)}" title="Back to the default color">Reset</button></div>
       <div class="cs-ctl">${colorPreview(c)}</div>
-      <div class="cs-ctl"><span class="cs-sw">${(c.disp ? SW_DISP : SW_TEXT).map((x) => `<button class="sw${cur === x ? " on" : ""}" data-action="color-pick" data-k="${esc(c.k)}" data-v="${x}" style="background:${x}" title="${x}" aria-label="${esc(c.label)}: ${x}"></button>`).join("")}
+      <div class="cs-ctl"><span class="cs-sw">${(c.disp ? SW_DISP : SW_TEXT).map((x) => `<button class="sw${cur === x ? " on" : ""}" data-action="color-pick" data-k="${esc(c.k)}" data-v="${x}" style="background:${x}" title="${SW_NAME[x] ? `${SW_NAME[x]} (${x})` : x}" aria-label="${esc(c.label)}: ${SW_NAME[x] || x}"${SW_NAME[x] ? ` data-name="${SW_NAME[x]}"` : ""}></button>`).join("")}
         <label class="cs-pick" title="Custom color: pick any color"><input type="color" value="${esc(val)}" data-input="color" data-k="${esc(c.k)}" aria-label="${esc(c.label)}: custom color"></label></span></div>
       ${brightRow(c)}</div></details>`;
   }
