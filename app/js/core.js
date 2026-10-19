@@ -172,9 +172,10 @@
   /* {ok, reason} - keyword/unit restriction written in the enhancement text. Unparseable restrictions allow. */
   /* datasheet abilities per unit (core + unit abilities), registered by the app once datasheets are loaded:
      'HERETIC ASTARTES model with the Deep Strike ability only' (Warpstrike Champions) needs them */
-  let _unitAb = null;
+  let _unitAb = null, _unitDs = null;
   function setUnitAbilities(ds) {
-    _unitAb = new Map();
+    _unitAb = new Map(); _unitDs = new Map();
+    for (const [fid, f] of Object.entries((ds && ds.factions) || {})) for (const [n, d] of Object.entries(f.units || {})) _unitDs.set(fid + "|" + n, d);
     for (const [fid, f] of Object.entries((ds && ds.factions) || {})) for (const [n, d] of Object.entries(f.units || {}))
       _unitAb.set(fid + "|" + n, new Set([...(d.cr || []), ...(d.ab || []).map((a) => a[0])].map((x) => norm(String(x).replace(/\s*\(aura\)/i, "")))));
   }
@@ -450,7 +451,7 @@
      weapon names with counts: [[weaponName, n], ...]; [] when nothing matches (non-weapon wargear) */
   const NUMW = { one: 1, a: 1, an: 1, two: 2, pair: 2, paired: 0, twin: 0, three: 3, four: 4, five: 5, six: 6 };
   const sing = (x) => x.replace(/(ies)$/, "y").replace(/(ches|shes|sses|xes)$/, (m) => m.slice(0, -2)).replace(/([^s])s$/, "$1");
-  const GEAR_ALIAS = { "black knight combat weapon": "Corvus Hammers", "wolf guard headtaker w/ paired weapons": "Paired Master-crafted Power Weapons", "wolf guard headtaker w/ storm shield": "Master-crafted Power Weapon" };
+  const GEAR_ALIAS = { "gun drone": "Twin pulse carbine", "missile drone": "Missile pod", "black knight combat weapon": "Corvus Hammers", "wolf guard headtaker w/ paired weapons": "Paired Master-crafted Power Weapons", "wolf guard headtaker w/ storm shield": "Master-crafted Power Weapon" };
   const gnorm = (t) => norm(String(t).toLowerCase().replace(/-linked/g, "").replace(/is(er|ers)\b/g, "iz$1"));
   function gearWeapons(name, wpNames) {
     const al = GEAR_ALIAS[String(name).toLowerCase()]; if (al && (wpNames || []).includes(al)) return [[al, 1]];
@@ -1749,6 +1750,9 @@
       }
       const reSet = new RegExp(`\\b(${EM_LONG}) characteristic of (\\d+"?\\+?)`, "gi");
       while ((m = reSet.exec(s))) if (!/^\s*or (?:higher|more|less|lower|fewer)/i.test(s.slice(m.index + m[0].length))) push({ stat: EM_STAT[m[1].toLowerCase()], op: "set", v: m[2] }, sen, m.index);
+      // 'The bearer has a 3+ Save characteristic' (value before the characteristic name; Tomb Blade Shieldvanes)
+      const reSet2 = new RegExp(`\\bhas an? (\\d+"?\\+?) (${EM_LONG}) characteristic\\b`, "gi");
+      while ((m = reSet2.exec(s))) push({ stat: EM_STAT[m[2].toLowerCase()], op: "set", v: m[1] }, sen, m.index);
       const reInv = /\b(\d)\+ (?:invulnerable save|InSv)\b/gi;
       while ((m = reInv.exec(s))) push({ stat: "INV", op: "set", v: m[1] + "+" }, sen, m.index);
       const reSv = /(?:^|\s)(\d)\+ Sv\b/g;
@@ -1831,11 +1835,36 @@
   }
   /* picked loadout options whose text changes a characteristic (Daemon Prince Mark of Chaos: 'Add 3 to the Attacks
      characteristic of this model's infernal cannon') -> [{name: 'Mark of Chaos: Tzeentch', text}] */
-  function pickedGearTexts(u, lo) {
+  /* wargear abilities of a unit: [[gearName, abilityName, text]]. The datasheet's wargear abilities (ds.wa) plus unit
+     abilities that are really wargear (Tomb Blades Shieldvanes / Shadowloom / Nebuloscope are listed with the unit
+     abilities): an ability whose name is a loadout option, fixed gear or MFM wargear item and not a weapon profile */
+  const gkey = (t) => norm(sing(String(t || "").toLowerCase()));
+  function wargearAbilities(u, ds) {
+    if (!ds) return [];
+    const out = (ds.wa || []).map((a) => [a[0], a[1], a[2]]);
+    const M = loModel(u), gear = new Map();
+    const addG = (n) => { if (n) for (const part of String(n).split(/\s*(?:\+|,|\band\b)\s*/i)) if (part && !gear.has(gkey(part))) gear.set(gkey(part), part.replace(/^\d+\s*x?\s+|^(?:a|an|one)\s+/i, "").trim()); };
+    if (M) for (const t of M.types) { t.fixed.forEach(addG); for (const sl of t.slots) sl.opts.forEach((o) => addG(o.name)); }
+    if (M) for (const sl of M.unit) sl.opts.forEach((o) => addG(o.name));
+    for (const w of u.w || []) addG(w[0]);
+    const weapons = new Set((ds.wp || []).map((w) => gkey(w[0])));
+    for (const a of ds.ab || []) {
+      const k = gkey(a[0]); if (weapons.has(k) || out.some((x) => gkey(x[1]) === k)) continue;
+      if (gear.has(k)) out.push([gear.get(k), a[0], a[1]]);
+    }
+    return out;
+  }
+  /* picked loadout options whose text changes a characteristic (Daemon Prince Mark of Chaos: 'Add 3 to the Attacks
+     characteristic of this model's infernal cannon'); an option without text uses its wargear ability (Shieldvanes)
+     -> [{slot, name, text, n}] (n = models with it) */
+  function pickedGearTexts(u, lo, ds) {
     const M = loModel(u); if (!M || !lo || !lo.p) return [];
+    const wa = ds ? wargearAbilities(u, ds) : [];
+    const textOf = (n) => { const a = wa.find((x) => gkey(x[0]) === gkey(n) || gkey(x[1]) === gkey(n)); return a ? a[2] : ""; };
     const out = [];
-    const scan = (owner, slots) => { for (const s of slots) for (const o of s.opts) if (o.text && ((lo.p[`${owner}|${s.name}`] || {})[o.name] || 0) > 0) out.push({ slot: s.name, name: o.name, text: o.text }); };
-    for (const t of M.types) scan(t.name, t.slots);
+    const scan = (owner, slots) => { for (const s of slots) for (const o of s.opts) { const n = (lo.p[`${owner}|${s.name}`] || {})[o.name] || 0; const text = o.text || textOf(o.name); if (text && n > 0) out.push({ slot: s.name, name: o.name, text, n }); } };
+    for (const t of M.types) { scan(t.name, t.slots); const k = (lo.c || {})[t.name] || 0;
+      if (k && ds) for (const f of t.fixed) { const text = textOf(f); if (text) out.push({ slot: t.name, name: f, text, n: k }); } }
     scan("*", M.unit);
     return out;
   }
@@ -1849,10 +1878,17 @@
     of(r, false);
     for (const x of (r && r.attached) || []) of(x, true);
     // wargear / Mark of Chaos picks with a characteristic change (stack with the enhancement and the detachment rule)
-    const gear = r && r.unit ? pickedGearTexts(r.unit, r.lo) : [];
-    // in a multi-model unit a bearer-only change (one model's storm shield / mutation) is not the unit's profile
+    const uds = r && r.unit && F && _unitDs ? _unitDs.get(F.f.id + "|" + r.unit.n) : null;
+    const gear = r && r.unit ? pickedGearTexts(r.unit, r.lo, uds) : [];
+    // in a multi-model unit a bearer-only change (one model's storm shield, some Tomb Blades' Shieldvanes) is shown as a
+    // conditional change naming its bearers; when every model carries it, it is the unit's profile
     const nModels = r && r.lo && r.lo.c ? Object.values(r.lo.c).reduce((a, b) => a + (b || 0), 0) : 1;
-    for (const g of gear) for (const m of enhStatMods(g.text, { wp })) if (nModels <= 1 || m.scope === "unit") out.push(Object.assign({ enh: `${g.slot}: ${g.name}`, src: "gear", via: null }, m));
+    // abilities aimed at another unit ('select one friendly CANOPTEK unit within 3"': Accelerator Mandible) are not this profile
+    for (const g of gear.filter((x) => !/\bselect one friendly\b|\bwithin \d+"/i.test(stripMd(x.text)))) for (const m of enhStatMods(g.text, { wp })) {
+      const label = g.slot && norm(g.slot) !== norm(g.name) ? `${g.slot}: ${g.name}` : g.name;
+      if (nModels <= 1 || m.scope === "unit" || g.n >= nModels) out.push(Object.assign({ enh: label, src: "gear", via: null }, m));
+      else if (m.stat && !m.filter && !m.cond) out.push(Object.assign({ enh: label, src: "gear", via: null }, m, { cond: `only the ${g.n} of ${nModels} models with ${g.name}` }));
+    }
     // a picked Mark of Chaos is a keyword ('excluding KHORNE units' then skips a Khorne Daemon Prince)
     const marks = gear.filter((g) => /^marks? of chaos$/i.test(g.slot)).map((g) => g.name);
     for (const dn of dets || []) {
@@ -1885,7 +1921,7 @@
     return true;
   }
 
-  return { favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

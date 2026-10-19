@@ -982,7 +982,8 @@
       if (hits.length) for (const [wn, k] of hits) addW(wn, k * (g.count || 1)); else addW(part, g.count || 1);
     }
     const picks = new Set(); for (const v of Object.values((lo && lo.p) || {})) for (const [k, n] of Object.entries(v)) if (n > 0) for (const part of String(k).split(" + ")) picks.add(C.norm(part));
-    return { w, picks };
+    const models = new Set(lines.filter((l) => l.count > 0 && l.name).map((l) => C.norm(l.name)));
+    return { w, picks, models };
   }
   /* "115 pts left" (green) / "35 pts over" (red) next to the total */
   function ptsLeftHtml(total, size, small) {
@@ -1017,7 +1018,8 @@
     const ds = dsOf(F, u);
     const st = (ds && ds.s) || {};
     const eq = equipped(u, r, ds ? ds.wp.map((x) => x[0]) : null);
-    const filt = o.item ? String(o.item).split("|").map(C.norm).filter(Boolean) : null;
+    // eye on one item: its own name plus the weapon profiles it maps to ("Gun Drone" -> Twin pulse carbine)
+    const filt = o.item ? [...new Set(String(o.item).split("|").flatMap((x) => [x, ...(ds ? C.gearWeapons(x, ds.wp.map((w) => w[0])).map((h) => h[0]) : [])]).map(C.norm).filter(Boolean))] : null;
     const matchItem = (name) => !filt || filt.some((f) => C.norm(name).includes(f) || f.includes(C.norm(name)));
     let html = "";
     if (!ds) html += `<div class="muted" data-testid="ds-missing">${S.ds ? "No datasheet available for this unit." : "Profiles not downloaded yet – connect once to load them."}</div>`;
@@ -1043,6 +1045,7 @@
       };
       html += wtab("r", "Ranged Weapons", "BS") + wtab("m", "Melee Weapons", "WS");
       if (eq && !filt && ds.wp.some((w) => !(eq.w.get(C.norm(w[0])) > 0))) html += `<div class="ds-note muted">Highlighted: current loadout (× = number of models carrying it). Dimmed: other wargear options.</div>`;
+      const wgAt = html.length;   // equipped wargear abilities go right under the weapons (spliced in below)
       const fr = (S.ds.factions[F.f.id] || {}).rules || [];
       const frRule = (n) => fr.find((y) => C.norm(y[0]) === C.norm(n));
       // abilities a faction rule gives its units (Daughters of the Abyss -> Psychic Null (Aura)), listed with the unit's own
@@ -1053,14 +1056,18 @@
       const card = (name, text, cls, extra) => `<div class="ab-card${cls ? " " + cls : ""}" data-testid="ab-card"><div class="ab-n">${name}${extra || ""}</div>${text ? `<div class="ab-t">${text}</div>` : ""}</div>`;
       const sub = (key, label, body) => (body ? `<div class="ab-sub ab-${key}" data-testid="ab-${key}"><div class="ab-h">${label}</div>${body}</div>` : "");
       const auraBadge = `<span class="aura-badge">Aura</span>`;
-      const wa = ds.wa.filter((a) => matchItem(a[0]) || matchItem(a[1]));
-      const waHtml = wa.map((a) => { const on = eq && (eq.picks.has(C.norm(a[0])) || eq.w.has(C.norm(a[0]))); const aura = isAura([a[1], a[2]]);
+      // wargear abilities: the datasheet's own plus unit abilities that are wargear (Tomb Blades Shieldvanes / Shadowloom / Nebuloscope)
+      const waAll = C.wargearAbilities(u, ds);
+      const waFromAb = new Set(waAll.filter((a) => !(ds.wa || []).some((x) => x[1] === a[1])).map((a) => a[1]));
+      const wa = waAll.filter((a) => matchItem(a[0]) || matchItem(a[1]));
+      const waOn = (a) => !!eq && [a[0], a[1]].some((n) => eq.picks.has(C.norm(n)) || eq.w.has(C.norm(n)) || (eq.models && eq.models.has(C.norm(n))));
+      const waHtml = wa.map((a) => { const on = waOn(a); const aura = isAura([a[1], a[2]]);
         return card(`${esc(a[1])}${C.norm(a[0]) !== C.norm(a[1]) ? ` <span class="muted">(${esc(a[0])})</span>` : ""}`, esc(clean(a[2])), `${eq ? (on ? "eq" : "uneq") : ""}${aura ? " aura" : ""}`, aura ? auraBadge : ""); }).join("");
       if (!filt) {
         const core = ds.cr.length ? `<div class="ab-card core"><div class="ab-chips">${ds.cr.map((n) => `<span class="ab-chip kwc"${kwTip(n)}>${esc(n)}</span>`).join("")}</div></div>` : "";
         const fac = ds.fa.map((n) => { const x = frRule(n); return `<details class="ab-card fac" data-rule="${esc(n)}"><summary class="ab-n">${esc(n)}</summary><div class="ab-t">${x ? armyRuleHtml(x, CUR, F) : ""}</div></details>`; }).join("");
-        const plain = ds.ab.filter((a) => !isAura(a) && !isDmg(a)).map((a) => card(esc(a[0]), esc(clean(a[1])))).join("");
-        const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a)).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("") +
+        const plain = ds.ab.filter((a) => !isAura(a) && !isDmg(a) && !waFromAb.has(a[0])).map((a) => card(esc(a[0]), esc(clean(a[1])))).join("");
+        const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a) && !waFromAb.has(a[0])).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("") +
           granted.filter((g) => isAura(g) && !ds.ab.some((a) => C.norm(a[0]) === C.norm(g[0]))).map((g) => card(`${esc(String(g[0]).replace(/\s*\(aura\)\s*/i, " ").trim())} <span class="muted">(${esc(g[2])})</span>`, esc(clean(g[1])), "aura granted", auraBadge)).join("");
         const dmg = ds.ab.filter(isDmg).map((a) => card(esc(a[0]), esc(clean(a[1])), "dmg")).join("");
         const psy = (ds.ps || []).map((a) => card(esc(a[0]), esc(clean(a[1])), "psy")).join("");
@@ -1075,7 +1082,14 @@
           ${sub("core", "Core", core)}${sub("faction", "Faction", fac)}${sub("datasheet", "Abilities", plain)}${sub("aura", "Auras", auras)}${sub("psychic", "Psychic Abilities", psy)}${sub("wargear", "Wargear Abilities", waHtml)}${sub("damaged", "Damaged", dmg)}${sub("leader", "Leader &amp; attachment", lead)}</div>`;
         if (ds.wo && ds.wo.length) html += `<div class="ds-sec" data-testid="ds-wargear-options"><div class="ds-h">Wargear Options</div><ul class="ds-ul">${ds.wo.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
         if (ds.comp && ds.comp.length) html += `<div class="ds-sec" data-testid="ds-composition"><div class="ds-h">Unit Composition</div><ul class="ds-ul">${ds.comp.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
-      } else if (wa.length) html += `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${waHtml}</div>`;
+        // wargear abilities next to the weapons/loadout for quick reference (also kept in Abilities below)
+        if (waHtml) html = html.slice(0, wgAt) + `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${waHtml}</div>` + html.slice(wgAt);
+      } else if (wa.length) {
+        // eye on one wargear item: its ability text, plus the bearer's profile when it changes a characteristic (Shieldvanes: Sv 3+, M 8")
+        const gm = wa.flatMap((a) => C.enhStatMods(a[2], { wp: wpn }).filter((m) => ["M", "T", "SV", "W", "LD", "OC", "INV"].includes(m.stat) && !m.filter).map((m) => Object.assign({ enh: a[1], src: "gear", via: null }, m)));
+        html += `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${waHtml}</div>`;
+        if (gm.length) html += `<table class="ds-t ds-unit" data-testid="ds-bearer-stats"><tr><th class="nm">Bearer</th><th>M</th><th>T</th><th>Sv</th><th>W</th><th>Ld</th><th>OC</th><th>InSv</th></tr>${srow(`${u.n} with ${[...new Set(gm.map((m) => m.enh))].join(", ")}`, st, ds.inv, gm)}</table>${emodNote(gm)}`;
+      }
       if (filt && !html.includes("<table") && !wa.length) html += `<div class="muted">No separate profile for ${esc(String(o.item).replace(/\|/g, ", "))}.</div>`;
     }
     if (!filt) {

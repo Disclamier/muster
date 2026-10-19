@@ -3833,6 +3833,175 @@
      "mx": 1
     }
    }
+  },
+  "necrons": {
+   "Canoptek Macrocytes": {
+    "_src": "GW app (40k.app, 2026-10-18) = Wahapedia 11e Datasheets_options: every model gauss scalpel + claws; all can swap to tesla caster; 1 model's scalpel/caster -> atomiser beam + nanoscarab projector; 1 model's scalpel/caster -> accelerator mandible",
+    "lo": {
+     "m": [
+      [
+       "Canoptek Macrocyte",
+       5,
+       5,
+       [
+        "Claws"
+       ],
+       [
+        [
+         "Ranged weapon",
+         [
+          [
+           "Gauss scalpel",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Tesla caster",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Gauss scalpel"
+         ],
+         1,
+         1,
+         0
+        ]
+       ],
+       null,
+       null,
+       0
+      ],
+      [
+       "Canoptek Macrocyte w/ atomiser beam",
+       0,
+       1,
+       [
+        "Claws",
+        "Atomiser beam",
+        "Nanoscarab projector"
+       ],
+       [],
+       "Canoptek Macrocyte",
+       null,
+       0
+      ],
+      [
+       "Canoptek Macrocyte w/ accelerator mandible",
+       0,
+       1,
+       [
+        "Claws",
+        "Accelerator mandible"
+       ],
+       [],
+       "Canoptek Macrocyte",
+       null,
+       0
+      ]
+     ],
+     "mn": 5,
+     "mx": 5
+    }
+   },
+   "Tomb Blades": {
+    "_src": "GW app (40k.app, 2026-10-18) = Wahapedia 11e: any number take shieldvanes; any number take ONE of nebuloscope / shadowloom",
+    "lo": {
+     "m": [
+      [
+       "Tomb Blade",
+       3,
+       6,
+       [
+        "Close combat weapon"
+       ],
+       [
+        [
+         "Weapon",
+         [
+          [
+           "Twin gauss blaster",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Particle beamer",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Twin tesla carbine",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [
+          "Twin gauss blaster"
+         ],
+         1,
+         null,
+         0
+        ],
+        [
+         "Shieldvanes",
+         [
+          [
+           "Shieldvanes",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         null,
+         1
+        ],
+        [
+         "Nebuloscope or Shadowloom",
+         [
+          [
+           "Nebuloscope",
+           null,
+           null,
+           null,
+           null
+          ],
+          [
+           "Shadowloom",
+           null,
+           null,
+           null,
+           null
+          ]
+         ],
+         [],
+         0,
+         null,
+         1
+        ]
+       ],
+       null,
+       null,
+       0
+      ]
+     ],
+     "mn": 3,
+     "mx": 6
+    }
+   }
   }
  },
  "rules": {

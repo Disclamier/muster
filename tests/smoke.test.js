@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v58/);
+  assert.match(read("sw.js"), /muster-shell-v59/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2631,4 +2631,29 @@ test("Custodes army rules: Ka'tah cards in the Detachment panel (favoured one ma
   const ab2 = d.querySelector(".panel [data-testid=ds-abilities] [data-testid=ab-faction]");
   assert.match(ab2.textContent, /Aquila Commander[\s\S]*gain 1CP/);
   assert.match(ab2.textContent, /Martial Ka’tah[\s\S]*CALISTUS[\s\S]*Favoured – Solar Watch/);
+});
+
+test("Tomb Blades: eye on Shieldvanes shows its text + bearer profile (Sv 3+, M 8\"); stats view lists wargear abilities under the weapons and in Abilities", async () => {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, NF = POINTS.factions.find((f) => f.id === "necrons");
+  const l = C.newList({ name: "N", faction: "necrons", sub: "necrons", size: "strikeforce" }); l.dets = [NF.dets[0].n];
+  const e = C.newEntry(NF.units.find((u) => u.n === "Tomb Blades")); l.entries.push(e);
+  e.lo = { c: { "Tomb Blade": 3 }, p: { "Tomb Blade|Weapon": { "Twin gauss blaster": 3 }, "Tomb Blade|Shieldvanes": { Shieldvanes: 3 }, "Tomb Blade|Nebuloscope or Shadowloom": { Shadowloom: 3 } } };
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => w.Muster.S.ds); w.Muster.route();
+  click(w, d.querySelector(`.roster .urow[data-uid="${e.uid}"]`));
+  const p = d.querySelector(".panel");
+  const wg = p.querySelector("[data-testid=ds-wargear-ab]"); assert.ok(wg, "wargear abilities under the weapons");
+  assert.match(wg.textContent, /Shieldvanes[\s\S]*Save characteristic/); assert.match(wg.textContent, /Shadowloom/); assert.match(wg.textContent, /Nebuloscope/);
+  assert.ok(wg.compareDocumentPosition(p.querySelector("[data-testid=ds-abilities]")) & 4, "before Abilities");
+  assert.match(p.querySelector("[data-testid=ds-abilities] [data-testid=ab-wargear]").textContent, /Shieldvanes/);
+  assert.doesNotMatch(p.querySelector("[data-testid=ds-abilities] [data-testid=ab-datasheet]").textContent, /Shieldvanes/);
+  const sv = p.querySelector('[data-testid=ds-stats] [data-testid=emod][data-stat="SV"]'); assert.ok(sv); assert.equal(sv.textContent, "3+");
+  // eye on the Shieldvanes option
+  const eye = [...p.querySelectorAll("[data-action=ds-pop]")].find((b) => b.dataset.item === "Shieldvanes");
+  assert.ok(eye, "eye on Shieldvanes"); click(w, eye);
+  const pop = await until(() => [...d.querySelectorAll("[data-testid=ds-bearer-stats]")].pop());
+  assert.equal(pop.querySelector('[data-stat="SV"]').textContent, "3+"); assert.equal(pop.querySelector('[data-stat="M"]').textContent, '8"');
 });
