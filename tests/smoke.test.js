@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v59/);
+  assert.match(read("sw.js"), /muster-shell-v60/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2656,4 +2656,69 @@ test("Tomb Blades: eye on Shieldvanes shows its text + bearer profile (Sv 3+, M 
   assert.ok(eye, "eye on Shieldvanes"); click(w, eye);
   const pop = await until(() => [...d.querySelectorAll("[data-testid=ds-bearer-stats]")].pop());
   assert.equal(pop.querySelector('[data-stat="SV"]').textContent, "3+"); assert.equal(pop.querySelector('[data-stat="M"]').textContent, '8"');
+});
+
+test("CSM: Chaos Lord / Cultist Firebrand show no Daemon Prince Mark of Chaos cards; the Daemon Prince keeps its Mark choice", async () => {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, CF = POINTS.factions.find((f) => f.id === "chaos-space-marines");
+  const l = C.newList({ name: "CSM", faction: "chaos-space-marines", sub: "chaos-space-marines", size: "strikeforce" }); l.dets = [CF.dets[0].n];
+  for (const n of ["Chaos Lord on Bike", "Cultist Firebrand", "Heretic Astartes Daemon Prince"]) l.entries.push(C.newEntry(CF.units.find((u) => u.n === n)));
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => w.Muster.S.ds); w.Muster.route();
+  const marks = /Khorne|Nurgle|Slaanesh|Tzeentch/;
+  for (const e of l.entries.slice(0, 2)) {
+    click(w, d.querySelector(`.roster .urow[data-uid="${e.uid}"]`));
+    const p = d.querySelector(".panel");
+    assert.ok(![...p.querySelectorAll("[data-testid=ab-card] .ab-n")].some((x) => marks.test(x.textContent)), `${e.unit}: mark cards`);
+    assert.ok(!p.querySelector("[data-testid=mark-grp]"), `${e.unit}: mark picker`);
+    assert.ok(![...p.querySelectorAll(".slh")].some((x) => /Mark of Chaos/.test(x.textContent)), `${e.unit}: mark slot`);
+  }
+  click(w, d.querySelector(`.roster .urow[data-uid="${l.entries[2].uid}"]`));
+  const p = d.querySelector(".panel");
+  assert.ok([...p.querySelectorAll(".slh")].some((x) => /Mark of Chaos/.test(x.textContent)), "DP mark slot");
+  assert.match(p.querySelector("[data-testid=ds-wargear-ab]").textContent, /Tzeentch[\s\S]*infernal cannon/);
+});
+
+test("Pactbound Zealots: Mark of Chaos picker with each mark's effect; mismatched attach greyed; mark card in profile; none outside Pactbound", async () => {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, CF = POINTS.factions.find((f) => f.id === "chaos-space-marines");
+  const l = C.newList({ name: "PZ", faction: "chaos-space-marines", sub: "chaos-space-marines", size: "strikeforce" }); l.dets = ["Pactbound Zealots"];
+  for (const n of ["Chaos Lord", "Legionaries"]) l.entries.push(C.newEntry(CF.units.find((u) => u.n === n)));
+  const [lord, leg] = l.entries; lord.warlord = true; leg.mark = "Nurgle";
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => w.Muster.S.ds); w.Muster.route();
+  click(w, d.querySelector(`.roster .urow[data-uid="${lord.uid}"]`));
+  let p = d.querySelector(".panel");
+  const opts = [...p.querySelectorAll("[data-testid=mark-grp] [data-testid=mark-opt]")];
+  assert.deepEqual(opts.map((o) => o.dataset.mark), ["Khorne", "Tzeentch", "Nurgle", "Slaanesh", "Chaos Undivided"]);
+  assert.match(opts[0].textContent, /LETHAL HITS[\s\S]*melee attack, an unmodified Hit roll of 5\+ scores a Critical Hit/);
+  change(w, opts[0].querySelector("input"), true);
+  assert.equal(lord.mark, "Khorne");
+  p = d.querySelector(".panel");
+  const att = p.querySelector(`[data-testid=attach-opt][data-to="${leg.uid}"]`);
+  assert.ok(att.classList.contains("disabled") && att.dataset.markbad === "1", "Nurgle Legionaries greyed for a Khorne Lord");
+  assert.match(p.querySelector("[data-testid=ab-mark]").textContent, /Mark of Chaos: Khorne[\s\S]*Critical Hit/);
+  // another detachment: no picker
+  l.dets = [CF.dets.find((x) => x.n !== "Pactbound Zealots").n]; w.Muster.route();
+  click(w, d.querySelector(`.roster .urow[data-uid="${lord.uid}"]`));
+  assert.ok(!d.querySelector(".panel [data-testid=mark-grp]"));
+});
+
+test("Daemonic Pact allies in the CSM catalog: cap + per-god ratio chips, would-break daemons greyed with the reason", async () => {
+  const { w, d } = makeApp(); await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, CF = POINTS.factions.find((f) => f.id === "chaos-space-marines");
+  const l = C.newList({ name: "DP", faction: "chaos-space-marines", sub: "chaos-space-marines", size: "strikeforce" }); l.dets = [CF.dets[0].n];
+  for (const n of ["Legionaries", "Bloodletters", "Bloodcrushers"]) l.entries.push(C.newEntry(CF.units.find((u) => u.n === n)));
+  w.Muster.S.lists.push(l); await go(w, "#/list/" + l.id); await until(() => d.querySelector(".catalog"));
+  const sect = d.querySelector('.catalog [data-testid=ally-sect][data-ally="Daemonic Pact"]'); assert.ok(sect);
+  assert.match(sect.querySelector("[data-testid=ally-cap]").textContent, /205 \/ 500 pts/);
+  assert.match(sect.querySelector("[data-testid=ally-ratio]").textContent, /Khorne 1\/1/);
+  const fh = sect.querySelector('[data-testid=locked-unit][data-unit="Flesh Hounds"]'); assert.ok(fh, "Flesh Hounds greyed");
+  assert.match(fh.textContent, /Add a KHORNE BATTLELINE unit first/);
+  assert.match(sect.querySelector('[data-testid=locked-unit][data-unit="Be\'lakor"]').textContent, /Would exceed the Daemonic Pact cap/);
+  assert.ok(sect.querySelector('.crow:not(.locked)[data-unit="Bloodletters"]') && sect.querySelector('.crow:not(.locked)[data-unit="Soul Grinder"]'));
 });

@@ -271,6 +271,38 @@
    },
    "text": "If every model in your army has the CHAOS keyword, you can include either one TITANIC CHAOS KNIGHTS model or up to three WAR DOG models. None of these models can be your WARLORD, and they cannot be given Enhancements.",
    "src_kw": "Chaos"
+  },
+  {
+   "to": [
+    "chaos-space-marines",
+    "chaos-knights"
+   ],
+   "from": "chaos-daemons",
+   "label": "Daemonic Pact",
+   "fk_any": [
+    "Legiones Daemonica"
+   ],
+   "units": [
+    "Soul Grinder"
+   ],
+   "kw_none": [
+    "Shadow Legion Heretic Astartes"
+   ],
+   "caps": {
+    "incursion": 250,
+    "strikeforce": 500,
+    "onslaught": 750
+   },
+   "no_warlord": true,
+   "no_enh": true,
+   "gr": [
+    "Khorne",
+    "Tzeentch",
+    "Nurgle",
+    "Slaanesh"
+   ],
+   "src": "Chaos Daemons army rule 'Daemonic Pact' (GW app / Wahapedia 11e); per-god Battleline ratio as BSData wh40k-11e Daemons Library '<God> non-Battleline' categories",
+   "text": "Daemonic Pact (Chaos Daemons army rule): if every model in your army has the CHAOS KNIGHTS or HERETIC ASTARTES keyword, you can include LEGIONES DAEMONICA units. Combined points: Incursion up to 250, Strike Force up to 500, Onslaught up to 750. None of these models can be your WARLORD or be given Enhancements. For each of KHORNE, TZEENTCH, NURGLE and SLAANESH, the number of non-BATTLELINE units with that keyword you include this way cannot be greater than the number of BATTLELINE units with that keyword. (Shadow of Chaos does not apply to these units.)"
   }
  ]
 }

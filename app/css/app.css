@@ -1153,3 +1153,4 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .katah .ka-fav { border-top: 1px dashed var(--border); margin-top: 4px; padding-top: 3px; }
 .tag.fav { color: var(--cost); border-color: var(--cost); }
 .ab-card.aura.granted .muted { font-weight: 400; font-size: 11px; }
+.mark-note { font-size: 11.5px; padding: 4px 2px 2px; }

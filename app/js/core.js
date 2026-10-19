@@ -108,7 +108,10 @@
       const othersE = list.entries.filter((x) => x.uid !== uid && x.attach === e.uid && attachKind(findUnit(F, x.unit), bu, enhAttach(F, x)) === kind);
       const others = othersE.map((x) => findUnit(F, x.unit)).filter(Boolean);
       const taken = kind === "leader" ? !leadersOk(bu, others.concat([mu]), e.models) : others.length > 0;
-      out.push({ entry: e, unit: bu, kind, taken, extra: kind === "leader" && others.length > 0 && !taken, by: othersE.map((x) => x.unit) });
+      // Pactbound Zealots: a CHARACTER can only be attached to a unit with the same mark
+      let markBad = null;
+      if (markRuleActive(list, F)) { const a = unitMark(list, F, mu, me), b = unitMark(list, F, bu, e); if (a && b && a !== b) markBad = `${a} vs ${b}`; }
+      out.push({ entry: e, unit: bu, kind, taken, markBad, extra: kind === "leader" && others.length > 0 && !taken, by: othersE.map((x) => x.unit) });
     }
     return out;
   }
@@ -122,6 +125,40 @@
     uc.cats.forEach((ct, i) => { const n = a.n[i] || 0, mx = allyCatMax(ct, size); if (mx != null && n > mx) out.push(`${n} / ${mx} ${ct.name} units`); });
     if (uc.xor && uc.cats.filter((ct, i) => a.n[i] > 0).length > 1) out.push(`either ${uc.cats.map((ct) => `${ct.max} ${ct.name}`).join(" or up to ")} - not both`);
     return out;
+  }
+  /* Daemonic Pact: per god keyword, non-BATTLELINE units included this way <= BATTLELINE units with that keyword */
+  const allyKw = (u, k) => (u.kw || []).some((x) => norm(x) === norm(k));
+  function allyGodCounts(al, us) {
+    const out = {};
+    for (const g of al.gr || []) {
+      const w = (us || []).filter((u) => allyKw(u, g));
+      out[g] = { bl: w.filter((u) => allyKw(u, "Battleline")).length, nbl: w.filter((u) => !allyKw(u, "Battleline")).length };
+    }
+    return out;
+  }
+  function allyRatioIssues(a) {
+    if (!a.al.gr) return [];
+    return Object.entries(allyGodCounts(a.al, a.us)).filter(([, c]) => c.nbl > c.bl)
+      .map(([g, c]) => `${c.nbl} non-Battleline ${g.toUpperCase()} unit${c.nbl === 1 ? "" : "s"} but only ${c.bl} ${g.toUpperCase()} BATTLELINE unit${c.bl === 1 ? "" : "s"} – each non-BATTLELINE ${g.toUpperCase()} unit needs a BATTLELINE ${g.toUpperCase()} unit`);
+  }
+  /* would adding one more `u` (costing `cost`) break its allied rule's points cap or god ratio? (ally picker greying) */
+  function allyAddCheck(u, allies, size, cost) {
+    if (!u || !u.ally) return { ok: true, reason: "" };
+    const al = u.ally, A = (allies && allies[al.label]) || { pts: 0, us: [] };
+    const cap = size && al.caps ? al.caps[size.id] : null;
+    if (cap != null && A.pts + (cost || 0) > cap) return { ok: false, reason: `Would exceed the ${al.label} cap (${A.pts} + ${cost} > ${cap} pts)` };
+    if (al.gr && !allyKw(u, "Battleline")) {
+      // gods it can have: its keywords, or any of its datasheet 'Allegiance' choices (Daemon Prince of Chaos, Furies, Chaos Spawn)
+      const lo = u.lo || {}, alg = (lo.u || []).concat(...(lo.m || []).map((m) => m[4] || [])).filter((sl) => /^(Allegiance|Mark of Chaos)$/i.test(sl[0]));
+      const cands = alg.length ? alg[0][1].map((o) => o[0]).filter((g) => al.gr.includes(g)) : al.gr.filter((g) => allyKw(u, g));
+      const room = (g) => { const c = allyGodCounts(al, (A.us || []).concat([Object.assign({}, u, { kw: (u.kw || []).concat([g]) })]))[g]; return c.nbl <= c.bl; };
+      if (cands.length && !cands.some(room)) {
+        const c = allyGodCounts(al, A.us || []), g = cands.length === 1 ? cands[0] : null;
+        return { ok: false, reason: g ? `Add a ${g.toUpperCase()} BATTLELINE unit first (${al.label}: ${c[g].bl} Battleline, ${c[g].nbl} non-Battleline ${g})`
+          : `Add a BATTLELINE unit of its god first (${al.label}: each non-BATTLELINE ${cands.join("/").toUpperCase()} unit needs a BATTLELINE unit with that keyword)` };
+      }
+    }
+    return { ok: true, reason: "" };
   }
   /* "1/2 Retinue · 0/2 Character" style summary of an allied rule's caps */
   function allyCapText(al, A, size) {
@@ -593,7 +630,10 @@
         if (u.wr && !u.wr.some((d) => (list.dets || []).includes(d))) err(`${u.n} cannot be the Warlord (only with the ${u.wr.join(" or ")} detachment)`, e.uid);
         warlords += 1;
       }
-      if (u.ally) { const A = allySum[u.ally.label] = allySum[u.ally.label] || { pts: 0, al: u.ally, n: [], units: 0 }; A.pts += row.base + row.wargear + row.addons + row.enh; A.units++;
+      if (u.ally) { const A = allySum[u.ally.label] = allySum[u.ally.label] || { pts: 0, al: u.ally, n: [], units: 0, us: [] }; A.pts += row.base + row.wargear + row.addons + row.enh; A.units++;
+        // a god picked on the datasheet (Daemon Prince of Chaos 'Allegiance') gives that keyword for the Daemonic Pact ratio
+        const gk = row.lo ? Object.entries(row.lo.p || {}).filter(([k]) => /\|(Allegiance|Mark of Chaos)$/i.test(k)).flatMap(([, o]) => Object.keys(o).filter((x) => o[x] > 0)) : [];
+        A.us.push(gk.length ? Object.assign({}, u, { kw: (u.kw || []).concat(gk) }) : u);
         if (u.ally.uc) u.ally.uc.cats.forEach((ct, i) => { if (allyCatHas(u, ct)) A.n[i] = (A.n[i] || 0) + 1; }); }
       if (u.lg) warn(`${u.n} is a Legends unit`, e.uid);
       row.total = row.base + row.wargear + row.addons + row.enh;
@@ -632,10 +672,10 @@
     }
     // Marks of Chaos (Pactbound Zealots): every eligible unit needs one; attached units must share it
     if (markRuleActive(list, F)) {
-      const markOf = (r) => { const ch = markChoices(list, F, r.unit); if (!ch) { const k = (r.unit.kw || []).find((x) => MARKS.includes(x)); return k || null; } return ch.includes(r.entry.mark) ? r.entry.mark : null; };
+      const markOf = (r) => unitMark(list, F, r.unit, r.entry, r.lo);
       for (const r of res.entries) {
         if (!r.unit) continue; const ch = markChoices(list, F, r.unit);
-        if (ch && !ch.includes(r.entry.mark)) warn(`${r.unit.n}: select a Mark of Chaos (Marks of Chaos)`, r.uid);
+        if (ch && !ch.includes(r.entry.mark)) err(`${r.unit.n}: select a Mark of Chaos (Pactbound Zealots – Marks of Chaos)`, r.uid);
         if (r.attachedTo && r.attachedTo.unit) { const a = markOf(r), b = markOf(r.attachedTo); if (a && b && a !== b) err(`${r.unit.n} (${a}) cannot join ${r.attachedTo.unit.n} (${b}): attached units must share the same Mark of Chaos`, r.uid); }
       }
     }
@@ -662,6 +702,7 @@
       const cap = size && a.al.caps ? a.al.caps[size.id] : null;
       if (cap != null && a.pts > cap) err(`${lab}: ${a.pts} / ${cap} pts of allied units`);
       for (const m of allyCountIssues(a, size)) err(`${lab}: ${m}`);
+      for (const m of allyRatioIssues(a)) err(`${lab}: ${m}`);
       if (a.al.rk) { const opp = norm(a.al.rk) === "imperium" ? "chaos" : "imperium";   // own-faction keyword data is patchy: only flag allied copies or units of the other allegiance
         const bad = res.entries.find((r) => r.unit && !(r.unit.kw || []).some((k) => norm(k) === norm(a.al.rk)) && (r.unit.af || (r.unit.kw || []).some((k) => norm(k) === opp)));
         if (bad) err(`${lab}: every model in your army must have the ${a.al.rk.toUpperCase()} keyword (${bad.unit.n} does not)`, bad.uid); }
@@ -818,7 +859,7 @@
     for (const role of ROLE_ORDER) for (const r of (c.byRole[role] || { entries: [] }).entries) rows.push(r);
     let charN = 0;
     for (const r of rows) r.charSlot = r.unit && isCharacter(r.unit) ? ++charN : null;
-    for (const r of c.entries) { const ch = F && markChoices(list, F, r.unit); r.markTxt = ch && ch.includes(r.entry.mark) ? `Mark of Chaos: ${r.entry.mark}` : ""; }
+    for (const r of c.entries) { const ch = F && markChoices(list, F, r.unit); r.markTxt = ch && ch.includes(r.entry.mark) ? `Mark of Chaos: ${r.entry.mark}` : ""; }   // Daemon Prince marks are in its loadout line
     return { c, F, sub, dets, rows, size: c.size,
       factionName: F ? F.f.name : list.faction, subName: sub ? sub.name : (F ? F.f.name : list.faction) };
   }
@@ -1606,17 +1647,40 @@
   function markRuleActive(list, F) {
     return !!F && (list.dets || []).some((n) => { const d = F.dets[n]; return d && d.rule && /^Marks of Chaos$/i.test(String(d.rule[0] || "").trim()); });
   }
-  /* null when the unit picks no mark, else the allowed marks (Khorne not for PSYKER units) */
+  /* Pactbound Zealots 'Marks of Chaos' (GW app = Wahapedia 11e, James 18 Oct): null when the unit picks no mark, else
+     the allowed marks. Every HERETIC ASTARTES unit (vehicles included) that is not an EPIC HERO and has no mark keyword
+     must pick one; Khorne not for PSYKER units. The two Daemon Princes already choose a god as wargear (their Mark of
+     Chaos option, which is also their keyword), so they get no second pick. Outside that detachment nobody picks. */
   function markChoices(list, F, u) {
-    // James (Oct 15): Marks of Chaos are chosen ONLY on the two Heretic Astartes Daemon Princes (their wargear option);
-    // no per-unit picker for any other unit, Pactbound Zealots / Marks of Chaos rule included.
-    return null;
-    if (!u || !markRuleActive(list, F)) return null;   // eslint-disable-line no-unreachable
+    if (!u || !markRuleActive(list, F)) return null;
     const kw = (u.kw || []).map((x) => x.toLowerCase());
-    if (u.fk !== "Heretic Astartes" || isEpicHero(u) || kw.includes("damned")) return null;
+    if (u.fk !== "Heretic Astartes" || isEpicHero(u)) return null;
     if (MARKS.some((m) => kw.includes(m.toLowerCase()))) return null;                     // already has one
     if (u.lo && (u.lo.m || []).some((m) => (m[4] || []).some((sl) => sl[0] === "Mark of Chaos"))) return null;   // Daemon Prince wargear
     return MARKS.filter((m) => !(m === "Khorne" && kw.includes("psyker")));
+  }
+  /* a unit's mark: its keyword, the Daemon Prince's Mark of Chaos wargear pick, or the Pactbound pick */
+  function unitMark(list, F, unit, entry, lo) {
+    if (!unit) return null;
+    const k = (unit.kw || []).find((x) => MARKS.includes(x)); if (k) return k;
+    const l2 = lo || (entry && hasLoadout(unit) ? getLoadout(unit, entry, (pickModelOption(modelOptions(unit, 1), entry) || modelOptions(unit, 1)[0] || { models: 1 }).models) : null);
+    if (l2) for (const [key, v] of Object.entries(l2.p || {})) if (/\|Mark of Chaos$/.test(key)) { const m = Object.keys(v).find((x) => v[x] > 0 && MARKS.includes(x)); if (m) return m; }
+    const ch = markChoices(list, F, unit);
+    return ch && entry && ch.includes(entry.mark) ? entry.mark : null;
+  }
+  /* the mark effects listed by the detachment rule: {Khorne: [["LETHAL HITS", text]], "Chaos Undivided": [[...], [...]]} */
+  function markEffects(list, F) {
+    const d = F && (list.dets || []).map((n) => F.dets[n]).find((x) => x && x.rule && /^Marks of Chaos$/i.test(String(x.rule[0] || "").trim()));
+    const out = {}; if (!d) return out;
+    let gained = null;
+    for (const line of String(d.rule[1]).split("\n")) {
+      const h = line.match(/Units That Gained \[([^\]]+)\]:?\s*(.*)$/i);
+      let rest = line;
+      if (h) { gained = h[1].toUpperCase(); rest = h[2]; }
+      const m = rest.match(/^\W*(KHORNE|TZEENTCH|NURGLE|SLAANESH|CHAOS UNDIVIDED):\s*(.+)$/i);
+      if (m && gained) { const k = MARKS.find((x) => x.toUpperCase() === m[1].toUpperCase()); (out[k] = out[k] || []).push([gained, m[2].trim()]); }
+    }
+    return out;
   }
   /* Can detachment d still be ticked given the current picks? (1+1+1, 2+1, a single 3; Incursion: <=2 or a lone 3 DP) */
   /* Custodes Favoured Ka'tah: a "Unique: Shield Host" detachment rule names one ka'tah ability and its additional effect
@@ -1841,8 +1905,11 @@
   const gkey = (t) => norm(sing(String(t || "").toLowerCase()));
   function wargearAbilities(u, ds) {
     if (!ds) return [];
-    const out = (ds.wa || []).map((a) => [a[0], a[1], a[2]]);
     const M = loModel(u), gear = new Map();
+    // Mark of Chaos cards belong to units that pick a mark as wargear (the Heretic Astartes Daemon Princes); older data
+    // copied the Daemon Prince's cards onto every CSM unit
+    const markSlot = !!M && M.types.some((t) => t.slots.some((sl) => /^marks? of chaos$/i.test(sl.name)));
+    const out = (ds.wa || []).filter((a) => markSlot || !["Khorne", "Nurgle", "Slaanesh", "Tzeentch", "Chaos Undivided"].includes(a[0])).map((a) => [a[0], a[1], a[2]]);
     const addG = (n) => { if (n) for (const part of String(n).split(/\s*(?:\+|,|\band\b)\s*/i)) if (part && !gear.has(gkey(part))) gear.set(gkey(part), part.replace(/^\d+\s*x?\s+|^(?:a|an|one)\s+/i, "").trim()); };
     if (M) for (const t of M.types) { t.fixed.forEach(addG); for (const sl of t.slots) sl.opts.forEach((o) => addG(o.name)); }
     if (M) for (const sl of M.unit) sl.opts.forEach((o) => addG(o.name));
@@ -1921,7 +1988,7 @@
     return true;
   }
 
-  return { wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { allyGodCounts, allyRatioIssues, allyAddCheck, unitMark, markEffects, wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

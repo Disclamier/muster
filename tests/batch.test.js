@@ -9,7 +9,7 @@ test("detFits: a 3 DP pick greys out everything else; 2+1 fits", () => {
   assert.equal(C.detFits(mk(F.f.id, ["Chaos Cult"]), F, F.dets["Deceptors"], size), false);
   assert.equal(C.detFits(mk(F.f.id, []), F, F.dets["Pactbound Zealots"], size), true);
 });
-test("CSM: marks only on Daemon Princes; cultists have no boons; no mark picker anywhere (Pactbound too)", () => {
+test("CSM: Mark of Chaos wargear only on Daemon Princes; cultists have no boons; mark picker only in Pactbound Zealots (James 18 Oct)", () => {
   const F = I.factions["chaos-space-marines"];
   for (const u of F.f.units) for (const m of (u.lo && u.lo.m) || []) for (const sl of m[4] || []) {
     if (sl[0] === "Mark of Chaos") assert.match(u.n, /Daemon Prince/, u.n);
@@ -17,7 +17,7 @@ test("CSM: marks only on Daemon Princes; cultists have no boons; no mark picker 
   }
   const lg = F.units["Legionaries"] || F.f.units.find((u) => u.n === "Legionaries");
   assert.equal(C.markChoices(mk(F.f.id, ["Chaos Cult"]), F, lg), null);
-  assert.equal(C.markChoices(mk(F.f.id, ["Pactbound Zealots"]), F, lg), null);
+  assert.deepEqual(C.markChoices(mk(F.f.id, ["Pactbound Zealots"]), F, lg), ["Khorne", "Tzeentch", "Nurgle", "Slaanesh", "Chaos Undivided"]);
 });
 test("Chaos Rhinos all have combi-bolter/combi-weapon, extra combi-bolter and havoc launcher", () => {
   for (const fid of ["chaos-space-marines", "death-guard", "world-eaters", "emperors-children", "thousand-sons"]) {
@@ -47,15 +47,16 @@ test("export box: rules checkbox is a large labelled control next to the unchang
   assert.match(src, /exp-rules-box[\s\S]*data-change="exp-rules"/); assert.match(src, /data-change="md"/);
   assert.match(css, /\.exp-rules-box\{[^}]*min-height:44px[^}]*cursor:pointer/);
 });
-test("CSM: every unit except the two Daemon Princes has no Mark of Chaos wargear; Cultist Firebrand gets no marks at all", () => {
+test("CSM: every unit except the two Daemon Princes has no Mark of Chaos wargear; Cultist Firebrand picks a mark only in Pactbound", () => {
   const F = I.factions["chaos-space-marines"], MK = ["Khorne", "Nurgle", "Slaanesh", "Tzeentch", "Chaos Undivided"];
   const DP = ["Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"];
-  for (const u of F.f.units) {
+  for (const u of F.f.units.filter((x) => !x.af)) {   // allied Chaos Daemons (Daemonic Pact) carry their own datasheets' Allegiance
     const slots = ((u.lo && u.lo.m) || []).flatMap((m) => m[4] || []);
     const marked = slots.some((sl) => /Mark/i.test(sl[0]) || sl[1].filter((o) => MK.includes(o[0])).length >= 3);
     assert.equal(marked, DP.includes(u.n), u.n);
   }
-  for (const d of [[], ["Pactbound Zealots"]]) assert.equal(C.markChoices(mk(F.f.id, d), F, F.units["Cultist Firebrand"]), null);
+  assert.equal(C.markChoices(mk(F.f.id, []), F, F.units["Cultist Firebrand"]), null);
+  assert.equal(C.markChoices(mk(F.f.id, ["Pactbound Zealots"]), F, F.units["Cultist Firebrand"]).length, 5);
 });
 test("export rules appendix: one Detachment rule line per detachment, one line per stratagem (name, CP, text)", () => {
   const F = I.factions["chaos-space-marines"]; const l = mk(F.f.id, ["Chaos Cult", "Cabal of Chaos"]); l.entries.push(C.newEntry(F.units["Legionaries"]));
@@ -72,10 +73,10 @@ test("export rules appendix: blank line between each detachment rule / stratagem
   const s = C.exportText(l, I, {}, "stratagems", { rules: true }).split("\n");
   for (const st of F.dets["Chaos Cult"].st) { const i = s.findIndex((x) => x.startsWith(`${st[0]} – ${st[1]}CP`)); assert.ok(i > 0 && s[i - 1] === "" || /^== /.test(s[i - 1]), st[0]); }
 });
-test("CSM: no unit other than the two Daemon Princes can pick a Mark of Chaos in any detachment (incl. Land Raider, Chaos Lord)", () => {
+test("CSM: outside Pactbound Zealots no unit other than the two Daemon Princes can pick a Mark of Chaos (incl. Land Raider, Chaos Lord)", () => {
   const F = I.factions["chaos-space-marines"]; const DP = ["Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"];
   assert.ok(F.units["Chaos Land Raider"] && F.units["Chaos Lord"]);
-  for (const d of [[], ...Object.keys(F.dets).map((n) => [n])]) for (const u of F.f.units) {
+  for (const d of [[], ...Object.keys(F.dets).filter((n) => n !== "Pactbound Zealots").map((n) => [n])]) for (const u of F.f.units.filter((x) => !x.af)) {
     assert.equal(C.markChoices(mk(F.f.id, d), F, u), null, `${u.n} ${d}`);
     const marks = ((u.lo && u.lo.m) || []).flatMap((m) => m[4] || []).filter((sl) => /mark/i.test(sl[0]) || sl[1].some((o) => /^(Khorne|Nurgle|Tzeentch|Slaanesh|Chaos Undivided)$/.test(o[0])));
     assert.equal(marks.length > 0, DP.includes(u.n), u.n);

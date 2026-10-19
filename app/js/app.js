@@ -781,7 +781,8 @@
     const byRole = {}; for (const u of own) (byRole[u.r] = byRole[u.r] || []).push(u);
     const size = c.size;
     const row = (u) => {
-          const n = copies[u.n] || 0; const lim = C.unitLimit(u, size); const al = C.unitAllowed(u, l);
+          const n = copies[u.n] || 0; const lim = C.unitLimit(u, size); let al = C.unitAllowed(u, l);
+          if (al.ok && u.af) al = C.allyAddCheck(u, c.allies, size, C.minCost(u, n + 1));   // allied: points cap / Daemonic Pact god ratio
           if (!al.ok) return `<div class="crow locked" data-unit="${esc(u.n)}" data-testid="locked-unit" title="${esc(al.reason)}">
             ${pts(C.minCost(u, n + 1))}<span class="cname">${esc(u.n)}${u.lg ? `<span class="tag">Legends</span>` : ""}<span class="why">🔒 ${esc(al.reason)}</span></span>
             <span class="cnt">${n ? n : ""}</span>
@@ -803,7 +804,7 @@
     html += Object.entries(byAlly).map(([lab, us]) => {
       const k = `allyopen:${lab}`; const cap = size && us[0].ally.caps ? us[0].ally.caps[size.id] : null;
       const used = (c.allies && c.allies[lab] && c.allies[lab].pts) || 0;
-      return `<div class="sect ally-sect${S.ui.q || S.ui.collapsed[k] ? "" : " collapsed"}" data-testid="ally-sect" data-ally="${esc(lab)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}" title="${esc(us[0].ally.text)}"><span class="tri"></span>Allied: ${esc(lab)} <span class="muted">(${us.length})</span>${cap != null ? ` <span class="dpchip${used > cap ? " over" : ""}" data-testid="ally-cap">${used} / ${cap} pts</span>` : ""}${us[0].ally.uc ? ` <span class="dpchip${C.allyCountIssues((c.allies && c.allies[lab]) || { n: [], al: us[0].ally }, size).length ? " over" : ""}" data-testid="ally-cap">${esc(C.allyCapText(us[0].ally, c.allies && c.allies[lab], size))}</span>` : ""}</div>
+      return `<div class="sect ally-sect${S.ui.q || S.ui.collapsed[k] ? "" : " collapsed"}" data-testid="ally-sect" data-ally="${esc(lab)}"><div class="sect-h" data-action="toggle-sect" data-key="${esc(k)}" title="${esc(us[0].ally.text)}"><span class="tri"></span>Allied: ${esc(lab)} <span class="muted">(${us.length})</span>${cap != null ? ` <span class="dpchip${used > cap ? " over" : ""}" data-testid="ally-cap">${used} / ${cap} pts</span>` : ""}${us[0].ally.gr ? Object.entries(C.allyGodCounts(us[0].ally, (c.allies && c.allies[lab] && c.allies[lab].us) || [])).filter(([, x]) => x.bl || x.nbl).map(([g, x]) => ` <span class="dpchip${x.nbl > x.bl ? " over" : ""}" data-testid="ally-ratio" title="non-Battleline / Battleline ${esc(g)} units">${esc(g)} ${x.nbl}/${x.bl}</span>`).join("") : ""}${us[0].ally.uc ? ` <span class="dpchip${C.allyCountIssues((c.allies && c.allies[lab]) || { n: [], al: us[0].ally }, size).length ? " over" : ""}" data-testid="ally-cap">${esc(C.allyCapText(us[0].ally, c.allies && c.allies[lab], size))}</span>` : ""}</div>
         <div class="sect-body"><div class="muted small ally-note">${esc(us[0].ally.text)}</div>${us.sort((a, b) => a.n.localeCompare(b.n)).map(row).join("")}</div></div>`;
     }).join("");
     return lockToggle + (html || `<div class="empty">No units match.</div>`);
@@ -1065,7 +1066,11 @@
         return card(`${esc(a[1])}${C.norm(a[0]) !== C.norm(a[1]) ? ` <span class="muted">(${esc(a[0])})</span>` : ""}`, esc(clean(a[2])), `${eq ? (on ? "eq" : "uneq") : ""}${aura ? " aura" : ""}`, aura ? auraBadge : ""); }).join("");
       if (!filt) {
         const core = ds.cr.length ? `<div class="ab-card core"><div class="ab-chips">${ds.cr.map((n) => `<span class="ab-chip kwc"${kwTip(n)}>${esc(n)}</span>`).join("")}</div></div>` : "";
-        const fac = ds.fa.map((n) => { const x = frRule(n); return `<details class="ab-card fac" data-rule="${esc(n)}"><summary class="ab-n">${esc(n)}</summary><div class="ab-t">${x ? armyRuleHtml(x, CUR, F) : ""}</div></details>`; }).join("");
+        // Pactbound Zealots: the unit's Mark of Chaos and what it does
+        const pm = r && CUR && C.markRuleActive(CUR, F) ? C.unitMark(CUR, F, u, r.entry, r.lo) : null;
+        const pfx = pm ? (C.markEffects(CUR, F)[pm] || []) : [];
+        const markCard = pm ? `<div class="ab-card fac mark" data-testid="ab-mark"><div class="ab-n">Mark of Chaos: ${esc(pm)} <span class="muted">(Pactbound Zealots)</span></div><div class="ab-t">${esc(pfx.map((x) => `After gaining [${x[0]}] from a Dark Pact (Leadership test passed), until the end of the phase: ${x[1]}`).join("\n"))}</div></div>` : "";
+        const fac = markCard + ds.fa.map((n) => { const x = frRule(n); return `<details class="ab-card fac" data-rule="${esc(n)}"><summary class="ab-n">${esc(n)}</summary><div class="ab-t">${x ? armyRuleHtml(x, CUR, F) : ""}</div></details>`; }).join("");
         const plain = ds.ab.filter((a) => !isAura(a) && !isDmg(a) && !waFromAb.has(a[0])).map((a) => card(esc(a[0]), esc(clean(a[1])))).join("");
         const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a) && !waFromAb.has(a[0])).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("") +
           granted.filter((g) => isAura(g) && !ds.ab.some((a) => C.norm(a[0]) === C.norm(g[0]))).map((g) => card(`${esc(String(g[0]).replace(/\s*\(aura\)\s*/i, " ").trim())} <span class="muted">(${esc(g[2])})</span>`, esc(clean(g[1])), "aura granted", auraBadge)).join("");
@@ -1163,8 +1168,11 @@
     }
     // Mark of Chaos (only while a selected detachment has the 'Marks of Chaos' rule, e.g. Pactbound Zealots)
     const markCh = C.markChoices(l, F, u);
-    const markHtml = markCh ? `<div class="grp" data-testid="mark-grp"><div class="gh">Mark of Chaos <span class="muted">(Marks of Chaos rule)</span>${!markCh.includes(e.mark) ? ` <span class="need warn" title="Select a Mark of Chaos">!</span>` : ""}</div><div class="gb">
-        ${markCh.map((m) => `<label class="opt${e.mark === m ? " sel" : ""}" data-testid="mark-opt"><input type="radio" name="mark" value="${esc(m)}" ${e.mark === m ? "checked" : ""} data-change="mark"><span class="on">${esc(m)}</span></label>`).join("")}</div></div>` : "";
+    const markFx = markCh ? C.markEffects(l, F) : {};
+    const fxTxt = (m) => (markFx[m] || []).map((x) => `After gaining [${x[0]}] from a Dark Pact (Leadership test passed), until the end of the phase: ${x[1]}`).join("\n");
+    const markHtml = markCh ? `<div class="grp" data-testid="mark-grp"><div class="gh">Mark of Chaos <span class="muted">(Pactbound Zealots)</span>${!markCh.includes(e.mark) ? ` <span class="need warn" title="Select a Mark of Chaos">!</span>` : ""}</div><div class="gb">
+        ${markCh.map((m) => `<label class="opt${e.mark === m ? " sel" : ""}" data-testid="mark-opt" data-mark="${esc(m)}"><input type="radio" name="mark" value="${esc(m)}" ${e.mark === m ? "checked" : ""} data-change="mark"><span class="on"><b>${esc(m)}</b><span class="desc">${esc(fxTxt(m))}</span></span></label>`).join("")}
+        <div class="muted mark-note">Required in Pactbound Zealots.${(u.kw || []).some((k) => /psyker/i.test(k)) ? " Psykers cannot take Khorne." : ""} A Character can only be attached to a unit with the same mark; a unit can only embark in a Transport with the same mark.</div></div></div>` : "";
     // Attach to: bodyguard units in the list this Leader / Support unit can join
     let attachHtml = "";
     const grantA = C.enhAttach(F, e);
@@ -1182,9 +1190,10 @@
           const mine = [...gearOf(tr)]; const common = (g) => peers.length > 1 && peers.every((p) => p.has(g));
           const gearTxt = mine.length ? mine.map((g) => (peers.length > 1 && !common(g) ? `<b>${esc(g)}</b>` : esc(g))).join(", ") : "";
           const cand = `<span class="cand muted">${esc(tr.modelsLabel || "")}${tr.total != null ? `${tr.modelsLabel ? " · " : ""}${tr.total} pts` : ""}${gearTxt ? ` · ${gearTxt}` : ""}</span>`;
-          const checked = e.attach === t.entry.uid; const dis = t.taken && !checked;
-          return `<label class="opt${dis ? " disabled" : ""}" data-testid="attach-opt" data-to="${esc(t.entry.uid)}"${dis ? ` title="Already has ${esc(t.kind === "support" ? "a Support unit" : "a Leader")}: ${esc(t.by.join(", "))}"` : ""}><input type="radio" name="attach" value="${esc(t.entry.uid)}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="attach">
-            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${t.extra && !dis ? ` <span class="tag" data-testid="attach-2nd" title="Datasheet rule: this unit can take a second Leader">2nd Leader with ${esc(t.by.join(", "))}</span>` : ""}${cand}${dis ? `<span class="why">Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${esc(t.by.join(", "))}</span>` : ""}</span></label>`; }).join("")}
+          const checked = e.attach === t.entry.uid; const dis = (t.taken || !!t.markBad) && !checked;
+          const why = t.markBad ? `Different Mark of Chaos (${t.markBad}): Pactbound Zealots attached units must share it` : `Already has ${t.kind === "support" ? "a Support unit" : "a Leader"}: ${t.by.join(", ")}`;
+          return `<label class="opt${dis ? " disabled" : ""}" data-testid="attach-opt" data-to="${esc(t.entry.uid)}"${t.markBad ? ' data-markbad="1"' : ""}${dis ? ` title="${esc(why)}"` : ""}><input type="radio" name="attach" value="${esc(t.entry.uid)}" ${checked ? "checked" : ""} ${dis ? "disabled" : ""} data-change="attach">
+            <span class="on">${esc(t.entry.unit)}${sameName ? ` #${idx}` : ""}${t.extra && !dis ? ` <span class="tag" data-testid="attach-2nd" title="Datasheet rule: this unit can take a second Leader">2nd Leader with ${esc(t.by.join(", "))}</span>` : ""}${cand}${dis || (t.markBad && checked) ? `<span class="why">${esc(why)}</span>` : ""}</span></label>`; }).join("")}
         ${curBad ? `<div class="warn">Currently attached to a unit it can't join – choose another or "Not attached".</div>` : ""}
         ${!targets.length ? `<div class="muted">Add a unit it can join: ${esc(can.join(", "))}.</div>` : ""}</div></div>`;
     }

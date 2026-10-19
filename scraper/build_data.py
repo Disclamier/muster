@@ -35,6 +35,22 @@ for _f, _v in BSDATA_LEADERS.get("xl", {}).items():
         MULTI_LEADER.setdefault("leaders", {}).setdefault(_f, {}).setdefault(_n, _x)
 CHAOS_ASTARTES = {"chaos-space-marines", "death-guard", "world-eaters", "emperors-children", "thousand-sons"}
 CSM_MARK_UNITS = {"Heretic Astartes Daemon Prince", "Heretic Astartes Daemon Prince with wings"}
+MARK_NAMES = {"Khorne", "Nurgle", "Slaanesh", "Tzeentch", "Chaos Undivided"}
+
+
+def strip_dp_marks(ds_out, stats):
+    """The secondary rules data attaches the Heretic Astartes Daemon Prince's Mark of Chaos wargear abilities
+    (Khorne: +2 S hellforged weapons, Tzeentch: +3 A infernal cannon, ...) to every CSM character / vehicle and to their
+    allied copies. Only the two Daemon Princes have that wargear choice: drop those cards everywhere else."""
+    dp = (ds_out.get("chaos-space-marines") or {}).get("units") or {}
+    texts = {(a[0], a[1], a[2]) for n in CSM_MARK_UNITS for a in ((dp.get(n) or {}).get("wa") or []) if a[0] in MARK_NAMES}
+    if not texts: return
+    for fid, f in ds_out.items():
+        for n, d in (f.get("units") or {}).items():
+            if n in CSM_MARK_UNITS or not d or not d.get("wa"): continue
+            keep = [a for a in d["wa"] if (a[0], a[1], a[2]) not in texts]
+            if len(keep) != len(d["wa"]):
+                d["wa"] = keep; stats["dp_mark_cards_removed"] = stats.get("dp_mark_cards_removed", 0) + 1
 NEW_CODEX_FACTIONS = {"adeptus-custodes"}   # MFM lists the full post-codex detachment list; secondary-only ones are obsolete
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, ".."))
@@ -262,6 +278,7 @@ def apply_allies(factions, ds, stats):
         if r.get("req_kw"): al["rk"] = r["req_kw"]
         if r.get("no_warlord"): al["nw"] = 1
         if r.get("no_enh"): al["ne"] = 1
+        if r.get("gr"): al["gr"] = r["gr"]   # Daemonic Pact: per-god non-BATTLELINE <= BATTLELINE
         if r.get("group"):   # an existing group of the faction (e.g. Legions of Excess): just add the cap
             for u in to["units"]:
                 if u.get("grp") == r["group"]: u["ally"] = al
@@ -564,6 +581,7 @@ def merge(mfm, gs):
         units.sort(key=lambda x: (ROLE_ORDER.index(x["r"]) if x["r"] in ROLE_ORDER else 99, x["n"].lower()))
         ds_out[mf["id"]] = {"rules": f_rules, "units": f_ds}
         out_factions.append({"id": mf["id"], "name": mf["name"], "url": mf["url"], "units": units, "dets": dets})
+    strip_dp_marks(ds_out, stats)
     return out_factions, stats, unmatched_dets
 
 
