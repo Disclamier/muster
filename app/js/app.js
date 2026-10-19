@@ -849,6 +849,7 @@
     const cfg = `<div class="card cfgcard${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && ds.length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
       <details class="cfg-dd" data-dd="size" data-testid="size-dd"${ddOpen("size")}><summary class="cfgrow" data-testid="cfg-size"><span class="dd-l">Battle Size</span><span class="dd-v"><span class="dd-vn">${esc(size ? size.name : "?")}</span>${size ? pts(size.points) : ""}${caret}</span></summary>
         <div class="dd-list" role="radiogroup" aria-label="Battle Size">${(S.data.battle_sizes || []).map((b) => `<label class="opt${c.size && c.size.id === b.id ? " sel" : ""}"><input type="radio" name="size" value="${esc(b.id)}" ${c.size && c.size.id === b.id ? "checked" : ""} data-change="size"><span class="on"><b>${esc(b.name)}</b>${b.dp != null ? `<span class="desc">${b.dp} DP · ${b.enh} enhancements${b.single3dp ? " · or a single 3 DP detachment" : ""}</span>` : ""}</span>${pts(b.points)}</label>`).join("")}</div></details>
+      ${F ? armyRow(F) : ""}
       <details class="cfg-dd det-dd" data-dd="det" data-testid="det-dd"${ddOpen("det")}><summary class="cfgrow detsrow${dets.length > 1 ? " multi" : ""}" data-testid="cfg-dets"><span class="dd-l">${dets.length ? "" : `<span class="need" title="Error: select a detachment">!</span> `}Detachment${dets.length > 1 ? "s" : ""}</span><span class="dd-v">${dets.length ? `<span class="detchips">${dets.map((d) => `<span class="detchip" data-testid="det-chip" data-det="${esc(d.n)}"><span class="dn">${esc(d.n)}</span><span class="dpchip">${d.dp} DP</span></span>`).join("")}</span>` : `<span class="dd-vn err">None selected</span>`}<span class="dd-tot"><span class="dpchip${dpOver ? " over" : ""}" data-testid="dp" title="Detachment Points used">${dpTxt}</span>${caret}</span></span></summary>
         <div class="dd-list">
           <div class="dd-hint muted">Tick one or more · <span class="${dpOver ? "err" : ""}" data-testid="dp-used">${dpTxt} used</span>${size && size.single3dp ? ` · ${esc(size.name)}: up to ${size.dp} DP, or a single 3 DP detachment` : ""}</div>
@@ -921,6 +922,7 @@
     if (P.type === "unit") return unitPanel(l, F, c, P.uid);
     if (P.type === "preview") return previewPanel(l, F, c, P.unit);
     if (P.type === "dets") return detsPanel(l, F, c);
+    if (P.type === "army") return armyPanel(l, F);
     if (P.type === "size") return sizePanel(l, c);
     if (P.type === "disp") return dispPanel(l, c);
     if (P.type === "errors") return errorsPanel(l, c);
@@ -1281,6 +1283,20 @@
     const fr = ((S.ds && S.ds.factions[F.f.id]) || {}).rules || [];
     if (!fr.length) return "";
     return `<details class="coll army-rules" data-testid="army-rules"${S.ui.armyOpen ? " open" : ""}><summary>Army rules (${fr.length})</summary><div class="cb">${fr.map((r) => `<details class="ab-card fac ar" data-testid="army-rule" data-rule="${esc(r[0])}"${S.ui.armyOpenRule === r[0] ? " open" : ""}><summary class="ab-n">${esc(r[0])}</summary><div class="ab-t">${armyRuleHtml(r, l, F)}</div></details>`).join("")}</div></details>`;
+  }
+  /* Configuration row (between Battle Size and Detachment, every faction): the army rules at a glance, tap = Army rules panel */
+  const factionRules = (F) => ((S.ds && S.ds.factions[F.f.id]) || {}).rules || [];
+  function armyRow(F) {
+    const fr = factionRules(F);
+    return `<button type="button" class="cfgrow armyrow" data-action="open-panel" data-panel="army" data-testid="cfg-army" title="Army rules">
+      <span class="dd-l">Army rules</span><span class="dd-v">${fr.length ? `<span class="dd-vn">${esc(fr[0][0])}</span>${fr.length > 1 ? `<span class="dpchip">+${fr.length - 1}</span>` : ""}` : `<span class="dd-vn muted">${S.ds ? "None" : "Loading…"}</span>`}<span class="chev" aria-hidden="true">›</span></span></button>`;
+  }
+  /* Army rules panel: every rule expanded, each one collapsible */
+  function armyPanel(l, F) {
+    const fr = factionRules(F);
+    return phead("Army rules", `${esc(F.f.name)} · ${fr.length} rule${fr.length === 1 ? "" : "s"}`) +
+      `<div class="pbody scroll" data-sk="panel" data-testid="army-panel">${fr.length ? fr.map((r) => `<details class="ab-card fac ar" data-testid="army-rule" data-rule="${esc(r[0])}" open><summary class="ab-n">${esc(r[0])}${r[2] && r[2].army ? ` <span class="tag">Army construction</span>` : ""}</summary><div class="ab-t">${armyRuleHtml(r, l, F)}</div></details>`).join("")
+        : `<div class="empty">${S.ds ? "No army rules for this faction in the rules data." : "Loading rules…"}</div>`}</div>`;
   }
   /* one detachment's rule + enhancements + stratagems, grouped under its name */
   function detBlock(d, o) {

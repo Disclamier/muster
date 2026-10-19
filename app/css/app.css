@@ -1154,3 +1154,15 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .tag.fav { color: var(--cost); border-color: var(--cost); }
 .ab-card.aura.granted .muted { font-weight: 400; font-size: 11px; }
 .mark-note { font-size: 11.5px; padding: 4px 2px 2px; }
+
+/* Configuration: Army rules row (opens the Army rules panel) */
+.cfgrow.armyrow { width: 100%; border: 0; color: inherit; font: inherit; font-size: 12.5px; text-align: left; gap: 8px; min-height: 30px; }
+.cfgrow.armyrow .dd-l { font-weight: 700; white-space: nowrap; flex: none; }
+.cfgrow.armyrow .dd-v { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 72%; font-weight: 600;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px 2px 8px; }
+.cfgrow.armyrow:hover .dd-v { border-color: var(--gray); }
+.cfgrow.armyrow .dd-vn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cfgrow.armyrow .dpchip { flex: none; }
+.cfgrow.armyrow .chev { flex: none; font-size: 16px; line-height: 1; color: var(--gray); }
+.cfgrow.armyrow:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+@media (max-width: 760px) { .cfgrow.armyrow { min-height: 44px; } .cfgrow.armyrow .dd-v { max-width: 68%; } }

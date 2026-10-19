@@ -4090,6 +4090,231 @@
      }
     ]
    ]
+  },
+  "titan-legions": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Towering Example",
+     "When mustering your army, if your Army Faction is ADEPTUS TITANICUS, ignore the Select Detachment Rules step. In the Select Warlord step, select one ADEPTUS TITANICUS model from your army to be your WARLORD, even though that model does not have the CHARACTER keyword. Your army has the Take and Hold force disposition.",
+     {
+      "army": true
+     }
+    ],
+    [
+     "Titanic Support",
+     "If every model in your army has the IMPERIUM keyword, you can include 1 ADEPTUS TITANICUS model in your army, even if it does not have the Faction keyword you selected in the Select Army Faction step.",
+     {
+      "army": true
+     }
+    ],
+    [
+     "Titanicus Traitoris",
+     "You can use the ADEPTUS TITANICUS datasheets in this document to represent TITANICUS TRAITORIS models if you wish. To do so, on those datasheets and on this Army Rules card, replace all instances of the IMPERIUM keyword with CHAOS, and replace all instances of the ADEPTUS TITANICUS Faction keyword with TITANICUS TRAITORIS. For the purposes of points values, use those published for the equivalent ADEPTUS TITANICUS models.",
+     {
+      "army": true
+     }
+    ]
+   ]
+  },
+  "chaos-titan-legions": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Towering Example",
+     "When mustering your army, if your Army Faction is TITANICUS TRAITORIS, ignore the Select Detachment Rules step. In the Select Warlord step, select one TITANICUS TRAITORIS model from your army to be your WARLORD, even though that model does not have the CHARACTER keyword. Your army has the Take and Hold force disposition.",
+     {
+      "army": true
+     }
+    ],
+    [
+     "Titanic Support",
+     "If every model in your army has the CHAOS keyword, you can include 1 TITANICUS TRAITORIS model in your army, even if it does not have the Faction keyword you selected in the Select Army Faction step.",
+     {
+      "army": true
+     }
+    ],
+    [
+     "Titanicus Traitoris",
+     "You can use the ADEPTUS TITANICUS datasheets in this document to represent TITANICUS TRAITORIS models if you wish. To do so, on those datasheets and on this Army Rules card, replace all instances of the IMPERIUM keyword with CHAOS, and replace all instances of the ADEPTUS TITANICUS Faction keyword with TITANICUS TRAITORIS. For the purposes of points values, use those published for the equivalent ADEPTUS TITANICUS models.",
+     {
+      "army": true
+     }
+    ]
+   ]
+  },
+  "imperial-knights": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Freeblades",
+     "If every model in your army has the IMPERIUM keyword, you can include either one Titanic Imperial Knights model or up to three Armiger models in your army, even if they do not have the Faction keyword you selected in the Select Army Faction step. None of these models can be your WARLORD, and they cannot be given Enhancements.",
+     {
+      "fl": "Freeblades often wander the galaxy, aiding the armies of the Imperium against the xenos and heretics who threaten the Emperor’s realm.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "chaos-knights": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Dreadblades",
+     "If every model in your army has the CHAOS keyword, you can include either 1 Titanic Chaos Knights model or up to 3 War Dog models in your army, even if they do not have the Faction keyword you selected in the Select Army Faction step. None of these models can be your WARLORD, and they cannot be given Enhancements.",
+     {
+      "fl": "Dreadblades stalk the galaxy, carving a path of destruction alongside other forces of Chaos.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "emperors-children": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Pact of Excess",
+     "When mustering your army, unless specifically stated otherwise, you cannot select Legions of Excess as your Army Faction.",
+     {
+      "fl": "By enacting the most lurid and excessive acts of ritual violence, the Emperor’s Children may shatter reality itself and summon forth the daemons of Slaanesh.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "world-eaters": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Pact of Blood",
+     "When mustering your army, unless specifically stated otherwise, you cannot select Blood Legions as your Army Faction.",
+     {
+      "fl": "Through acts of frenzied violence and unbound savagery, the World Eaters may open a rent in reality, allowing the daemons of Khorne to spill forth from that infernal domain.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "death-guard": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Pact of Decay",
+     "When mustering your army, unless specifically stated otherwise, you cannot select Plague Legions as your Army Faction.",
+     {
+      "fl": "The daemons of Nurgle are not native to realspace, but instead must be summoned through the rotting veil by way of generous sacrifice and acts of foul worship.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "thousand-sons": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Pact of Sorcery",
+     "When mustering your army, unless specifically stated otherwise, you cannot select Scintillating Legions as your Army Faction.",
+     {
+      "fl": "The daemons of Tzeentch are drawn through the barriers of the Warp by rituals of transmutation.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "chaos-space-marines": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Cult of the Dark Gods",
+     "If your Army Faction is HERETIC ASTARTES, you can include any of the following units in your army, and when you do so their Faction keywords are replaced with HERETIC ASTARTES:\n■ Khorne Berzerkers (see World Eaters)\n■ Rubric Marines (see Thousand Sons)\n■ Plague Marines (see Death Guard)\n■ Noise Marines (see Emperor’s Children)\nThe combined points value of such units you can include in your army depends on the battle size, as follows:\n■ Incursion: Up to 250 pts\n■ Strike Force: Up to 500 pts\n■ Onslaught: Up to 750 pts",
+     {
+      "fl": "Some traitors have given themselves entirely to the service of the Dark Gods, and they are so lost to damnation that they barely resemble the warriors they once were.",
+      "army": true
+     }
+    ]
+   ]
+  },
+  "aeldari": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Strands of Fate",
+     "If your Army Faction is AELDARI, at the start of the battle, make a Strands of Fate roll by rolling six D6.\n\nIf you wish, you can then re-roll all of these dice, but if you do, roll one less D6. You can continue re-rolling all of the dice in this manner, rolling one less D6 each time you do, until you are satisfied with the results rolled (or until you only have a single D6 remaining).\n\nWhen you are satisfied with the results rolled, those remaining dice become your Fate dice for the battle. These results cannot be changed or re-rolled further, unless a rule specifically states otherwise. Keep your Fate dice to one side – this is your Fate dice pool.\n\nOnce per phase, before making a dice roll for a model or unit from your army with the Strands of Fate ability, if you have one or more dice in your Fate dice pool, you can use one of those Fate dice. To do so, select one of those Fate dice to substitute that dice roll. The dice that is being substituted is not rolled; instead, the value of the selected Fate dice is used as if it had been rolled (this counts as an unmodified dice roll of that value for all rules purposes). Each Fate dice can only be used in this way once. After using a Fate dice, remove it from your Fate dice pool and roll all remaining dice that are part of that dice roll (if any). You can use Fate dice for any of the following types of dice roll:\n■ Advance roll\n■ Battle-shock test\n■ Charge roll\n■ Damage roll\n■ Hit roll\n■ Saving throw\n■ Wound roll",
+     {
+      "fl": "The Aeldari live on the brink of extinction. As such, their Farseers have become adept at reading future events, seeing the many strands of fate ahead of their people and the consequences of following each one. Taken at the right time, a simple action can avoid calamitous outcomes, aiding the Aeldari in their continued struggle for survival."
+     }
+    ],
+    [
+     "Agile Manoeuvres",
+     "SWIFT AS THE WIND\n\nTRIGGER: When an eligible unit from your army is selected to make a Normal, Advance or Fall Back move. You can trigger this Agile Manoeuvre more than once per phase (provided a different unit performs it each time).\n\nEFFECT: Until the end of the phase, add 2\" to the Move characteristic of models in that unit.\n\nFLITTING SHADOWS\n\nTRIGGER: When an eligible unit from your army is selected to make a Normal, Advance or Fall Back move, is set up on the battlefield, or declares a charge.\n\nEFFECT: Until the end of the turn, enemy units cannot use the Fire Overwatch Stratagem to shoot at that unit.\n\nSTAR ENGINES\n\nTRIGGER: When an eligible VEHICLE unit from your army is selected to make an Advance move.\n\nEFFECT: Until the end of the turn, Ranged weapons equipped by this unit have the [ASSAULT] ability.\n\nSUDDEN STRIKE\n\nTRIGGER: When an eligible unit from your army ends a charge move.\n\nEFFECT: Until the end of the turn, each time a model in that unit makes a Pile-in or Consolidation move, it can move up to 6\" instead of up to 3\".\n\nOPPORTUNITY SEIZED\n\nTRIGGER: When an enemy unit ends a Fall Back move.\n\nEFFECT: One eligible unit from your army (excluding TITANIC units) that started the phase within Engagement Range of that enemy unit can make a Normal move of up to D6+1\".\n\nFADE BACK\n\nTRIGGER: In your opponent’s Shooting phase, just after an enemy unit has shot.\n\nEFFECT: One eligible unit from your army (excluding TITANIC units) that was hit by one or more of those attacks can make a Normal move of up to D6+1\".",
+     {}
+    ]
+   ]
+  },
+  "dark-angels": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "The Ravenwing",
+     "The following friendly ADEPTUS ASTARTES units have RAVENWING:\n■ MOUNTED units.\n■ VEHICLE FLY units.",
+     {}
+    ],
+    [
+     "The Deathwing",
+     "The following friendly ADEPTUS ASTARTES units have DEATHWING:\n■ TERMINATOR units.\n■ BLADEGUARD ANCIENT, BLADEGUARD VETERAN SQUAD, STERNGUARD VETERAN SQUAD and VANGUARD VETERAN SQUAD WITH JUMP PACKS units.\n■ LAND RAIDER, LAND RAIDER CRUSADER, LAND RAIDER REDEEMER, REPULSOR and REPULSOR EXECUTIONER units.\n■ DREADNOUGHT units.",
+     {}
+    ]
+   ]
+  },
+  "space-wolves": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Sons of Russ",
+     "Your army cannot include APOTHECARY units.",
+     {
+      "army": true
+     }
+    ]
+   ]
+  },
+  "black-templars": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Heirs of Sigismund",
+     "■ Your army cannot include any ADEPTUS ASTARTES PSYKER models.\n■ Your army cannot include the following datasheets from Codex: Space Marines: GLADIATOR LANCER; GLADIATOR REAPER; GLADIATOR VALIANT; IMPULSOR; REPULSOR; REPULSOR EXECUTIONER.",
+     {
+      "army": true
+     }
+    ]
+   ]
+  },
+  "deathwatch": {
+   "_src": "Army rules missing from the secondary rules data, filled from Wahapedia 11e (Abilities.csv export 2026-10-19 + faction / chapter 'Army Rules' pages, which mirror the Warhammer 40,000 app). Chaos Titan Legions: the Titanicus Traitoris card's keyword swap (IMPERIUM->CHAOS, ADEPTUS TITANICUS->TITANICUS TRAITORIS) applied. A newer GW app export with the same rule name wins.",
+   "app_version": "995",
+   "set": [
+    [
+     "Veteran Recruits",
+     "Your army cannot include the following ADEPTUS ASTARTES units:\n■ SCOUT SQUAD units.\n■ TERMINATOR SQUAD units.\n■ TERMINATOR ASSAULT SQUAD units.",
+     {
+      "army": true
+     }
+    ]
+   ]
   }
  }
 }

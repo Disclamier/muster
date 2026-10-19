@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v61/);
+  assert.match(read("sw.js"), /muster-shell-v62/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -1848,7 +1848,7 @@ test("compact Configuration: Battle Size / Detachment / Force Disposition / Opti
   const card = d.querySelector(".roster .cfgcard");
   assert.deepEqual([...card.querySelectorAll(":scope > .sect-body > details.cfg-dd")].map((x) => x.dataset.dd), ["size", "det", "disp", "opts"]);
   assert.ok([...card.querySelectorAll("details.cfg-dd")].every((x) => !x.open), "all collapsed");
-  assert.equal(card.querySelectorAll("[data-action=open-panel]").length, 1, "only the detachment details link opens a panel");
+  assert.deepEqual([...card.querySelectorAll("[data-action=open-panel]")].map((x) => x.dataset.panel), ["army", "dets"], "only the Army rules row and the detachment details link open a panel");
   assert.ok(!card.querySelector("[data-testid=cfg-det], [data-testid=det-rule-row]"), "no rule rows before a detachment is picked");
   assert.deepEqual([...d.querySelectorAll("[data-testid=cfg-more] [data-testid=cfg-det]")], [], "only Core stratagems before a detachment is picked");
   // no detachment: red ! in the Detachment row
@@ -2744,4 +2744,30 @@ test("Colors: a Gold preset (#d4af37) on every color slot; works with the bright
   const o = makeApp(); await until(() => o.d.querySelector(".lists-page"));
   assert.ok(o.w.MusterColors.setBundle(JSON.parse(JSON.stringify(b))));
   assert.equal(JSON.parse(o.w.localStorage.getItem("muster.colors.f.adeptus-custodes")).det, "#d4af37");
+});
+
+test("Configuration: an 'Army rules' row between Battle Size and Detachment for every faction; it opens every army rule expanded and collapsible", async () => {
+  const { w, d } = makeApp(); await until(() => d.querySelector(".lists-page"));
+  await until(() => w.Muster.S.ds);
+  for (const f of POINTS.factions) {
+    await openFactionList(w, d, f.id, f.id, f.id); w.Muster.route();
+    const card = d.querySelector(".cfgcard .sect-body"); assert.ok(card, f.id);
+    const kids = [...card.children].map((x) => x.dataset.testid);
+    const iS = kids.indexOf("size-dd"), iA = kids.indexOf("cfg-army"), iD = kids.indexOf("det-dd");
+    assert.ok(iS >= 0 && iA === iS + 1 && iD === iA + 1, `${f.id}: ${kids.join(",")}`);
+    const rules = DS.factions[f.id].rules; assert.ok(rules.length, `${f.id} has army rules`);
+    const row = card.querySelector("[data-testid=cfg-army]"); assert.match(row.textContent, new RegExp(rules[0][0].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+    click(w, row);
+    const p = d.querySelector("[data-testid=army-panel]"); assert.ok(p, f.id);
+    const rs = [...p.querySelectorAll("[data-testid=army-rule]")];
+    assert.deepEqual(rs.map((x) => x.dataset.rule), rules.map((r) => r[0]), f.id);
+    assert.ok(rs.every((x) => x.open && x.querySelector("summary") && x.querySelector(".ar-t").textContent.trim().length > 20), `${f.id} expanded + text`);
+    click(w, d.querySelector("[data-action=close-panel]"));
+  }
+  // Custodes: Martial Ka'tah with its ka'tah cards
+  await openFactionList(w, d, "adeptus-custodes"); w.Muster.route();
+  click(w, d.querySelector("[data-testid=cfg-army]"));
+  const k = d.querySelector('[data-testid=army-panel] [data-testid=army-rule][data-rule="Martial Ka’tah"]');
+  assert.ok(k && k.open); assert.equal(k.querySelectorAll("[data-testid=katah]").length, 6);
+  k.querySelector("summary").click(); assert.ok(!k.open, "collapsible");
 });

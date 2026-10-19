@@ -4,12 +4,12 @@
  "mfm_version": "v1.6",
  "gs_fetched_at": "2026-10-18T09:59:46+00:00",
  "hash": "d53b6ee7648f7ce4",
- "built_at": "2026-10-19T02:45:20+00:00",
+ "built_at": "2026-10-19T04:29:18+00:00",
  "factions": 30,
  "units": 2840,
  "winrates_fetched_at": "2026-10-18T10:05:35Z",
  "winrates_range": "15 Oct - 20 Oct 2026",
  "winrates_hash": "876547d99749fc3e",
- "datasheets_hash": "1a489eced6ba89e4",
+ "datasheets_hash": "752c215d4ddb7d2c",
  "datasheets_version": "2026-10-17"
 }
