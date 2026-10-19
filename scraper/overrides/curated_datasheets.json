@@ -3834,5 +3834,93 @@
     }
    }
   }
+ },
+ "rules": {
+  "adeptus-custodes": {
+   "_src": "Codex: Adeptus Custodes army rules (printed codex, photos from James 2026-10-18) = Wahapedia 11e (Abilities.csv + faction page, 2026-10-19 export). Replaces the pre-codex 10e Martial Ka'tah stances and fills the faction abilities the datasheets name.",
+   "app_version": "995",
+   "set": [
+    [
+     "Martial Ka’tah",
+     "At the start of your Command phase, friendly ADEPTUS CUSTODES units with this ability are readied. While a friendly unit is readied, you can select one of the ka'tah abilities presented below for that unit to use. If you do, that unit is no longer readied.\n\nEach ka'tah ability will tell you when that ka'tah ability can be used, and the effects that ka'tah ability has on the unit using it.\n\nWe recommend placing a token next to each readied unit, removing it when that unit is no longer readied.\n\nFAVOURED KA'TAH\nAll detachments tagged 'Unique: Shield Host' state a Favoured Ka'tah. If you selected one of these detachments, the ka'tah ability that is the Favoured Ka'tah of that detachment grants the additional effect listed in that detachment.\nExample: If you selected the Solar Watch detachment, when you select the Calistus ka'tah ability for a readied unit, that unit has +2\" M in addition to the normal effect of Calistus.\n\nCONSERVAI – KA'TAH ABILITY\nWHEN: Your Command phase.\nTARGET: One friendly readied unit.\nEFFECT: Until the end of the turn:\n■ Being engaged/battle-shocked does not prevent your unit from being eligible to start an action.\n■ Starting an action does not prevent your unit from being eligible to shoot.\n\nCALISTUS – KA'TAH ABILITY\nWHEN: Your Movement phase, when a friendly readied unit is selected to move.\nTARGET: That readied unit.\nEFFECT: When your unit makes a normal/advance/fall-back move, your unit can move through all types of model.\n\nSALVUS – KA'TAH ABILITY\nWHEN: Your Shooting phase, when a friendly readied unit is selected to shoot.\nTARGET: That readied unit.\nEFFECT: Your unit can ignore modifiers to your unit's:\n■ BS.\n■ Hit rolls and wound rolls.\n\nDACATARAI – KA'TAH ABILITY\nWHEN: Start of the Fight phase.\nTARGET: One friendly readied unit.\nEFFECT: Your unit's melee attacks that target an enemy unit (excluding MONSTER/VEHICLE units) can re-roll hit rolls of 1.\n\nKAPTARIS – KA'TAH ABILITY\nWHEN: Start of the Fight phase.\nTARGET: One friendly readied unit.\nEFFECT: Melee attacks that target your unit have -1 to hit rolls.\n\nRENDAX – KA'TAH ABILITY\nWHEN: Fight phase, when a friendly readied unit is selected to fight.\nTARGET: One friendly readied unit.\nEFFECT: Your unit's melee attacks have [LETHAL HITS: MONSTER/VEHICLE].",
+     {
+      "fl": "The Adeptus Custodes have developed many thousands of martial ka'tahs. Custodians are proficient in many of these arts, shifting stances according to the battlefield situation.",
+      "ka": [
+       [
+        "CONSERVAI",
+        "Your Command phase.",
+        "One friendly readied unit.",
+        "Until the end of the turn:\n■ Being engaged/battle-shocked does not prevent your unit from being eligible to start an action.\n■ Starting an action does not prevent your unit from being eligible to shoot."
+       ],
+       [
+        "CALISTUS",
+        "Your Movement phase, when a friendly readied unit is selected to move.",
+        "That readied unit.",
+        "When your unit makes a normal/advance/fall-back move, your unit can move through all types of model."
+       ],
+       [
+        "SALVUS",
+        "Your Shooting phase, when a friendly readied unit is selected to shoot.",
+        "That readied unit.",
+        "Your unit can ignore modifiers to your unit's:\n■ BS.\n■ Hit rolls and wound rolls."
+       ],
+       [
+        "DACATARAI",
+        "Start of the Fight phase.",
+        "One friendly readied unit.",
+        "Your unit's melee attacks that target an enemy unit (excluding MONSTER/VEHICLE units) can re-roll hit rolls of 1."
+       ],
+       [
+        "KAPTARIS",
+        "Start of the Fight phase.",
+        "One friendly readied unit.",
+        "Melee attacks that target your unit have -1 to hit rolls."
+       ],
+       [
+        "RENDAX",
+        "Fight phase, when a friendly readied unit is selected to fight.",
+        "One friendly readied unit.",
+        "Your unit's melee attacks have [LETHAL HITS: MONSTER/VEHICLE]."
+       ]
+      ]
+     }
+    ],
+    [
+     "Aegis of the Emperor",
+     "Friendly ADEPTUS CUSTODES units with this ability have Feel No Pain 5+ against mortal wounds.",
+     {
+      "fl": "The Adeptus Custodes are the shield of the Emperor: indomitable and nigh unbreakable."
+     }
+    ],
+    [
+     "Aquila Commander",
+     "At the start of the battle round, if a model with this ability is your WARLORD, gain 1CP.",
+     {
+      "fl": "Shield-Captains who bear the title Aquila Commander have proven themselves true masters of battlefield tactics."
+     }
+    ],
+    [
+     "Daughters of the Abyss",
+     "■ Friendly ANATHEMA PSYKANA units with this ability have Feel No Pain 3+ against psychic attacks.\n■ Friendly ANATHEMA PSYKANA units with this ability have the following ability:\nPsychic Null (Aura): Friendly ADEPTUS CUSTODES units within 6\" of this unit have Feel No Pain 5+ against psychic attacks.",
+     {
+      "fl": "Bearers of the Pariah gene, Null Maidens are inured to psychic powers. Their Warp-smothering aura also provides limited protection for the Custodians at whose side they fight.",
+      "grants": [
+       [
+        "Psychic Null (Aura)",
+        "Friendly ADEPTUS CUSTODES units within 6\" of this unit have Feel No Pain 5+ against psychic attacks."
+       ]
+      ]
+     }
+    ],
+    [
+     "Anathema Psykana",
+     "You can include ANATHEMA PSYKANA units in your army, even though they do not have the ADEPTUS CUSTODES faction keyword.\nWhen mustering your army, unless otherwise stated:\n■ You cannot select ANATHEMA PSYKANA as your army faction.\n■ You cannot select an ANATHEMA PSYKANA model to be your WARLORD.",
+     {
+      "fl": "Though the Adeptus Custodes often fight alongside the Silent Sisterhood, they take orders only from their own commanders, or from the Emperor Himself.",
+      "army": true
+     }
+    ]
+   ]
+  }
  }
 }

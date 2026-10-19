@@ -1618,6 +1618,20 @@
     return MARKS.filter((m) => !(m === "Khorne" && kw.includes("psyker")));
   }
   /* Can detachment d still be ticked given the current picks? (1+1+1, 2+1, a single 3; Incursion: <=2 or a lone 3 DP) */
+  /* Custodes Favoured Ka'tah: a "Unique: Shield Host" detachment rule names one ka'tah ability and its additional effect
+     ("Favoured ka'tah\nCalistus\nAdditional Effect: Your unit has +2\" M.") -> { name, effect } or null */
+  function favouredKatah(d) {
+    const t = d && d.rule ? String(d.rule[1] || "") : "";
+    const m = t.match(/favoured\s+ka.tah\s*\n\s*([A-Za-z]+)\s*\n\s*additional effect:\s*([\s\S]*)$/i);
+    return m ? { name: m[1].toUpperCase(), effect: m[2].trim(), det: d.n } : null;
+  }
+  /* army rule meta [name, text, meta]: the text minus the ka'tah ability paragraphs that meta.ka lists separately */
+  function armyRuleBody(r) {
+    const ka = (r && r[2] && r[2].ka) || [];
+    if (!ka.length) return String((r && r[1]) || "");
+    const names = new Set(ka.map((k) => norm(k[0])));
+    return String(r[1] || "").split(/\n\n/).filter((p) => !names.has(norm(p.split(/\s+[–-]\s+|\n/)[0]))).join("\n\n");
+  }
   function detFits(l, F, d, size) {
     const sel = (l.dets || []).filter((n) => n !== d.n);
     if ((l.dets || []).includes(d.n) || !size || size.dp == null || d.dp == null) return true;
@@ -1811,7 +1825,9 @@
       const g = line.match(/^(.*?)\b(?:units?|models?)\b[^.]*?\b(?:gains?|have|has) the ([A-Z][A-Z'’ -]*[A-Z]) keyword/);
       if (g && !/BATTLELINE/.test(g[2])) { const subj = emPhrases(g[1]).filter((x) => !x.excl).map((x) => x.p); grant[g[2]] = subj.length ? subj : null; }
     }
-    return enhStatMods(d.rule[1], { det: true, wp }).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
+    // a Shield Host's Favoured Ka'tah "Additional Effect" only applies while that ka'tah ability is used: not a standing mod
+    const always = d.rule[1].replace(/\n\s*favoured\s+ka.tah\s*\n[\s\S]*$/i, "");
+    return enhStatMods(always, { det: true, wp }).map((m) => { Object.defineProperty(m, "_grant", { value: grant }); return m; });
   }
   /* picked loadout options whose text changes a characteristic (Daemon Prince Mark of Chaos: 'Add 3 to the Attacks
      characteristic of this model's infernal cannon') -> [{name: 'Mark of Chaos: Tzeentch', text}] */
@@ -1869,7 +1885,7 @@
     return true;
   }
 
-  return { gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

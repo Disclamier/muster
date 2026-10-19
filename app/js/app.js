@@ -1044,7 +1044,9 @@
       html += wtab("r", "Ranged Weapons", "BS") + wtab("m", "Melee Weapons", "WS");
       if (eq && !filt && ds.wp.some((w) => !(eq.w.get(C.norm(w[0])) > 0))) html += `<div class="ds-note muted">Highlighted: current loadout (× = number of models carrying it). Dimmed: other wargear options.</div>`;
       const fr = (S.ds.factions[F.f.id] || {}).rules || [];
-      const frText = (n) => { const x = fr.find((y) => C.norm(y[0]) === C.norm(n)); return x ? x[1] : ""; };
+      const frRule = (n) => fr.find((y) => C.norm(y[0]) === C.norm(n));
+      // abilities a faction rule gives its units (Daughters of the Abyss -> Psychic Null (Aura)), listed with the unit's own
+      const granted = (ds.fa || []).flatMap((n) => { const x = frRule(n); return ((x && x[2] && x[2].grants) || []).map((g) => [g[0], g[1], x[0]]); });
       // abilities, split New Recruit-style into clearly separated sub-sections, one card per ability
       const isAura = (a) => /\baura\b/i.test(a[0] || "") || /^\W*aura\b/i.test(clean(a[1] || ""));
       const isDmg = (a) => /^damaged\b/i.test(a[0] || "");
@@ -1056,9 +1058,10 @@
         return card(`${esc(a[1])}${C.norm(a[0]) !== C.norm(a[1]) ? ` <span class="muted">(${esc(a[0])})</span>` : ""}`, esc(clean(a[2])), `${eq ? (on ? "eq" : "uneq") : ""}${aura ? " aura" : ""}`, aura ? auraBadge : ""); }).join("");
       if (!filt) {
         const core = ds.cr.length ? `<div class="ab-card core"><div class="ab-chips">${ds.cr.map((n) => `<span class="ab-chip kwc"${kwTip(n)}>${esc(n)}</span>`).join("")}</div></div>` : "";
-        const fac = ds.fa.map((n) => `<details class="ab-card fac"><summary class="ab-n">${esc(n)}</summary><div class="ab-t">${esc(clean(frText(n)) || "")}</div></details>`).join("");
+        const fac = ds.fa.map((n) => { const x = frRule(n); return `<details class="ab-card fac" data-rule="${esc(n)}"><summary class="ab-n">${esc(n)}</summary><div class="ab-t">${x ? armyRuleHtml(x, CUR, F) : ""}</div></details>`; }).join("");
         const plain = ds.ab.filter((a) => !isAura(a) && !isDmg(a)).map((a) => card(esc(a[0]), esc(clean(a[1])))).join("");
-        const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a)).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("");
+        const auras = ds.ab.filter((a) => isAura(a) && !isDmg(a)).map((a) => card(esc(String(a[0]).replace(/\s*\(aura\)\s*/i, " ").trim()), esc(clean(a[1])), "aura", auraBadge)).join("") +
+          granted.filter((g) => isAura(g) && !ds.ab.some((a) => C.norm(a[0]) === C.norm(g[0]))).map((g) => card(`${esc(String(g[0]).replace(/\s*\(aura\)\s*/i, " ").trim())} <span class="muted">(${esc(g[2])})</span>`, esc(clean(g[1])), "aura granted", auraBadge)).join("");
         const dmg = ds.ab.filter(isDmg).map((a) => card(esc(a[0]), esc(clean(a[1])), "dmg")).join("");
         const psy = (ds.ps || []).map((a) => card(esc(a[0]), esc(clean(a[1])), "psy")).join("");
         const by = F.f.units.filter((x) => (x.ldr || []).concat(x.sup || []).some((y) => C.norm(y) === C.norm(u.n))).map((x) => x.n);
@@ -1241,6 +1244,21 @@
     if (!md || !md.games) return "";
     return `<a class="wrchip" href="#/meta/${esc(C.metaFaction(S.wr, l.faction, l.sub).slug)}" title="listhammer.info, ${esc((S.wr.date_range || {}).label || "")}: ${md.wins}-${md.losses}">${C.fmtPct(md.win_rate)} · ${md.games} games</a>`;
   }
+  /* army rules (faction abilities) [name, text, meta]: flavour, rule text, ka'tah ability cards (the Favoured Ka'tah of
+     a selected Shield Host detachment marked with its additional effect) and abilities the rule grants (e.g. an aura) */
+  function armyRuleHtml(r, l, F) {
+    const m = r[2] || {};
+    const fav = (l && F ? (l.dets || []).map((n) => F.dets[n]).filter(Boolean) : []).map(C.favouredKatah).filter(Boolean);
+    const ka = (m.ka || []).map((k) => { const f = fav.find((x) => x.name === C.norm(k[0]).toUpperCase());
+      return `<div class="katah${f ? " fav" : ""}" data-testid="katah" data-ka="${esc(k[0])}"><div class="ka-n">${esc(k[0])} <span class="tag">Ka'tah ability</span>${f ? ` <span class="tag fav">Favoured – ${esc(f.det)}</span>` : ""}</div>
+        <div class="ka-l"><b>When:</b> ${esc(k[1])}</div><div class="ka-l"><b>Target:</b> ${esc(k[2])}</div><div class="ka-l"><b>Effect:</b> ${esc(clean(k[3]))}</div>${f ? `<div class="ka-l ka-fav" data-testid="katah-fav"><b>Additional effect:</b> ${esc(clean(f.effect))}</div>` : ""}</div>`; }).join("");
+    return `${m.fl ? `<div class="ar-fl">${esc(m.fl)}</div>` : ""}<div class="ar-t">${esc(clean(C.armyRuleBody(r)))}</div>${ka ? `<div class="katahs">${ka}</div>` : ""}`;
+  }
+  function armyRulesBlock(l, F) {
+    const fr = ((S.ds && S.ds.factions[F.f.id]) || {}).rules || [];
+    if (!fr.length) return "";
+    return `<details class="coll army-rules" data-testid="army-rules"${S.ui.armyOpen ? " open" : ""}><summary>Army rules (${fr.length})</summary><div class="cb">${fr.map((r) => `<details class="ab-card fac ar" data-testid="army-rule" data-rule="${esc(r[0])}"${S.ui.armyOpenRule === r[0] ? " open" : ""}><summary class="ab-n">${esc(r[0])}</summary><div class="ab-t">${armyRuleHtml(r, l, F)}</div></details>`).join("")}</div></details>`;
+  }
   /* one detachment's rule + enhancements + stratagems, grouped under its name */
   function detBlock(d, o) {
     o = o || {};
@@ -1272,6 +1290,7 @@
     return phead("Detachment", `<span class="${over ? "err" : "muted"}" data-testid="dp-used">${c.dp}${c.dpLimit != null ? " / " + c.dpLimit : ""} Detachment Points used</span>`) +
       `<div class="pbody scroll" data-sk="panel">
         ${size && size.single3dp ? `<div class="cfgnote">${esc(size.name)}: up to ${size.dp} DP, or a single 3 DP detachment.</div>` : ""}
+        ${armyRulesBlock(l, F)}
         <div class="grp"><div class="gb">${mfm.map(row).join("") || "<span class='muted'>No detachments in the MFM.</span>"}</div></div>
         ${gs.length ? `<details class="coll"${gs.some((d) => selected.has(d.n)) ? " open" : ""}><summary>Not in current MFM – ${gs.length}</summary><div class="cb">${gs.map(row).join("")}</div></details>` : ""}
         ${fd}</div>`;
@@ -2141,6 +2160,10 @@
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("rnode") || !S.rules) return;
     const id = d.dataset.rid; if (d.open) { S.ui.rulesOpen.add(id); const rb = d.querySelector(":scope > .rb"); if (rb && !rb.childElementCount) { const it = S.rulesIx.byId[id]; if (it) rb.innerHTML = rulesInner(it.i); } }
     else S.ui.rulesOpen.delete(id); }, true);
+  // Army rules: open state kept across re-renders of the Detachment panel
+  document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList) return;
+    if (d.classList.contains("army-rules")) S.ui.armyOpen = d.open;
+    else if (d.classList.contains("ar") && d.closest(".army-rules")) { if (d.open) S.ui.armyOpenRule = d.dataset.rule; else if (S.ui.armyOpenRule === d.dataset.rule) S.ui.armyOpenRule = null; } }, true);
   // Colors accordion: opening one color row closes the others
   document.addEventListener("toggle", (ev) => { const d = ev.target; if (!d.classList || !d.classList.contains("cset") || !d.open) return;
     $$("#modal details.cset[open]").forEach((x) => { if (x !== d) x.open = false; }); }, true);

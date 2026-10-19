@@ -33,3 +33,31 @@ def apply(fid, units, f_ds, stats=None, C=None):
                     if not any(x[0] == a[0] for x in d.setdefault("ab", [])): d["ab"].append(a)
             if "lo" in p: u["lo"] = json.loads(json.dumps(p["lo"]))
             stats["curated_fixes"] = stats.get("curated_fixes", 0) + 1
+
+
+def _ver(v):
+    try: return int(str(v).split(".")[0])
+    except (TypeError, ValueError): return 0
+
+
+def apply_rules(fid, f_rules, stats=None, C=None, app=None):
+    """rules.<fid>: curated army rules (codex print, checked against a second source). They beat older text from the other
+    layers; only a newer Warhammer 40,000 app export (app['version'] above the curated 'app_version') that carries a rule
+    of the same name wins over the curated text, so a later app update is not masked by this file.
+    Entries are [name, text, meta]; meta may hold 'fl' (flavour), 'ka' (ka'tah abilities [name, when, target, effect]),
+    'grants' (abilities the rule gives its units, e.g. an aura) and 'army' (army-construction rule)."""
+    C = C or load(); stats = stats if stats is not None else {}
+    rec = (C.get("rules") or {}).get(fid)
+    if not rec: return f_rules
+    from gwapp_datasheets import norm
+    app = app or {}
+    app_rules = {norm(r[0]): r for r in (app.get("rules") or [])} if _ver(app.get("version")) > _ver(rec.get("app_version")) else {}
+    for r in rec.get("set") or []:
+        newer = app_rules.get(norm(r[0]))
+        new = json.loads(json.dumps(newer or r))
+        i = next((j for j, x in enumerate(f_rules) if norm(x[0]) == norm(r[0])), None)
+        if i is None: f_rules.append(new)
+        else: f_rules[i] = new
+        k = "gwapp_rules_newer" if newer else "curated_rules"
+        stats[k] = stats.get(k, 0) + 1
+    return f_rules

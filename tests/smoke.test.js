@@ -999,7 +999,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v57/);
+  assert.match(read("sw.js"), /muster-shell-v58/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2601,4 +2601,34 @@ test("Caladius Annihilator Grav-Tank (U+2011 name, record without wargear abilit
   const F = w.Muster.S.idx.factions["adeptus-custodes"];
   assert.ok(w.Muster.dsOf(F, { n: "Caladius Annihilator Grav-Tank" }));
   assert.deepEqual(errs, []);
+});
+
+test("Custodes army rules: Ka'tah cards in the Detachment panel (favoured one marked), Daughters of the Abyss + Psychic Null aura on Sisters", async () => {
+  const app = makeApp(); const { w, d } = app;
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, CF = POINTS.factions.find((f) => f.id === "adeptus-custodes");
+  const l = C.newList({ name: "AC", faction: "adeptus-custodes", sub: "adeptus-custodes", size: "strikeforce" }); l.dets = ["Solar Watch"];
+  for (const n of ["Shield-Captain", "Witchseeker Squad"]) l.entries.push(C.newEntry(CF.units.find((u) => u.n === n)));
+  l.entries[0].warlord = true;
+  w.Muster.S.lists.push(l);
+  await go(w, "#/list/" + l.id);
+  await until(() => w.Muster.S.ds); w.Muster.route();
+  click(w, d.querySelector("[data-testid=det-details]"));
+  const ar = d.querySelector(".panel [data-testid=army-rules]"); assert.ok(ar, "army rules block");
+  assert.deepEqual([...ar.querySelectorAll("[data-testid=army-rule]")].map((x) => x.dataset.rule), ["Martial Ka’tah", "Aegis of the Emperor", "Aquila Commander", "Daughters of the Abyss", "Anathema Psykana"]);
+  const ka = [...ar.querySelectorAll("[data-testid=katah]")];
+  assert.deepEqual(ka.map((x) => x.dataset.ka), ["CONSERVAI", "CALISTUS", "SALVUS", "DACATARAI", "KAPTARIS", "RENDAX"]);
+  assert.deepEqual(ka.filter((x) => x.classList.contains("fav")).map((x) => x.dataset.ka), ["CALISTUS"]);
+  assert.match(ka[1].querySelector("[data-testid=katah-fav]").textContent, /\+2" M/);
+  // Witchseekers: Daughters of the Abyss text + the granted Psychic Null aura card
+  click(w, d.querySelector(`.roster .urow[data-uid="${l.entries[1].uid}"]`));
+  const ab = d.querySelector(".panel [data-testid=ds-abilities]");
+  assert.match(ab.querySelector("[data-testid=ab-faction]").textContent, /Feel No Pain 3\+ against psychic attacks/);
+  const aura = ab.querySelector("[data-testid=ab-aura]"); assert.ok(aura, "aura section");
+  assert.match(aura.textContent, /Psychic Null[\s\S]*Daughters of the Abyss[\s\S]*within 6" of this unit have Feel No Pain 5\+ against psychic attacks/);
+  // Shield-Captain: Aquila Commander
+  click(w, d.querySelector(`.roster .urow[data-uid="${l.entries[0].uid}"]`));
+  const ab2 = d.querySelector(".panel [data-testid=ds-abilities] [data-testid=ab-faction]");
+  assert.match(ab2.textContent, /Aquila Commander[\s\S]*gain 1CP/);
+  assert.match(ab2.textContent, /Martial Ka’tah[\s\S]*CALISTUS[\s\S]*Favoured – Solar Watch/);
 });

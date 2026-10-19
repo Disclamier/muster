@@ -1141,3 +1141,15 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .ro-sum { font-size: .9em; opacity: .85; }
 .ro-list textarea { width: 100%; min-height: 220px; margin-top: 6px; }
 @media (max-width: 760px) { .drill-t tr.drill-lists-row { display: block; } .drill-t tr.drill-lists-row td { grid-column: 1 / -1; } .drill-t tr.drill-lists-row td::before { content: none; } }
+/* army rules (faction abilities): flavour, ka'tah ability cards, favoured ka'tah of the selected Shield Host */
+.army-rules { margin: 0 0 8px; }
+.ar-fl { font-style: italic; color: var(--gray); font-size: 11.5px; margin-bottom: 4px; }
+.ar-t { white-space: pre-line; }
+.katahs { display: grid; gap: 6px; margin-top: 6px; }
+.katah { border: 1px solid var(--border); border-left: 3px solid var(--cost); border-radius: 5px; padding: 5px 8px; white-space: normal; }
+.katah.fav { border-left-color: var(--accent, #d4a017); background: color-mix(in srgb, var(--cost) 10%, transparent); }
+.katah .ka-n { font-weight: 700; font-size: 12.5px; }
+.katah .ka-l { font-size: 12px; white-space: pre-line; margin-top: 1px; }
+.katah .ka-fav { border-top: 1px dashed var(--border); margin-top: 4px; padding-top: 3px; }
+.tag.fav { color: var(--cost); border-color: var(--cost); }
+.ab-card.aura.granted .muted { font-weight: 400; font-size: 11px; }

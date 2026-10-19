@@ -501,6 +501,7 @@ def merge(mfm, gs):
                     u["kw"] = (u.get("kw") or []) + ["Dreadnought"]
         wahapedia_options.apply(mf["id"], units, stats)
         curated.apply(mf["id"], units, f_ds, stats)
+        curated.apply_rules(mf["id"], f_rules, stats, app=(json.load(open(gwapp_datasheets.PATH, encoding="utf-8")).get("factions") or {}).get(mf["id"]))
         for u in units:   # roles of units whose keywords arrived late (GW-app-only datasheets) or that are still unsorted
             u.pop("_army_group", None)
             if u.pop("_rerole", None) or u.get("r") == "Other":
