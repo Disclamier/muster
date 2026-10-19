@@ -1,0 +1,27 @@
+# ++ Army Roster ++ [1940pts]
+
+## Configuration
+Battle Size: Strike Force (2000 Point limit)
+Detachment: Gladius Task Force
+
+## Characters [285pts]
+Captain [80pts]: Warlord, Enhancements: Artificer Armour, Bolt Pistol, Master-crafted Power Weapon
+Librarian [65pts]: Force Weapon, Bolt Pistol
+Chaplain in Terminator Armour [75pts]: Crozius Arcanum, Storm Bolter
+Lieutenant [65pts]: Master-crafted Power Weapon, Neo-volkite Pistol
+
+## Battleline [160pts]
+Intercessor Squad [80pts]: 5x Intercessor, Bolt Rifle, Astartes Grenade Launcher
+Intercessor Squad [80pts]: 5x Intercessor
+
+## Other Datasheets [1495pts]
+Terminator Squad [170pts]: 5x Terminator, Storm Bolter, Power Fist
+Hellblaster Squad [230pts]: 10x Hellblaster, Plasma Incinerator
+Redemptor Dreadnought [210pts]: Macro Plasma Incinerator, Onslaught Gatling Cannon
+Gladiator Lancer [160pts]
+Infernus Squad [90pts]: 5x Infernus Marine
+Ballistus Dreadnought [140pts]
+Eliminator Squad [85pts]: 3x Eliminator
+Repulsor Executioner [220pts]
+Inceptor Squad [120pts]: 3x Inceptor
+Land Speeder Storm [70pts]

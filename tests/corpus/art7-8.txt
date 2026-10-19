@@ -1,0 +1,66 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Xenos - Necrons
++ DETACHMENT: Awakened Dynasty (Command Protocols)
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char3: Nekrosor Ammentar
++ ENHANCEMENT: Veil of Darkness (on Char5: Lokhust Lord)
+
+& Enaegic Dermal Bond (on Char9: Skorpekh Lord)
+
++ NUMBER OF UNITS: 16
++ SECONDARY: - Bring It Down: (1x4) - Assassination: 9 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x C'tan Shard of the Void Dragon (345 pts): Canoptek tail blades, Spear of the Void Dragon, Voltaic storm
+
+Char4: 1x Hexmark Destroyer (75 pts): Close combat weapon, Enmitic disintegrator pistols
+
+Char2: 1x Illuminor Szeras (175 pts): Eldritch lance, Impaling legs
+
+Char5: 1x Lokhust Lord (100 pts): Resurrection orb, Lord's blade
+
+Enhancement: Veil of Darkness (+20 pts)
+
+Leading Lokhust Destroyers
+
+Char6: 1x Lokhust Lord (80 pts): Resurrection orb, Lord's blade
+
+Leading Lokhust Heavy Destroyers
+
+Char3: 1x Nekrosor Ammentar (185 pts): Warlord, Nullstone field generator, Blade tail and whip coils, Enmitic disintegrators, Unmaker gauntlet
+
+Char7: 1x Skorpekh Lord (95 pts): Enmitic annihilator, Flensing claw, Hyperphase harvester
+
+Leading Skorpekh Destroyers[1]
+
+Char8: 1x Skorpekh Lord (95 pts): Enmitic annihilator, Flensing claw, Hyperphase harvester
+
+Leading Skorpekh Destroyers[2]
+
+Char9: 1x Skorpekh Lord (135 pts): Enmitic annihilator, Flensing claw, Hyperphase harvester
+
+Enhancement: Enaegic Dermal Bond (+30 pts)
+
+5x Flayed Ones (55 pts): 5 with Flayer claws
+
+6x Lokhust Destroyers (175 pts): 6 with Close combat weapon, Gauss cannon
+
+Attached to Lokhust Lord[1]
+
+3x Lokhust Heavy Destroyers (165 pts): 3 with Close combat weapon, Enmitic exterminator
+
+Attached to Lokhust Lord[2]
+
+3x Ophydian Destroyers (80 pts): Plasmacyte, 3 with Ophydian hyperphase weapons
+
+3x Skorpekh Destroyers (85 pts): Plasmacyte, 3 with Skorpekh hyperphase weapons
+
+Attached to Skorpekh Lord[1]
+
+3x Skorpekh Destroyers (85 pts): Plasmacyte, 3 with Skorpekh hyperphase weapons
+
+Attached to Skorpekh Lord[2]
+
+3x Tomb Blades (70 pts): 3 with Shadowloom, Close combat weapon, Particle beamer

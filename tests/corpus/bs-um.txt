@@ -1,0 +1,71 @@
++++ New Roster (Warhammer 40,000 10th Edition) [2,000pts] +++
+
+++ Army Roster (Imperium - Adeptus Astartes - Ultramarines) [2,000pts] ++
+
++ Configuration +
+
+Battle Size: 2. Strike Force (2000 Point limit)
+
+Detachment: Gladius Task Force
+
+Show Legends
+
++ Epic Hero +
+
+Marneus Calgar [205pts]: Warlord
+. 2x Victrix Honour Guard: 2x Victrix Power Sword
+
++ Character +
+
+Apothecary Biologis [80pts]: Bolter Discipline
+
++ Battleline +
+
+Assault Intercessor Squad [90pts]
+. Assault Intercessor Sergeant: Plasma Pistol, Thunder Hammer
+. 4x Assault Intercessors
+
++ Infantry +
+
+Aggressor Squad [220pts]
+. Aggressor Sergeant
+. 6x Aggressors: 6x Power Fist
+. Auto Boltstorm Gauntlets & Fragstorm Grenade Launcher
+
+Eliminator Squad [95pts]
+. 2x Eliminator: 2x Bolt Pistol, 2x Bolt Sniper Rifle, 2x Close Combat Weapon
+. Eliminator Sergeant: Bolt Sniper Rifle
+
+Infiltrator Squad [90pts]: Helix Gauntlet, Infiltrator Comms Array
+. Infiltrator Sergeant
+. 4x Infiltrators: 4x Bolt Pistol, 4x Close Combat Weapon, 4x Marksman Bolt Carbine
+
+Infiltrator Squad [90pts]: Helix Gauntlet, Infiltrator Comms Array
+. Infiltrator Sergeant
+. 4x Infiltrators: 4x Bolt Pistol, 4x Close Combat Weapon, 4x Marksman Bolt Carbine
+
+Suppressor Squad [95pts]
+. 2x Suppressor: 2x Accelerator Autocannon, 2x Bolt Pistol, 2x Close Combat Weapon
+. Suppressor Sergeant
+
++ Mounted +
+
+Outrider Squad [115pts]
+. 2x Outrider: 2x Astartes Chainsword, 2x Heavy Bolt Pistol, 2x Twin Bolt Rifle
+. Outrider Sergeant
+
++ Vehicle +
+
+Gladiator Lancer [145pts]: 2 Storm Bolters, Icarus Rocket Pod, Ironhail Heavy Stubber
+
+Redemptor Dreadnought [225pts]: Macro Plasma Incinerator, Onslaught Gatling Cannon, Twin Fragstorm Grenade Launcher
+
+Redemptor Dreadnought [225pts]: Macro Plasma Incinerator, Onslaught Gatling Cannon, Twin Fragstorm Grenade Launcher
+
+Repulsor Executioner [230pts]: Heavy Laser Destroyer, Icarus Rocket Pod, Ironhail Heavy Stubber
+
++ Dedicated Transport +
+
+Impulsor [95pts]: 2 Storm Bolters, Ironhail Heavy Stubber, Shield Dome
+
+Created with BattleScribe (https://battlescribe.net)

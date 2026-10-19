@@ -1484,8 +1484,10 @@
   }
   function importText(text) {
     text = String(text || "").trim();
+    if (!text) { toast("Paste a list first"); return; }
     const m = text.match(/#\/share\/([A-Za-z0-9_\-]+)/);
-    if (m) { location.hash = `#/share/${m[1]}`; closeModal(); return; }
+    if (m && text.length < 3000) { location.hash = `#/share/${m[1]}`; closeModal(); return; }
+    if (!/^\s*[{[]/.test(text)) { openImportReview(text); return; }
     try {
       const all = C.importLists(text); const room = guestRoom();
       const ls = all.slice(0, room);
@@ -1498,9 +1500,104 @@
       toast(`Imported ${ls.length} list${ls.length === 1 ? "" : "s"}`);
     } catch (e) { toast(`Import failed: ${e.message}`, 3500); }
   }
+  /* ---------------- text import review: any army-list text (GW app, New Recruit, ListForge, BattleScribe, Muster, free-form) */
+  let IMP = null;
+  function openImportReview(text, faction) {
+    let P;
+    try { P = C.parseListText(text, S.idx, S.ds, { faction }); } catch (e) { toast(`Import failed: ${e.message}`, 3500); return; }
+    IMP = { text, P };
+    modal("Review import", `<div class="imprev" data-testid="import-review"></div>`, { wide: true });
+    renderImportReview();
+  }
+  const impStatus = (it) => (!it.include ? "off" : it.pick ? "fixed" : !it.match ? "bad" : it.status === "guessed" ? "guess" : "ok");
+  function renderImportReview() {
+    const box = $("#modal .imprev"); if (!box || !IMP) return;
+    const P = IMP.P; const sc = box.closest(".mbody"); const top = sc ? sc.scrollTop : 0;
+    for (const it of P.items) if (it.match0 === undefined) it.match0 = it.match;
+    const F = P.faction && S.idx.factions[P.faction];
+    const B = F ? C.buildFromParse(P, S.idx, S.ds) : null;
+    const sum = C.importSummary(P, B);
+    const rowOf = new Map(); if (B) for (const r of B.rows) if (!rowOf.has(r.it)) rowOf.set(r.it, r.row);
+    const subs = []; for (const g of S.idx.data.groups || []) for (const x of g.factions) subs.push(x);
+    const fSel = `<select data-imp="faction" data-testid="imp-faction"><option value="">– choose a faction –</option>${subs.map((x) => `<option value="${esc(x.id)}" ${x.id === (P.sub || P.faction) ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>`;
+    const how = { stated: "from the list", detected: "detected from unit names", chosen: "chosen", none: "not found" }[P.factionHow] || "";
+    let html = `<div class="imphead">
+      <div class="impfmt muted">Format: <b data-testid="imp-format">${esc(P.formatName)}</b></div>
+      <label class="improw"><span>Faction</span>${fSel}<small class="${P.factionHow === "detected" ? "impguess" : P.factionHow === "none" ? "impbad" : "muted"}">${esc(how)}</small></label>`;
+    if (!F) { box.innerHTML = html + `</div><p class="impbad" data-testid="imp-nofaction">No faction found in this text. Choose one above and the units will be matched against it.</p>
+      ${impLinesHtml(P, true)}<div class="mfoot"><button class="btn secondary" data-imp="back">Back</button></div>`; return; }
+    const sizes = S.idx.data.battle_sizes || [];
+    html += `<label class="improw"><span>Name</span><input type="text" class="wide" data-imp="name" value="${esc(P.name || "Imported list")}"></label>
+      <label class="improw"><span>Battle size</span><select data-imp="size">${sizes.map((z) => `<option value="${esc(z.id)}" ${z.id === (P.size || "strikeforce") ? "selected" : ""}>${esc(z.name)} (${z.points})</option>`).join("")}</select>${P.size ? "" : `<small class="impguess">not in the list – default</small>`}</label>
+      <div class="improw"><span>Detachments</span><div class="impdets" data-testid="imp-dets">${F.f.dets.filter((d) => P.dets.includes(d.n)).map((d) => `<label class="impchip on"><input type="checkbox" checked data-imp="det" value="${esc(d.n)}">${esc(d.n)} <small>${d.dp} DP</small></label>`).join("")}
+        ${P.detsUnmatched.map((x) => `<span class="impchip bad" title="Not a detachment of ${esc(F.f.name)} in the current data">${esc(x)} – not matched</span>`).join("")}
+        <select data-imp="adddet"><option value="">+ add detachment</option>${F.f.dets.filter((d) => !P.dets.includes(d.n)).map((d) => `<option value="${esc(d.n)}">${esc(d.n)} (${d.dp} DP)</option>`).join("")}</select></div></div>`;
+    const fds = B ? B.calc.dispositions || [] : [];
+    if (fds.length || P.disposition) html += `<label class="improw"><span>Force Disposition</span><select data-imp="disp"><option value="">–</option>${[...new Set(fds.concat(P.disposition ? [P.disposition] : []))].map((v) => `<option value="${esc(v)}" ${v === P.disposition ? "selected" : ""}>${esc(title(v))}</option>`).join("")}</select>${P.dispositionText ? `<small class="impbad">“${esc(P.dispositionText)}” not matched</small>` : ""}</label>`;
+    html += `</div>`;
+    const diff = sum.diff;
+    html += `<div class="impsum" data-testid="imp-summary"><div><b>${sum.computed}</b> pts recomputed from the Munitorum Field Manual${sum.stated != null ? ` · list said <b>${sum.stated}</b> · <span class="${diff ? "impbad" : "impok"}">${diff > 0 ? "+" : ""}${diff} pts</span>` : ""}</div>
+      <div>${sum.matched} matched${sum.guessed ? ` · <span class="impguess">${sum.guessed} guessed</span>` : ""}${sum.unmatched ? ` · <span class="impbad">${sum.unmatched} not matched</span>` : ""}${sum.gearBad ? ` · <span class="impguess">${sum.gearBad} wargear not matched</span>` : ""}</div></div>`;
+    if (B && B.calc.errors.length) html += `<ul class="imperr" data-testid="imp-errors">${B.calc.errors.map((e) => `<li>${esc(e.msg)}</li>`).join("")}</ul>`;
+    html += `<ul class="impunits" data-testid="imp-units">`;
+    P.items.forEach((it, i) => {
+      const st = impStatus(it); const row = rowOf.get(it); const cur = it.pick || it.match;
+      const cands = [...new Set([].concat(it.match0 ? [it.match0] : [], it.alts || []))];
+      const sel = (st !== "ok" || it.pick) ? `<select data-imp="pick" data-i="${i}" data-testid="imp-pick"><option value="">${cur ? "– skip –" : "– choose datasheet –"}</option>${cands.length ? `<optgroup label="Suggestions">${cands.map((n) => `<option value="${esc(n)}" ${n === cur ? "selected" : ""}>${esc(n)}</option>`).join("")}</optgroup>` : ""}<optgroup label="All ${esc(F.f.name)} datasheets">${F.f.units.filter((u) => !cands.includes(u.n)).map((u) => `<option value="${esc(u.n)}" ${u.n === cur ? "selected" : ""}>${esc(u.n)}</option>`).join("")}</optgroup></select>` : "";
+      const meta = [];
+      if (it.warlord) meta.push(`<span class="impw">Warlord</span>`);
+      if (it.enhText) meta.push(it.enh && it.enh.name && it.enh.status !== "unmatched" ? `<span class="${it.enh.status === "ok" ? "" : "impguess"}">Enhancement: ${esc(it.enh.name)}${it.enh.status === "other-detachment" ? ` (needs ${esc(it.enh.det)})` : it.enh.status === "guessed" ? " (guessed)" : ""}</span>` : `<span class="impbad">Enhancement “${esc(it.enhText)}” not matched</span>`);
+      if (it.attachTarget) meta.push(`Attached to ${esc(it.attachTarget.pick || it.attachTarget.match || it.attachTarget.name)}`);
+      if (it.attachUnresolved) meta.push(`<span class="impguess">Attached to “${esc(it.attachUnresolved)}” – not found</span>`);
+      if (it.sizeNote) meta.push(`<span class="impguess">${esc(it.sizeNote)}</span>`);
+      if ((it.gearBad || []).length) meta.push(`<span class="impguess">Wargear not matched (kept as a note): ${esc(it.gearBad.join(", "))}</span>`);
+      if (!cur && (it.elsewhere || []).length) meta.push(`<span class="impbad">Only found in ${esc(it.elsewhere.join(", "))}</span>`);
+      const pts = row ? row.total : null;
+      html += `<li class="impu ${st}" data-testid="imp-unit" data-status="${st}">
+        <label class="impinc"><input type="checkbox" ${it.include ? "checked" : ""} data-imp="inc" data-i="${i}" aria-label="Include"></label>
+        <div class="impmain"><div class="impname">${it.copies > 1 ? `${it.copies}× ` : ""}${cur ? esc(cur) : `<s>${esc(it.name)}</s>`}${row && it.models_n > 1 ? ` <small>(${it.models_n} models)</small>` : ""}
+          ${st === "guess" ? `<span class="impbadge guess">guessed</span>` : st === "bad" ? `<span class="impbadge bad">not matched</span>` : st === "fixed" ? `<span class="impbadge ok">fixed</span>` : ""}</div>
+          <div class="impsrc">“${esc(it.text)}”</div>${sel}${meta.length ? `<div class="impmeta">${meta.join(" · ")}</div>` : ""}</div>
+        <div class="imppts">${pts != null && it.include ? `<b>${pts}</b>` : "–"}${it.pts != null ? `<small class="${pts != null && it.include && pts !== it.pts ? "impguess" : "muted"}">list ${it.pts}</small>` : ""}</div></li>`;
+    });
+    html += `</ul>${impLinesHtml(P)}
+      <div class="mfoot"><button class="btn secondary" data-imp="back">Back</button><button class="btn" data-imp="save" data-testid="imp-save">Save list</button></div>`;
+    box.innerHTML = html;
+    if (sc) sc.scrollTop = top;
+  }
+  function impLinesHtml(P, open) {
+    const un = P.lines.filter((l) => /^unrecognised/.test(l.kind));
+    if (!un.length) return "";
+    return `<details class="implines" ${open || un.length <= 6 ? "open" : ""} data-testid="imp-lines"><summary class="impguess">${un.length} line${un.length === 1 ? "" : "s"} not used</summary><ul>${un.map((l) => `<li>${esc(l.text)}</li>`).join("")}</ul></details>`;
+  }
+  function importReviewEvent(ev) {
+    const t = ev.target.closest("[data-imp]"); if (!t || !IMP || !t.closest(".imprev")) return;
+    const k = t.dataset.imp; const P = IMP.P; const it = t.dataset.i != null ? P.items[+t.dataset.i] : null;
+    if (ev.type === "click" && !/^(back|save)$/.test(k)) return;
+    if (k === "faction") { if (t.value) openImportReview(IMP.text, t.value); return; }
+    if (k === "name") { P.name = t.value.trim() || "Imported list"; return; }
+    if (k === "size") P.size = t.value;
+    else if (k === "det") { if (!t.checked) P.dets = P.dets.filter((d) => d !== t.value); }
+    else if (k === "adddet") { if (t.value && !P.dets.includes(t.value)) P.dets.push(t.value); }
+    else if (k === "disp") P.disposition = t.value || null;
+    else if (k === "inc") it.include = t.checked;
+    else if (k === "pick") { if (t.value) { it.pick = t.value; it.include = true; } else it.include = false; }
+    else if (k === "back") { const text = IMP.text; IMP = null; actions["import-text"](null, text); return; }
+    else if (k === "save") {
+      if (guestBlocked(1)) return;
+      const B = C.buildFromParse(P, S.idx, S.ds);
+      S.lists.push(B.list); saveLists(); closeModal(); IMP = null;
+      location.hash = `#/list/${B.list.id}`;
+      toast(`Imported “${B.list.name}” – ${B.list.entries.length} unit${B.list.entries.length === 1 ? "" : "s"}`);
+      return;
+    }
+    renderImportReview();
+  }
+  document.addEventListener("change", importReviewEvent);
+  document.addEventListener("click", importReviewEvent);
   function importFile() {
     if (guestBlocked(1)) return;
-    const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json,application/json,text/plain";
+    const inp = document.createElement("input"); inp.type = "file"; inp.accept = ".json,.txt,.ros,application/json,text/plain";
     inp.onchange = () => { const f = inp.files && inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => importText(r.result); r.readAsText(f); };
     inp.click();
   }
@@ -1994,10 +2091,11 @@
     "dup-list": (t) => { const l = findList(t.dataset.id); if (!l || guestBlocked(1)) return; S.lists.push(C.duplicateList(l)); saveLists(); route(); toast("List duplicated"); },
     "del-list": (t) => deleteList(t.dataset.id),
     "import-file": () => importFile(),
-    "import-text": () => {
+    "import-text": (t, prefill) => {
       if (guestBlocked(1)) return;
-      const m = modal("Text Import", `<p class="muted">Paste a Muster JSON export or a Muster share link.</p><textarea autofocus data-import></textarea>
-        <div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-ok>Import</button></div>`);
+      const m = modal("Text Import", `<p class="muted">Paste any army list: Warhammer 40,000 app, New Recruit (any text format), ListForge, BattleScribe, a Muster export or share link, or plain lines like “3x Allarus Custodians”. You can check and fix everything before it is saved.</p><textarea autofocus data-import data-testid="import-text" placeholder="Paste your list here"></textarea>
+        <div class="mfoot"><button class="btn secondary" data-action="close-modal">Cancel</button><button class="btn" data-ok data-testid="import-go">Import</button></div>`);
+      if (typeof prefill === "string") $("[data-import]", m).value = prefill;
       $("[data-ok]", m).onclick = () => importText($("[data-import]", m).value);
     },
     "export-all": () => download(`muster-lists-${new Date().toISOString().slice(0, 10)}.json`, C.exportLists(S.lists), "application/json"),

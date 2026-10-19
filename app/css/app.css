@@ -1166,3 +1166,36 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .cfgrow.armyrow .chev { flex: none; font-size: 16px; line-height: 1; color: var(--gray); }
 .cfgrow.armyrow:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
 @media (max-width: 760px) { .cfgrow.armyrow { min-height: 44px; } .cfgrow.armyrow .dd-v { max-width: 68%; } }
+/* text import review */
+.imprev .imphead { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.imprev .improw { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.imprev .improw > span:first-child { min-width: 104px; font-weight: 700; }
+.imprev .improw select, .imprev .impunits select { max-width: 100%; padding: 3px 4px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); color: var(--text); font: inherit; }
+.imprev .improw input[type=text].wide { flex: 1; min-width: 160px; width: auto; }
+.imprev .impdets { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
+.imprev .impchip { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); border-radius: 12px; padding: 1px 8px; font-size: 13px; }
+.imprev .impchip.on { border-color: var(--green); }
+.imprev .impchip.bad { border-color: var(--red); color: var(--red); }
+.imprev .impsum { border: 1px solid var(--border); background: var(--sect); padding: 5px 8px; margin: 6px 0; line-height: 1.5; }
+.imprev .imperr { margin: 4px 0 8px; padding: 4px 8px 4px 24px; border-left: 3px solid var(--red); color: var(--red); font-size: 13px; }
+.imprev .impunits { list-style: none; margin: 0; padding: 0; }
+.imprev .impu { display: flex; gap: 8px; align-items: flex-start; padding: 6px 6px; border: 1px solid var(--border); border-left-width: 4px; margin-bottom: 4px; }
+.imprev .impu.ok { border-left-color: var(--green); }
+.imprev .impu.fixed { border-left-color: var(--blue); }
+.imprev .impu.guess { border-left-color: #e0a400; background: rgba(224,164,0,.10); }
+.imprev .impu.bad { border-left-color: var(--red); background: rgba(230,78,78,.12); }
+.imprev .impu.off { opacity: .55; }
+.imprev .impinc input { width: 20px; height: 20px; margin: 2px 0 0; }
+.imprev .impmain { flex: 1; min-width: 0; }
+.imprev .impname { font-weight: 700; }
+.imprev .impname small { font-weight: 400; }
+.imprev .impsrc { font-size: 12px; opacity: .7; overflow-wrap: anywhere; }
+.imprev .impmeta { font-size: 13px; margin-top: 2px; overflow-wrap: anywhere; }
+.imprev .impmain select { margin-top: 3px; width: 100%; }
+.imprev .imppts { text-align: right; min-width: 52px; display: flex; flex-direction: column; }
+.imprev .imppts small { font-size: 11px; }
+.imprev .impbadge { font-size: 11px; font-weight: 700; border-radius: 3px; padding: 0 5px; margin-left: 4px; color: #fff; }
+.imprev .impbadge.guess { background: #b58300; } .imprev .impbadge.bad { background: var(--red); } .imprev .impbadge.ok { background: var(--blue); }
+.imprev .impguess { color: #c98f00; } .imprev .impbad { color: var(--red); } .imprev .impok { color: var(--green); } .imprev .impw { font-weight: 700; }
+.imprev .implines { margin: 8px 0; font-size: 13px; } .imprev .implines ul { margin: 4px 0; padding-left: 20px; overflow-wrap: anywhere; }
+@media (max-width: 600px) { .imprev .improw > span:first-child { min-width: 0; width: 100%; } }

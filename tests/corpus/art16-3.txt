@@ -1,0 +1,199 @@
+Test (1 995 Points)
+
+Orks
+
+Bouzilleurs, Fling'boyz et Zaviateurs (3 Points de Détachement)
+
+Reconnaissance
+
+Force de Frappe (2 000 Points)
+
+UNITÉS ATTACHÉES
+
+Unité Attachée 1
+
+Gros Mek (85 Points)
+
+• Attachée en tant que : Meneur (Personnage)
+
+• 1x Méga-klateur Kustom
+
+• 1x Pince Énergétik'
+
+Frimeurs (210 Points)
+
+• Attachée en tant que : Gardes du Corps
+
+• 9x Frimeur
+
+◦ 9x Fling' de Lux
+
+◦ 9x Kikoup'
+
+• 1x Kaptin
+
+◦ 1x Fling' de Lux
+
+◦ 1x Kikoup'
+
+Unité Attachée 2
+
+Gros Mek (85 Points)
+
+• Attachée en tant que : Meneur (Personnage)
+
+• 1x Méga-klateur Kustom
+
+• 1x Pince Énergétik'
+
+Frimeurs (230 Points)
+
+• Attachée en tant que : Gardes du Corps
+
+• Optimisations : Dakka Super Lux (Amélioration)
+
+• 9x Frimeur
+
+◦ 9x Fling' de Lux
+
+◦ 9x Kikoup'
+
+• 1x Kaptin
+
+◦ 1x Fling' de Lux
+
+◦ 1x Kikoup'
+
+Unité Attachée 3
+
+Gros Mek avec Kanon Shokk (95 Points)
+
+• Attachée en tant que : Meneur (Personnage)
+
+• 1x Kanon Shokk
+
+• 1x Outils de Gros Mek
+
+Kass'tanks (145 Points)
+
+• Attachée en tant que : Gardes du Corps
+
+• 5x Kass'tank
+
+◦ 5x Lance-rokettes Kikass
+
+◦ 5x Plant'zig
+
+◦ 1x Pulsa Rokkit
+
+• 1x Nob
+
+◦ 1x Kikoup'
+
+◦ 2x Pistolet à Rokettes
+
+PERSONNAGES
+
+Ghazghkull Thraka (300 Points)
+
+• Seigneur de Guerre
+
+• 1x Coup de Boule Adamantin
+
+• 1x Pince de Gork
+
+• 1x Rugissement de Mork
+
+TRANSPORTS ASSIGNÉS
+
+Kamion (60 Points)
+
+• 1x Bélié Pointu
+
+• 1x Lance-rokettes
+
+• 1x Pince Katrap'
+
+Kamion (60 Points)
+
+• 1x Bélié Pointu
+
+• 1x Lance-rokettes
+
+• 1x Pince Katrap'
+
+AUTRES FICHES TECHNIQUES
+
+Chokboyz (70 Points)
+
+• 4x Chokboy
+
+◦ 4x Kalibr'
+
+◦ 4x Kikoup'
+
+• 1x nob
+
+◦ 1x Kalibr'
+
+◦ 1x Pince Énergétik'
+
+Chokboyz (70 Points)
+
+• 4x Chokboy
+
+◦ 4x Kalibr'
+
+◦ 4x Kikoup'
+
+• 1x nob
+
+◦ 1x Kalibr'
+
+◦ 1x Pince Énergétik'
+
+Gretchins (80 Points)
+
+• 20x Gretchin
+
+◦ 20x Pétoire Grot
+
+◦ 20x Schlass de Rékup'
+
+Gretchins (45 Points)
+
+• 10x Gretchin
+
+◦ 10x Pétoire Grot
+
+◦ 10x Schlass de Rékup'
+
+Klat'jet Wazboum (230 Points)
+
+• 1x Blastajet Force Field
+
+• 1x Double Méga-boum Tépulà
+
+• 1x Double Super Fling'
+
+• 1x Impact Blindé
+
+• 1x Kanon Krazeur
+
+• Optimisations : Repérage Impulsif (Amélioration)
+
+Klat'jet Wazboum (230 Points)
+
+• 1x Blastajet Force Field
+
+• 1x Double Méga-boum Tépulà
+
+• 1x Double Super Fling'
+
+• 1x Impact Blindé
+
+• 1x Kanon Krazeur
+
+• Optimisations : Repérage Impulsif (Amélioration)
+
+Exporté avec la Version de l'Appli : v2.6.0 (3), Version de Données : v946

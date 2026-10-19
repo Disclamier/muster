@@ -1,0 +1,263 @@
+BoF/CoC (2000 points)
+
+Adepta Sororitas
+
+Bringers of Flame and Chorus of Condemnation (3 Detachment Points)
+
+Priority Assets
+
+Strike Force (2000 points)
+
+Attached Units
+
+Attached Unit 1
+
+Morvenn Vahl (200 points)
+
+• Attached as: Leader (Character)
+
+• Warlord
+
+• 1x Fidelis
+
+1x Lance of Illumination
+
+1x Paragon missile launcher
+
+Paragon Warsuits (180 points)
+
+• Attached as: Bodyguard
+
+• 1x Paragon Superior
+
+• 1x Bolt pistol
+
+1x Heavy bolter
+
+1x Paragon storm bolters
+
+1x Paragon war blade
+
+• 2x Paragon
+
+• 2x Bolt pistol
+
+2x Heavy bolter
+
+2x Paragon storm bolters
+
+2x Paragon war blade
+
+CHARACTERS
+
+Intranzia Fraye (135 points)
+
+• 2x Heavy bolter
+
+1x Mace of Saint Praxedes
+
+1x Melta missile array
+
+2x Ministorum heavy flamer
+
+1x Throne of Blame
+
+Palatine (70 points)
+
+• 1x Palatine blade
+
+1x Plasma pistol
+
+• Enhancement: Manual of Saint Griselda
+
+DEDICATED TRANSPORTS
+
+Immolator (100 points)
+
+• 1x Armoured tracks
+
+1x Heavy bolter
+
+1x Hunter-killer missile
+
+1x Immolation flamers
+
+Immolator (100 points)
+
+• 1x Armoured tracks
+
+1x Heavy bolter
+
+1x Hunter-killer missile
+
+1x Immolation flamers
+
+Immolator (100 points)
+
+• 1x Armoured tracks
+
+1x Heavy bolter
+
+1x Hunter-killer missile
+
+1x Immolation flamers
+
+OTHER DATASHEETS
+
+Castigator (165 points)
+
+• 1x Armoured tracks
+
+1x Castigator autocannons
+
+3x Heavy bolter
+
+1x Hunter-killer missile
+
+1x Storm bolter
+
+Castigator (165 points)
+
+• 1x Armoured tracks
+
+1x Castigator autocannons
+
+3x Heavy bolter
+
+1x Hunter-killer missile
+
+1x Storm bolter
+
+Castigator (175 points)
+
+• 1x Armoured tracks
+
+1x Castigator autocannons
+
+3x Heavy bolter
+
+1x Hunter-killer missile
+
+1x Storm bolter
+
+Dominion Squad (90 points)
+
+• 1x Dominion Superior
+
+• 1x Bolt pistol
+
+1x Close combat weapon
+
+1x Plasma pistol
+
+1x Power weapon
+
+• 9x Dominion
+
+• 4x Artificer-crafted storm bolter
+
+9x Bolt pistol
+
+5x Boltgun
+
+9x Close combat weapon
+
+1x Simulacrum Imperialis
+
+Dominion Squad (90 points)
+
+• 1x Dominion Superior
+
+• 1x Bolt pistol
+
+1x Close combat weapon
+
+1x Ministorum hand flamer
+
+1x Power weapon
+
+• 9x Dominion
+
+• 9x Bolt pistol
+
+5x Boltgun
+
+9x Close combat weapon
+
+4x Ministorum flamer
+
+1x Simulacrum Imperialis
+
+Exorcist (190 points)
+
+• 1x Armoured tracks
+
+1x Exorcist missile launcher
+
+1x Heavy bolter
+
+1x Hunter-killer missile
+
+• Enhancement: Symphonic Payload (Upgrade)
+
+Seraphim Squad (75 points)
+
+• 1x Seraphim Superior
+
+• 1x Close combat weapon
+
+1x Plasma pistol
+
+1x Power weapon
+
+• 4x Seraphim
+
+• 4x Bolt pistol
+
+4x Close combat weapon
+
+4x Ministorum hand flamer
+
+Seraphim Squad (75 points)
+
+• 1x Seraphim Superior
+
+• 1x Close combat weapon
+
+1x Plasma pistol
+
+1x Power weapon
+
+• 4x Seraphim
+
+• 4x Bolt pistol
+
+4x Close combat weapon
+
+4x Ministorum hand flamer
+
+Sisters Novitiate Squad (90 points)
+
+• 1x Novitiate Superior
+
+• 1x Close combat weapon
+
+1x Plasma pistol
+
+1x Power weapon
+
+• 9x Sister Novitiate
+
+• 9x Autopistol
+
+4x Close combat weapon
+
+2x Ministorum flamer
+
+5x Novitiate melee weapons
+
+1x Sacred Banner
+
+1x Simulacrum Imperialis
+
+Exported with App Version: v2.6.0 (144), Data Version: v946

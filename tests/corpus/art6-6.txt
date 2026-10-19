@@ -1,0 +1,213 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER: Mathieu
++ FACTION KEYWORD: Leagues of Votann
++ DETACHMENT: Farseekers and Needgaârd Oathband
++ FORCE DISPOSITION: Reconnaissance
+
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Unit 1
+
+Kâhl (95 points)
+
+* Attached as: Leader (Character)
+
+• Warlord
+
+• 1x Autoch-pattern combi-bolter
+
+1x Mass gauntlet
+
+1x Teleport Crest
+
+• Enhancement: Oathbound Speculator
+
+Einhyr Hearthguard (270 points)
+
+* Attached as: Bodyguard
+
+• 1x Hesyr
+
+• 1x EtaCarn plasma gun
+
+1x Exoarmour grenade launcher
+
+1x Graviton hammer
+
+1x Weavefield crest
+
+• 9x Einhyr Hearthguard
+
+• 9x Concussion gauntlet
+
+9x EtaCarn plasma gun
+
+9x Exoarmour grenade launcher
+
+CHARACTERS
+
+Buri Aegnirssen (85 points)
+
+• 1x Autoch‑pattern bolt pistol
+
+1x Bane
+
+Memnyr Strategist (55 points)
+
+• 1x Autoch-pattern bolt pistol
+
+1x Close combat weapon
+
+• Enhancement: Dead Reckoning
+
+Ûthar the Destined (90 points)
+
+• 1x Blade of the Ancestors
+
+1x Rampart Crest
+
+1x Volkanite disintegrator
+
+BATTLELINE
+
+Hearthkyn Warriors (90 points)
+
+• 1x Theyn
+
+• 1x Autoch-pattern bolt pistol
+
+1x Autoch-pattern bolter
+
+1x Close combat weapon
+
+1x Theyn's melee weapon
+
+1x Weavefield crest
+
+• 9x Hearthkyn Warrior
+
+• 9x Autoch-pattern bolt pistol
+
+7x Autoch-pattern bolter
+
+9x Close combat weapon
+
+1x HYLas auto rifle
+
+1x HYLas rotary cannon
+
+DEDICATED TRANSPORTS
+
+Sagitaur (85 points)
+
+• 1x Armoured wheels
+
+1x MATR autocannon
+
+1x Twin bolt cannon
+
+OTHER DATASHEETS
+
+Brôkhyr Thunderkyn (170 points)
+
+• 6x Brôkhyr Thunderkyn
+
+• 6x Close combat weapon
+
+6x SP conversion beamer
+
+Brôkhyr Thunderkyn (170 points)
+
+• 6x Brôkhyr Thunderkyn
+
+• 6x Close combat weapon
+
+6x SP conversion beamer
+
+Hekaton Land Fortress (250 points)
+
+• 1x Armoured wheels
+
+1x Heavy magna-rail cannon
+
+1x MATR autocannon
+
+1x Panspectral Scanner
+
+2x Twin bolt cannon
+
+Hekaton Land Fortress (265 points)
+
+• 1x Armoured wheels
+
+1x MATR autocannon
+
+1x Panspectral Scanner
+
+1x SP heavy conversion beamer
+
+2x Twin bolt cannon
+
+Hernkyn Pioneers (80 points)
+
+• 3x Hernkyn Pioneer
+
+• 3x Bolt revolver
+
+3x Bolt shotgun
+
+1x HYLas rotary cannon
+
+3x Magna-coil autocannon
+
+1x Panspectral Scanner
+
+3x Plasma knife
+
+1x Rollbar Searchlight
+
+Hernkyn Pioneers (80 points)
+
+• 3x Hernkyn Pioneer
+
+• 3x Bolt revolver
+
+3x Bolt shotgun
+
+1x HYLas rotary cannon
+
+3x Magna-coil autocannon
+
+1x Panspectral Scanner
+
+3x Plasma knife
+
+1x Rollbar Searchlight
+
+Ironkin Steeljacks with Melee Weapons (75 points)
+
+• 1x Steeljack Theyn
+
+• 1x Autoch-pattern bolter
+
+1x Plasma sword
+
+1x Preymark Crest
+
+• 2x Ironkin Steeljack
+
+• 2x Autoch-pattern bolter
+
+2x Plasma sword
+
+Kapricus Defenders (140 points)
+
+• 2x Kapricus Defender
+
+• 2x Armoured hull
+
+2x HYLas rotary cannon
+
+2x Smoke Launcher
+
+2x Twin magna‑coil autocannon

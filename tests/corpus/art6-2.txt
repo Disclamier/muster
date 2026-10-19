@@ -1,0 +1,201 @@
+Peace was Never an option(2.000 Points)
+
+World Eaters
+
+Berzerker Warband (3 Detachment Points)
+
+Purge the Foe
+
+Strike Force (2.000 Points)
+
+ATTACHED UNITS
+
+Attached unit 1
+
+Slaughterbound (120 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Lacerator and daemonic claw
+
+• Enhancements: Battle-lust
+
+Exalted Eightbound (130 Points)
+
+• Attached as: Bodyguard
+
+• 1x Exalted Eightbound Champion
+
+◦ 1x Chainblades
+
+• 2x Exalted Eightbound
+
+◦ 2x Chainblades
+
+Attached unit 2
+
+Lord Invocatus (100 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Bladed horn
+
+• 1x Bolt pistol
+
+• 1x Coward's Bane
+
+Khorne Berzerkers (160 Points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 1x Khorne Berzerker Champion
+
+◦ 1x Chainblade
+
+◦ 1x Plasma pistol
+
+• 9x Khorne Berzerker
+
+◦ 7x Bolt pistol
+
+◦ 7x Chainblade
+
+◦ 2x Khornate eviscerator
+
+◦ 2x Plasma pistol
+
+Attached unit 3
+
+Khârn the Betrayer (115 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Gorechild
+
+• 1x Plasma pistol
+
+Khorne Berzerkers (160 Points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 1x Khorne Berzerker Champion
+
+◦ 1x Chainblade
+
+◦ 1x Plasma pistol
+
+• 9x Khorne Berzerker
+
+◦ 7x Bolt pistol
+
+◦ 7x Chainblade
+
+◦ 2x Khornate eviscerator
+
+◦ 2x Plasma pistol
+
+CHARACTERS
+
+Angron (330 Points)
+
+• Warlord
+
+• 1x Samni'arius and Spinegrinder
+
+DEDICATED TRANSPORTS
+
+Chaos Rhino (75 Points)
+
+• 1x Armoured tracks
+
+• 1x Combi-bolter
+
+• 1x Combi-bolter
+
+• 1x Havoc launcher
+
+OTHER DATASHEETS
+
+Eightbound (125 Points)
+
+• 1x Eightbound Champion
+
+◦ 1x Chainblades
+
+• 2x Eightbound
+
+◦ 2x Chainblades
+
+Eightbound (125 Points)
+
+• 1x Eightbound Champion
+
+◦ 1x Chainblades
+
+• 2x Eightbound
+
+◦ 2x Chainblades
+
+Exalted Eightbound (130 Points)
+
+• 1x Exalted Eightbound Champion
+
+◦ 1x Chainblades
+
+• 2x Exalted Eightbound
+
+◦ 2x Chainblades
+
+Forgefiend (145 Points)
+
+• 1x Ectoplasma cannon
+
+• 1x Forgefiend claws
+
+• 2x Hades autocannon
+
+Forgefiend (145 Points)
+
+• 1x Ectoplasma cannon
+
+• 1x Forgefiend claws
+
+• 2x Hades autocannon
+
+Goremongers (75 Points)
+
+• 1x Blood Herald
+
+◦ 1x Autopistol
+
+◦ 1x Chainblade
+
+◦ 1x Close combat weapon
+
+• 7x Goremongers
+
+◦ 7x Autopistol
+
+◦ 7x Chainblade
+
+◦ 7x Close combat weapon
+
+Jakhals (65 Points)
+
+• 1x Jakhal Pack Leader
+
+◦ 1x Autopistol
+
+◦ 1x Chainblades
+
+• 1x Dishonoured
+
+◦ 1x Paired manglers
+
+• 8x Jakhal
+
+◦ 8x Autopistol
+
+◦ 8x Chainblades
+
+Exported with App Version: v2.6.0 (3), Data Version: v946

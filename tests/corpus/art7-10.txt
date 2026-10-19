@@ -1,0 +1,313 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: Lugo
++ FACTION KEYWORD: Xenos - Aeldari
++ DETACHMENT: Aspect Host (Path of the Warrior)
++ FORCE DISPOSITION: Priority Assets
++ TOTAL ARMY POINTS: 2000pts
++ NAME LIST : les 4 fantastiques
++ WARLORD: Char1: Asurmen
++ NUMBER OF UNITS: 19
++ SECONDARY: - Bring It Down: (2x2) - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Asurmen (135 pts)
+
+• Attached as: Leader (Character)
+
+• 1x The Bloody Twins
+
+• 1x The Sword of Asur
+
+• Warlord
+
+Dire Avengers (70 pts)
+
+• Attached as: Bodyguard
+
+• 1x Dire Avenger Exarch
+
+• 1x Close Combat Weapon
+
+• 2x Avenger shuriken catapult
+
+• 4x Dire Avenger
+
+• 4x Avenger shuriken catapult
+
+• 4x Close Combat Weapon
+
+• Aspect Shrine Token
+
+Attached Unit 2
+
+Baharroth (125 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Fury of the Tempest
+
+• 1x The Shining Blade
+
+Swooping Hawks (190 pts)
+
+• Attached as: Bodyguard
+
+• 1x Swooping Hawk Exarch
+
+• 1x Close combat weapon
+
+• 1x Hawk's Talon
+
+• 9x Swooping Hawk
+
+• 9x Close combat weapon
+
+• 9x Lasblaster
+
+• 2x Aspect Shrine Token
+
+Attached Unit 3
+
+Jain Zar (105 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Silent Death
+
+• 1x The Blade of Destruction
+
+Howling Banshees (85 pts)
+
+• Attached as: Bodyguard
+
+• 1x Howling Banshee Exarch
+
+• 1x Executioner
+
+• 1x Shuriken Pistol
+
+• 4x Howling Banshee
+
+• 4x Banshee Blade
+
+• 4x Shuriken Pistol
+
+• Aspect Shrine Token
+
+Attached Unit 4
+
+Lhykhis (135 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Brood Twain
+
+• 1x Spider's Fangs
+
+• 1x Weaverender
+
+Warp Spiders (105 pts)
+
+• Attached as: Bodyguard
+
+• 1x Warp Spider Exarch
+
+• 1x Close Combat Weapon
+
+• 1x 1 Powerblade array
+
+• 4x Warp Spider
+
+• 4x Close Combat Weapon
+
+• 4x Death spinner
+
+• Aspect Shrine Token
+
+BATTLELINE
+
+Corsair Voidreavers (65 pts)
+
+• 1x Voidreaver Felarch
+
+• 1x Close Combat Weapon
+
+• 1x Power sword
+
+• 1x Neuro disruptor
+
+• Mistshield
+
+• 3x Voidreaver with sword and pistol
+
+• 3x Close Combat Weapon
+
+• 3x Power sword
+
+• 3x Shuriken Pistol
+
+• 1x Voidreaver with Blaster
+
+• 1x Blaster
+
+• 1x Close Combat Weapon
+
+• 1x Shuriken Pistol
+
+Corsair Voidreavers (65 pts)
+
+• 1x Voidreaver Felarch
+
+• 1x Close Combat Weapon
+
+• 1x Power sword
+
+• 1x Neuro disruptor
+
+• Mistshield
+
+• 3x Voidreaver with sword and pistol
+
+• 3x Close Combat Weapon
+
+• 3x Power sword
+
+• 3x Shuriken Pistol
+
+• 1x Voidreaver with Blaster
+
+• 1x Blaster
+
+• 1x Close Combat Weapon
+
+• 1x Shuriken Pistol
+
+OTHER DATASHEETS
+
+Dark Reapers (95 pts)
+
+• 1x Dark Reaper Exarch
+
+• 1x Close combat weapon
+
+• 1x Missile Launcher
+
+• 4x Dark Reaper
+
+• 4x Close combat weapon
+
+• 4x Reaper Launcher
+
+• Aspect Shrine Token
+
+Falcon (130 pts)
+
+• 1x Pulse Laser
+
+• 1x Wraithbone hull
+
+• 1x Bright Lance
+
+• 1x Shuriken Cannon
+
+Rangers (60 pts)
+
+• 5x Ranger
+
+• 5x Close Combat Weapon
+
+• 5x Long rifle
+
+• 5x Shuriken Pistol
+
+Rangers (60 pts)
+
+• 5x Ranger
+
+• 5x Close Combat Weapon
+
+• 5x Long rifle
+
+• 5x Shuriken Pistol
+
+Shining Spears (100 pts)
+
+• 1x Shining Spear Exarch
+
+• 1x Shuriken Cannon
+
+• 1x Star Lance
+
+• Shimmershield
+
+• 2x Shining Spear
+
+• 2x Laser Lance
+
+• 2x Twin Shuriken Catapult
+
+Shining Spears (100 pts)
+
+• 1x Shining Spear Exarch
+
+• 1x Shuriken Cannon
+
+• 1x Star Lance
+
+• Shimmershield
+
+• 2x Shining Spear
+
+• 2x Laser Lance
+
+• 2x Twin Shuriken Catapult
+
+Swooping Hawks (190 pts)
+
+• 1x Swooping Hawk Exarch
+
+• 1x Close combat weapon
+
+• 1x Hawk's Talon
+
+• 9x Swooping Hawk
+
+• 9x Close combat weapon
+
+• 9x Lasblaster
+
+• 2x Aspect Shrine Token
+
+War Walkers (80 pts)
+
+• 1x War Walker
+
+• 1x War Walker feet
+
+• 1x Bright Lance
+
+• 1x Scatter Laser
+
+• Crystalline Targeting
+
+Warp Spiders (105 pts)
+
+• 1x Warp Spider Exarch
+
+• 1x Close Combat Weapon
+
+• 1x Death Weavers
+
+• 1x Spinneret Rifle
+
+• 4x Warp Spider
+
+• 4x Close Combat Weapon
+
+• 4x Death spinner
+
+• Aspect Shrine Token

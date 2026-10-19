@@ -1,0 +1,231 @@
+Warp your bane (2,000 Points)
+
+Grey Knights
+
+Warpbane Task Force (3 Detachment Points)
+
+Take and Hold
+
+Strike Force (2,000 Points)
+
+ATTACHED UNITS
+
+Attached unit 1
+
+Grand Master (110 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Nemesis force weapon
+
+• 1x Psycannon
+
+• Enhancements: Radiant Champion
+
+Brotherhood Terminator Squad (180 Points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 1x Justicar
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Storm bolter
+
+• 3x Terminator
+
+◦ 1x Apothecary's Narthecium
+
+◦ 3x Nemesis force weapon
+
+◦ 2x Storm bolter
+
+• 1x Ancient
+
+◦ 1x Ancient's Banner
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Psycannon
+
+Attached unit 2
+
+Castellan Crowe (100 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Black Blade of Antwyr
+
+• 1x Purifying Flame
+
+• 1x Storm bolter
+
+Purifier Squad (260 Points)
+
+• Attached as: Bodyguard
+
+• 1x Knight of the Flame
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Purifying Flame
+
+◦ 1x Storm bolter
+
+• 9x Purifier
+
+◦ 4x Close combat weapon
+
+◦ 5x Nemesis force weapon
+
+◦ 4x Psycannon
+
+◦ 9x Purifying Flame
+
+◦ 5x Storm bolter
+
+CHARACTERS
+
+Grand Master in Nemesis Dreadknight (250 Points)
+
+• Warlord
+
+• 1x Fragstorm grenade launcher
+
+• 1x Heavy psycannon
+
+• 1x Nemesis daemon greathammer
+
+• 1x Sublimator
+
+• Enhancements: Mandulian Reliquary
+
+Grand Master in Nemesis Dreadknight (240 Points)
+
+• 1x Fragstorm grenade launcher
+
+• 1x Heavy psycannon
+
+• 1x Nemesis daemon greathammer
+
+• 1x Sublimator
+
+• Enhancements: Paragon of Sanctity
+
+BATTLELINE
+
+Strike Squad (115 Points)
+
+• 1x Justicar
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Storm bolter
+
+• 4x Grey Knight
+
+◦ 1x Close combat weapon
+
+◦ 3x Nemesis force weapon
+
+◦ 1x Psycannon
+
+◦ 3x Storm bolter
+
+DEDICATED TRANSPORTS
+
+Razorback (75 Points)
+
+• 1x Armoured tracks
+
+• 1x Hunter-killer missile
+
+• 1x Storm bolter
+
+• 1x Twin lascannon
+
+Razorback (75 Points)
+
+• 1x Armoured tracks
+
+• 1x Hunter-killer missile
+
+• 1x Storm bolter
+
+• 1x Twin lascannon
+
+OTHER DATASHEETS
+
+Interceptor Squad (125 Points)
+
+• 1x Interceptor Justicar
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Storm bolter
+
+• 4x Interceptor
+
+◦ 4x Nemesis force weapon
+
+◦ 4x Storm bolter
+
+Interceptor Squad (125 Points)
+
+• 1x Interceptor Justicar
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Storm bolter
+
+• 4x Interceptor
+
+◦ 4x Nemesis force weapon
+
+◦ 4x Storm bolter
+
+Purgation Squad (105 Points)
+
+• 1x Purgator Justicar
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Storm bolter
+
+• 4x Purgator
+
+◦ 4x Close combat weapon
+
+◦ 4x Psilencer
+
+Purifier Squad (130 Points)
+
+• 1x Knight of the Flame
+
+◦ 1x Nemesis force weapon
+
+◦ 1x Purifying Flame
+
+◦ 1x Storm bolter
+
+• 4x Purifier
+
+◦ 2x Close combat weapon
+
+◦ 2x Nemesis force weapon
+
+◦ 2x Psycannon
+
+◦ 4x Purifying Flame
+
+◦ 2x Storm bolter
+
+ALLIED UNITS
+
+Eversor Assassin (110 Points)
+
+• 1x Executioner pistol
+
+• 1x Power sword and neuro gauntlet
+
+Exported with App Version: v2.5.0 (1), Data Version: v931

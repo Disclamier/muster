@@ -535,7 +535,7 @@
   }
   /* "1x Intercessor Sergeant: Bolt pistol, Bolt Rifle" (counts shown only when not every model has it) */
   function loadoutText(line) {
-    const g = line.gear.map((x) => (line.count > 1 && x.count !== line.count) || (!line.count && x.count > 1) ? `${x.count}x ${x.name}` : x.name).join(", ");
+    const g = line.gear.map((x) => (line.count > 1 && x.count !== line.count) || (line.count <= 1 && x.count > 1) ? `${x.count}x ${x.name}` : x.name).join(", ");
     return line.name ? `${line.count}x ${line.name}${g ? ": " + g : ""}` : g;
   }
 
@@ -989,7 +989,7 @@
       if (r.entry.warlord) L.push("• Warlord");
       if (r.attachedTo) L.push(`• ${attachText(r, X.c)}`);
       if (ledText(r)) L.push(`• ${ledText(r)}`);
-      for (const l of r.loLines || []) { const g = l.gear.map((x) => (l.count > 1 && x.count !== l.count ? `${x.count}x ${x.name}` : x.name)).join(", ");
+      for (const l of r.loLines || []) { const g = l.gear.map((x) => ((l.count > 1 && x.count !== l.count) || (l.count <= 1 && x.count > 1) ? `${x.count}x ${x.name}` : x.name)).join(", ");
         L.push(l.name ? `${l.count} with ${g}${(r.loLines.length > 1) ? ` (${l.name})` : ""}` : `• ${g}`); }
       const gear = gearList(r); if (gear.length) L.push(`• ${gear.join(", ")}`);
       if (r.entry.note) L.push(`• ${r.entry.note}`);
@@ -1988,7 +1988,725 @@
     return true;
   }
 
-  return { allyGodCounts, allyRatioIssues, allyAddCheck, unitMark, markEffects, wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  /* ==== text import: any pasted army-list text -> parse report + Muster list ====
+     Formats: GW app export (EN/FR/DE/ES), New Recruit (simple / GW-style / WTC compact / WTC full), ListForge text,
+     BattleScribe text, Muster's own text exports, tournament templates and loose free-form lines.
+     parseListText(text, idx, ds, opts) -> parse {format, header, items, lines, ...}; buildFromParse(parse, idx, ds) -> {list, calc, rows}
+     Nothing is dropped: every non-blank line ends up as a unit, a sub-line of a unit, a header fact, or an "unrecognised" line. */
+  const tiDeacc = (s) => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const tiSing = (w) => (w.length < 4 || /(ss|us|is|ys)$/.test(w) ? w : w.replace(/ies$/, "y").replace(/(ch|sh|x|ss)es$/, "$1").replace(/s$/, ""));
+  /* normalised token key: case, accents, punctuation, unicode dashes/quotes, w/ -> with, & -> and, plurals, [Legends] */
+  function tiKey(s) {
+    const t = tiDeacc(s).toLowerCase().replace(/[’‘`´]/g, "'").replace(/\[legends\]|\(legends\)/g, " ").replace(/\bw\//g, " with ")
+      .replace(/&/g, " and ").replace(/'s\b/g, "s").replace(/'/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+    return t ? t.split(" ").map(tiSing).join(" ") : "";
+  }
+  const tiCk = (s) => tiKey(s).replace(/ /g, "");
+  const TI_STOP = new Set(["the", "of", "a", "an", "with", "and", "on", "in", "de", "du", "la", "le", "des", "et"]);
+  function tiBigrams(s) { const o = new Map(); for (let i = 0; i < s.length - 1; i++) { const b = s.slice(i, i + 2); o.set(b, (o.get(b) || 0) + 1); } return o; }
+  function tiDice(a, b) {
+    if (!a || !b) return 0; if (a === b) return 1;
+    const A = tiBigrams(a), B = tiBigrams(b); let inter = 0, na = 0, nb = 0;
+    for (const v of A.values()) na += v; for (const v of B.values()) nb += v;
+    for (const [k, v] of A) if (B.has(k)) inter += Math.min(v, B.get(k));
+    return na + nb ? (2 * inter) / (na + nb) : 0;
+  }
+  /* similarity 0..1 of two names (token overlap + character bigrams) */
+  function tiSim(a, b) {
+    const ka = tiKey(a), kb = tiKey(b); if (!ka || !kb) return 0;
+    if (ka === kb || ka.replace(/ /g, "") === kb.replace(/ /g, "")) return 1;
+    const ta = ka.split(" ").filter((w) => !TI_STOP.has(w)), tb = kb.split(" ").filter((w) => !TI_STOP.has(w));
+    const sb = new Set(tb); const inter = ta.filter((w) => sb.has(w)).length;
+    const tok = ta.length + tb.length ? (2 * inter) / (ta.length + tb.length) : 0;
+    return Math.max(tok * 0.97, tiDice(ka.replace(/ /g, ""), kb.replace(/ /g, "")));
+  }
+  /* renamed / commonly abbreviated datasheets: old or short name -> current name (only applied when the target exists) */
+  const TI_ALIAS = {
+    "allarus terminator": "Allarus Custodians", "custodian guard squad": "Custodian Guard", "intercessor": "Intercessor Squad",
+    "assault intercessor": "Assault Intercessor Squad", "terminator": "Terminator Squad", "hellblaster": "Hellblaster Squad",
+    "eradicator": "Eradicator Squad", "infernus": "Infernus Squad", "sternguard": "Sternguard Veteran Squad", "aggressor": "Aggressor Squad",
+    "eliminator": "Eliminator Squad", "infiltrator": "Infiltrator Squad", "incursor": "Incursor Squad", "scout": "Scout Squad",
+    "suppressor": "Suppressor Squad", "outrider": "Outrider Squad", "desolation": "Desolation Squad", "devastator": "Devastator Squad",
+    "inceptor": "Inceptor Squad", "reiver": "Reiver Squad", "heavy intercessor": "Heavy Intercessor Squad", "tactical": "Tactical Squad",
+    "battle sister": "Battle Sisters Squad", "battle sisters": "Battle Sisters Squad", "sister of battle": "Battle Sisters Squad", "repentia": "Repentia Squad", "seraphim": "Seraphim Squad",
+    "zephyrim": "Zephyrim Squad", "retributor": "Retributor Squad", "dominion": "Dominion Squad", "sacresant": "Celestian Sacresants",
+    "insidiant": "Celestian Insidiants", "arco": "Arco-flagellants", "kabalite": "Kabalite Warriors", "wych": "Wyches",
+    "breacher": "Breacher Team", "stealth suit": "Stealth Battlesuits", "crisis": "Crisis Battlesuits", "broadside": "Broadside Battlesuits",
+    "ghostkeel": "Ghostkeel Battlesuit", "riptide": "Riptide Battlesuit", "big mek": "Big Mek", "gros mek": "Big Mek",
+    "boy": "Boyz", "nob": "Nobz", "lychguard": "Lychguard", "warrior": "Necron Warriors", "wraith": "Canoptek Wraiths",
+    "plague marine": "Plague Marines", "poxwalker": "Poxwalkers", "berzerker": "Khorne Berzerkers", "rubric": "Rubric Marines",
+    "legionary": "Legionaries", "chosen": "Chosen", "venatari": "Venatari Custodians", "praetor": "Vertus Praetors",
+    "warden": "Custodian Wardens", "witchseeker": "Witchseekers", "prosecutor": "Prosecutors", "vigilator": "Vigilators",
+    "sister rhino": "Rhino", "dawneagle captain": "Shield-Captain on Dawneagle Jetbike", "bike captain": "Shield-Captain on Dawneagle Jetbike",
+    "tbt": "Terminator Squad", "blade champion": "Blade Champion", "pink horror": "Pink Horrors", "bloodletter": "Bloodletters",
+    "plaguebearer": "Plaguebearers", "kamion": "Trukk", "kass'tanks": "Tankbustas", "frimeurs": "Flash Gitz", "klat'jet wazboum": "Wazbom Blastajet",
+    "gros mek avec kanon shokk": "Big Mek with Shokk Attack Gun", "daemonette": "Daemonettes", "nurgling": "Nurglings", "flesh hound": "Flesh Hounds",
+  };
+  let _tiAl = null;
+  const tiAliasMap = () => { if (!_tiAl) { _tiAl = {}; for (const [k, v] of Object.entries(TI_ALIAS)) _tiAl[tiKey(k)] = v; } return _tiAl; };
+  /* faction names in other languages / older names: [name, faction id, rank] (rank 1 = generic) */
+  const TI_FACTION_ALIAS = [["Adeptus Astartes", "space-marines", 1], ["Space Marine", "space-marines", 1], ["Imperial Guard", "astra-militarum", 2],
+    ["Sisters of Battle", "adepta-sororitas", 2], ["Admech", "adeptus-mechanicus", 2], ["Ad Mech", "adeptus-mechanicus", 2], ["Custodes", "adeptus-custodes", 2],
+    ["Craftworlds", "aeldari", 2], ["Eldar", "aeldari", 2], ["Asuryani", "aeldari", 2], ["Dark Eldar", "drukhari", 2], ["Tau", "tau-empire", 2],
+    ["T'au", "tau-empire", 2], ["Tau Empire", "tau-empire", 2], ["Empire T'au", "tau-empire", 2], ["T'au-Sternenreich", "tau-empire", 2], ["Imperio T'au", "tau-empire", 2],
+    ["Necrones", "necrons", 2], ["Votann", "leagues-of-votann", 2], ["GSC", "genestealer-cults", 2], ["Legiones Daemonica", "chaos-daemons", 2],
+    ["Daemons", "chaos-daemons", 2], ["Heretic Astartes", "chaos-space-marines", 1], ["CSM", "chaos-space-marines", 2], ["Agents of the Imperium", "imperial-agents", 2],
+    ["Questor Traitoris", "chaos-knights", 2], ["Adeptus Titanicus", "titan-legions", 2], ["Tyranides", "tyranids", 2], ["Orques", "orks", 2],
+    ["Marines Espaciales", "space-marines", 1], ["Space Marines", "space-marines", 1], ["Mechanicus", "adeptus-mechanicus", 2]];
+  const TI_SECTIONS = /^(characters?|epic heroe?s?|battleline|other datasheets|dedicated transports?|allied units|infantry|mounted|beasts?|swarms?|monsters?|vehicles?|fortifications?|transports?|lords? of war|elites|troops|fast attack|heavy support|flyers?|hq|personnages?|personaje|personajes|charaktere|ligne de bataille|autres fiches techniques|transports? assign[ée]s|unit[ée]s alli[ée]es|linea de batalla|l[ií]nea de batalla|otras hojas de datos|transportes asignados|standardtruppen|charaktermodelle|linientruppen|weitere datenbl[äa]tter|zugewiesene transportfahrzeuge|transportfahrzeuge|andere datenbl[äa]tter|errors|short version|long version|angeschlossene einheiten|attached units|unit[ée]s attach[ée]es|unidades (?:adjuntas|anexadas)|not in current data|configuration|units?)$/i;
+  const TI_GROUP = /^(attached unit|attached|unit[ée] attach[ée]e|unit[ée] \d+ attach[ée]e|angeschlossene einheit|unidad adjunta|unidad anexada)\s*\d*\s*(?::.*)?$/i;
+  const TI_FOOTER = /^(exported with|created with|export[ée] avec|exportiert mit|exportada con|exportado con|end of roster|total\s*:|validation\s*:|generated by|list ?forge|newrecruit\.eu|https?:\/\/)/i;
+  const TI_WARLORD = /^(warlord|seigneur de guerre|kriegsherr|se[nñ]or de la guerra|signore della guerra)$/i;
+  const TI_ATTACHED_AS = /^(attached as|attach[ée]e? en tant que|angeschlossen als|unid[oa] como|adjunt[oa] como|anexad[oa] como)\s*:?\s*(.*)$/i;
+  const TI_ENH = /^(enhancements?|e|optimisations?|am[ée]liorations?|verbesserung(?:en)?|mejoras?|potenciamientos?|upgrades?)\s*:\s*(.+)$/i;
+  const TI_PTS = /[([]\s*\+?\s*(\d{1,3}(?:[ ,.\u202f\u00a0]\d{3})+|\d+)\s*(?:pts?|points?|punkte|puntos|pkt|pt|punti|pontos)\.?\s*(?:limit)?\s*[)\]]/i;
+  const TI_PTS_TAIL = /(?:^|\s|-|,)\s*(\d+)\s*(?:pts?|points?)\.?\s*$/i;
+  const tiNum = (s) => +String(s).replace(/[ ,.\u202f\u00a0]/g, "");
+  const TI_SIZES = [[/\b(incursion|combat patrol)\b/i, 1000], [/\b(strike ?force|force de frappe|einsatzverband|fuerza de (?:choque|asalto)|forza d'attacco)\b/i, 2000], [/\b(onslaught|assaut|ansturm|embestida|arrollador)\b/i, 3000]];
+
+  const _tiLex = new WeakMap();
+  function tiLexicon(idx) {
+    if (_tiLex.has(idx)) return _tiLex.get(idx);
+    const L = { units: new Map(), dets: [], enh: new Map(), fds: [], aliases: [], perF: {} };
+    const push = (m, k, v) => { if (!k) return; const a = m.get(k); if (a) a.push(v); else m.set(k, [v]); };
+    for (const fid of Object.keys(idx.factions)) {
+      const F = idx.factions[fid]; const P = (L.perF[fid] = { units: [], ck: new Map(), enh: new Map() });
+      for (const u of F.f.units) {
+        const ck = tiCk(u.n); const rec = { fid, u, ck, key: tiKey(u.n) };
+        P.units.push(rec); if (!P.ck.has(ck)) P.ck.set(ck, u);
+        push(L.units, ck, rec);
+      }
+      for (const d of F.f.dets) {
+        L.dets.push({ fid, d, ck: tiCk(d.n) });
+        for (const en of d.enh || []) { const v = { fid, det: d.n, en }; const k1 = tiCk(en[0]), k2 = tiCk(String(en[0]).replace(/\s*\([^)]*\)/g, ""));
+          push(L.enh, k1, v); push(P.enh, k1, v); if (k2 !== k1) { push(L.enh, k2, v); push(P.enh, k2, v); } }
+        for (const fd of d.fd || []) if (!L.fds.some((x) => x.v === fd)) L.fds.push({ v: fd, ck: tiCk(fd) });
+      }
+    }
+    L.dets.sort((a, b) => b.ck.length - a.ck.length);
+    for (const g of idx.data.groups || []) for (const s of g.factions) if (idx.factions[s.data])
+      L.aliases.push({ ck: tiCk(s.name), fid: s.data, sub: s.id, rank: s.data !== s.id ? 3 : s.id === "space-marines" ? 1 : 2 });
+    for (const f of idx.data.factions || []) if (!L.aliases.some((a) => a.sub === f.id)) L.aliases.push({ ck: tiCk(f.name), fid: f.id, sub: f.id, rank: 2 });
+    for (const [n, fid, rank] of TI_FACTION_ALIAS) if (idx.factions[fid]) L.aliases.push({ ck: tiCk(n), fid, sub: fid, rank });
+    _tiLex.set(idx, L); return L;
+  }
+  /* "Death Guard Rhino" / "World Eaters Terminator Champion" (the GW app prefixes shared datasheets) -> "Rhino" */
+  function tiStripFaction(L, name) {
+    const words = tiKey(name).split(" ");
+    for (let k = Math.min(3, words.length - 1); k >= 1; k--) { const pre = words.slice(0, k).join(""); if (L.aliases.some((a) => a.ck === pre)) return words.slice(k).join(" "); }
+    return null;
+  }
+  /* best datasheet for a name in faction fid: {u, status: "ok"|"alias"|"guessed", score, alts} or null */
+  function tiMatchUnit(L, fid, name, strict) {
+    const P = L.perF[fid]; if (!P || !name) return null;
+    const clean = String(name).replace(/\s*\[legends\]|\s*\(legends\)/ig, "").trim();
+    const ck = tiCk(clean); if (!ck) return null;
+    if (P.ck.has(ck)) return { u: P.ck.get(ck), status: "ok", score: 1 };
+    for (const v of [ck + "squad", ck.replace(/squad$/, ""), ck.replace(/^the/, ""), ck + "s", ck.replace(/unit$/, "")]) if (v && P.ck.has(v)) return { u: P.ck.get(v), status: "ok", score: 1 };
+    const sf = tiStripFaction(L, clean); if (sf && sf !== tiKey(clean)) { const r = tiMatchUnit(L, fid, sf, strict); if (r) return r; }
+    const al = tiAliasMap()[tiKey(clean)]; if (al && P.ck.has(tiCk(al))) return { u: P.ck.get(tiCk(al)), status: "alias", score: 0.99 };
+    if (strict === "exact") return null;
+    // custom names / shortened names: "Archon Gheislein De Wiart" -> Archon, "Eradicator Squad" -> Eradicator Squad with Melta Rifles
+    const words = tiKey(clean).split(" ");
+    if (!strict) for (let k = words.length - 1; k >= 1; k--) { const pre = words.slice(0, k).join(""); if (pre.length >= 4 && P.ck.has(pre)) return { u: P.ck.get(pre), status: "guessed", score: 0.8, alts: [] }; }
+    let pref = P.units.filter((r) => r.ck.startsWith(ck) && ck.length >= 6);
+    if (!pref.length && !strict && words[0].length >= 6) pref = P.units.filter((r) => r.key.split(" ")[0] === words[0]).sort((a, b) => tiSim(clean, b.u.n) - tiSim(clean, a.u.n));
+    if (pref.length) return { u: pref[0].u, status: "guessed", score: 0.8, alts: pref.slice(1, 6).map((r) => r.u.n) };
+    const sc = P.units.map((r) => ({ u: r.u, s: tiSim(clean, r.u.n) })).sort((a, b) => b.s - a.s);
+    const best = sc[0];
+    const th = strict ? 0.86 : 0.74;
+    if (best && best.s >= th) return { u: best.u, status: "guessed", score: +best.s.toFixed(2), alts: sc.slice(1, 6).filter((x) => x.s > 0.5).map((x) => x.u.n) };
+    return null;
+  }
+  function tiCandidates(L, fid, name, n) {
+    const P = L.perF[fid]; if (!P) return [];
+    return P.units.map((r) => ({ n: r.u.n, s: tiSim(name, r.u.n) })).sort((a, b) => b.s - a.s).slice(0, n || 6).filter((x) => x.s > 0.3).map((x) => x.n);
+  }
+  /* faction keyword lines: every alias hit [{fid, sub, rank, at}] */
+  function tiFactionHits(L, text, at) {
+    const out = []; const segs = new Set([text]);
+    for (const s of String(text).split(/\s+-\s+|[,:;/()|]|\s+[–—]\s+|\s+and\s+/i)) if (s.trim()) segs.add(s.trim());
+    for (const s of segs) { const ck = tiCk(s); if (!ck) continue; for (const a of L.aliases) if (a.ck === ck) out.push({ ...a, at }); }
+    return out;
+  }
+  /* detachment names inside a line (longest first, consumed): {found:[{fid,d}], rest} */
+  function tiFindDets(L, text, fid) {
+    let ck = tiCk(text); const found = [];
+    for (const r of L.dets) { if (fid && r.fid !== fid) continue; if (r.ck.length < 5) continue; const i = ck.indexOf(r.ck); if (i >= 0) { found.push({ fid: r.fid, d: r.d, pos: i }); ck = ck.slice(0, i) + "|" + ck.slice(i + r.ck.length); } }
+    found.sort((a, b) => a.pos - b.pos);
+    return { found, rest: ck.replace(/\|/g, "") };
+  }
+  /* "Char3: 10x Name (120 pts): gear, gear" / "Name [85 pts]: gear" / "3x10 Repentia" / "Name - Enh - 120pts" */
+  function tiUnitLine(text) {
+    let t = String(text).trim(); const o = { tag: null, count: null, copies: 1, pts: null, name: "", gear: [], warlord: false };
+    let m = t.match(/^([A-Z][A-Za-z]{1,5}\d+)\s*:\s*/); if (m) { o.tag = m[1]; t = t.slice(m[0].length); }
+    if (/\[warlord\]/i.test(t)) { o.warlord = true; t = t.replace(/\s*\[warlord\]/ig, ""); }
+    m = t.match(/^(\d+)\s*[x×]\s*(\d+)\s+(?=\D)/i); if (m) { o.copies = +m[1]; o.count = +m[2]; t = t.slice(m[0].length); }
+    else { m = t.match(/^(\d+)\s*[x×]\s*/i) || t.match(/^(\d+)\s+(?=[A-Za-z])/); if (m && +m[1] > 0 && +m[1] < 100) { o.count = +m[1]; t = t.slice(m[0].length); } }
+    let rest = "";
+    m = t.match(TI_PTS);
+    if (m) { o.pts = tiNum(m[1]); rest = t.slice(m.index + m[0].length); t = t.slice(0, m.index); }
+    else { m = t.match(TI_PTS_TAIL); if (m) { o.pts = +m[1]; t = t.slice(0, m.index); } }
+    rest = rest.replace(/^\s*[:,-]\s*/, "").trim();
+    if (rest) o.gear.push(...tiSplitGear(rest));
+    t = t.trim().replace(/[.:,;-]+$/, "").trim();
+    if (o.count == null) { m = t.match(/^(.+?)\s*(?:\((\d{1,2})\)|\s[x×]\s?(\d{1,2}))$/i); if (m && +(m[2] || m[3]) > 0) { o.count = +(m[2] || m[3]); t = m[1]; } } // "Skorpekh Destroyers (6)"
+    const segs = t.split(/\s+-\s+/); o.name = segs.shift().trim();
+    for (const s of segs) if (s.trim()) o.gear.push(...tiSplitGear(s));
+    return o;
+  }
+  function tiSplitGear(s) {
+    const out = []; let depth = 0, cur = "";
+    for (const ch of String(s)) { if (ch === "(" || ch === "[") depth++; if (ch === ")" || ch === "]") depth--; if ((ch === "," || ch === ";") && depth <= 0) { out.push(cur); cur = ""; } else cur += ch; }
+    out.push(cur);
+    return out.map((x) => x.trim()).filter(Boolean);
+  }
+  /* "2x Bolt rifle" / "2 Storm Bolters" -> {n, name} */
+  function tiCountName(s) {
+    const m = String(s).trim().match(/^(\d+)\s*[x×]?\s+(.+)$/i) || String(s).trim().match(/^(\d+)[x×](.+)$/i);
+    if (m) return { n: +m[1], name: m[2].trim(), explicit: true };
+    const t = String(s).trim().match(/^(.+?)\s*(?:\((\d{1,2})\)|\s[x×]\s?(\d{1,2}))$/i); // "Skorpekh Destroyers (6)" / "Warriors x20"
+    if (t) return { n: +(t[2] || t[3]), name: t[1].trim(), explicit: true };
+    return { n: 1, name: String(s).trim(), explicit: false };
+  }
+  function tiNormText(text) {
+    return String(text || "").replace(/\r\n?/g, "\n").replace(/[\u00a0\u2007\u202f]/g, " ").replace(/[\u200b-\u200d\ufeff]/g, "")
+      .replace(/[\u2010-\u2015\u2212]/g, (c) => (c === "\u2013" || c === "\u2014" ? " - " : "-")).replace(/[’‘`´]/g, "'").replace(/[“”„]/g, '"').replace(/×/g, "x")
+      .replace(/\*\*|__/g, "").replace(/ {2,}- {2,}/g, " - ");
+  }
+  function tiDetectFormat(t) {
+    if (/^\s*[{[]/.test(t)) return "json";
+    if (/#\/share\//.test(t)) return "share";
+    if (/Exported with Muster/i.test(t)) return "muster";
+    if (/^\s*#\s*\+\+\s*Army Roster/im.test(t) || /^##\s*Configuration/im.test(t)) return "nr-simple";
+    if (/^\s*\+\+\s*Army Roster/im.test(t) || /Created with BattleScribe/i.test(t) || /^\+ Configuration \+/m.test(t)) return "battlescribe";
+    if (/^\s*\+\s*FACTION KEYWORD:/im.test(t) || /^\+{10,}/m.test(t) && /^\s*\d+ with /m.test(t)) return /^\s*\d+ with /m.test(t) ? "wtc-full" :
+      /^\s*(?:[A-Z][a-z]{2,4}\d+:\s*)?\d+x .+\(\d+ pts\)/m.test(t) || !/^\s*•/m.test(t) ? "wtc" : "wtc-gw";
+    if (/Exported with New Recruit/i.test(t)) return "nr-gw";
+    if (/Exported with App Version|Export[ée]e? avec la Version|Exportiert mit App|Exportada con la versi[oó]n/i.test(t) || /\(\d+\s*(Detachment Points|Points de D[ée]tachement|Kontingentspunkte|puntos de destacamento)\)/i.test(t) || /Attached as\s*:/i.test(t)) return "gw";
+    if (/Factions Used:|FACTION KEYWORD:|Detachment\(s\):/i.test(t)) return "tournament";
+    if (/^.* - .+\(\d[\d,. ]*\s*Points?\)\s*$/im.test(t.split("\n").find((x) => x.trim()) || "") || /^Attached Units:\s*$/im.test(t) || /^\s+• E: /m.test(t)) return "listforge";
+    if (/^(?:Muster|Faction:\s)/m.test(t) && /^Detachments:/m.test(t)) return "muster";
+    return "freeform";
+  }
+  function tiLineInfo(raw) {
+    const ind = (raw.match(/^[\t ]*/)[0] || "").replace(/\t/g, "    ").length;
+    let t = raw.trim(); let bullet = "";
+    const hm = t.match(/^(#{1,6})\s+/); let hashes = 0; if (hm) { hashes = hm[1].length; t = t.slice(hm[0].length); }
+    const bm = t.match(/^([•◦▪●○‣∙·*]|-(?=\s)|\.{1,3}(?=\s)|>)\s*/);
+    if (bm) { bullet = bm[1]; t = t.slice(bm[0].length).trim(); }
+    return { raw, ind, bullet, hashes, text: t };
+  }
+  const TI_FORMAT_NAMES = { json: "Muster JSON", share: "Muster share link", muster: "Muster text export", "nr-simple": "New Recruit (simple)", battlescribe: "BattleScribe text",
+    wtc: "WTC compact (New Recruit / ListForge)", "wtc-gw": "WTC header + GW-app body (New Recruit / ListForge)", "wtc-full": "WTC full (New Recruit / ListForge)", "nr-gw": "New Recruit (GW app style)", gw: "Warhammer 40,000 app",
+    listforge: "ListForge text", tournament: "Tournament template", freeform: "Free-form text" };
+
+  /* pre-scan: header facts + the faction (stated, or detected from detachment and unit names) */
+  function tiPickFaction(L, idx, lines, opts) {
+    if (opts && opts.faction) { const s = idx.subs[opts.faction]; return { fid: s ? s.data : opts.faction, sub: opts.faction, how: "chosen" }; }
+    const hits = [];
+    lines.forEach((ln, i) => {
+      const t = ln.text; if (!t) return;
+      const key = t.match(/^\+?\s*(faction keyword|factions? used|faction|army roster|army|fraktion|facci[oó]n)\s*:\s*(.+)$/i);
+      if (key) { hits.push(...tiFactionHits(L, key[2], i).map((h) => ({ ...h, w: 3 }))); return; }
+      const ar = t.match(/army roster\s*\(([^)]+)\)/i); if (ar) { hits.push(...tiFactionHits(L, ar[1], i).map((h) => ({ ...h, w: 3 }))); return; }
+      if (i < 25 && !TI_PTS.test(t.replace(/\(\d[\d,. ]*\s*(points?|punkte|puntos)\)\s*$/i, "")) && !ln.bullet) hits.push(...tiFactionHits(L, t, i).map((h) => ({ ...h, w: 1 })));
+    });
+    // detachment + unit votes
+    const vote = {}, uniq = {}; let exact = 0;
+    const add = (fid, v) => { vote[fid] = (vote[fid] || 0) + v; };
+    lines.forEach((ln, i) => {
+      const t = ln.text; if (!t) return;
+      if (i < 30 && !ln.bullet) for (const f of tiFindDets(L, t).found) { const same = L.dets.filter((r) => r.ck === tiCk(f.d.n)); for (const r of same) add(r.fid, 2 / same.length); if (same.length === 1) uniq[f.fid] = (uniq[f.fid] || 0) + 1; }
+      const u = tiUnitLine(t); if (!u.name || ln.bullet && u.pts == null) return;
+      const recs = L.units.get(tiCk(u.name)) || L.units.get(tiCk(u.name) + "squad") || [];
+      const own = recs.filter((r) => !r.u.af);
+      const use = own.length ? own : recs;
+      for (const r of use) add(r.fid, (own.length ? 1 : 0.25) / use.length);
+      if (own.length === 1) uniq[own[0].fid] = (uniq[own[0].fid] || 0) + 1;
+      if (recs.length) exact++;
+    });
+    if (exact < 2 && !hits.length) {   // loose free-form text: fuzzy-match every line against every faction
+      lines.forEach((ln) => { const u = tiUnitLine(ln.text); if (!u.name || u.name.length < 4) return;
+        for (const f of Object.keys(L.perF)) { const m = tiMatchUnit(L, f, u.name, false); if (m && !m.u.af) add(f, m.score); } });
+    }
+    if (hits.length) {
+      const top = Math.max(...hits.map((h) => h.rank));
+      const best = hits.filter((h) => h.rank === top).sort((a, b) => b.w - a.w || (vote[b.fid] || 0) - (vote[a.fid] || 0) || b.at - a.at)[0];
+      return { fid: best.fid, sub: best.sub, how: "stated", vote };
+    }
+    // most units found only in that faction first (Black Templars also carries every generic Space Marine datasheet), then the overall vote
+    const ranked = Object.entries(vote).sort((a, b) => (2 * (uniq[b[0]] || 0) + b[1]) - (2 * (uniq[a[0]] || 0) + a[1]) || (a[0] === "space-marines" ? -1 : b[0] === "space-marines" ? 1 : 0));
+    if (!ranked.length) return { fid: null, sub: null, how: "none", vote };
+    return { fid: ranked[0][0], sub: ranked[0][0], how: "detected", vote };
+  }
+
+  function parseListText(text, idx, ds, opts) {
+    opts = opts || {};
+    const norm0 = tiNormText(text);
+    const format = tiDetectFormat(norm0);
+    const L = tiLexicon(idx);
+    const lines = norm0.split("\n").map(tiLineInfo);
+    const fp = tiPickFaction(L, idx, lines, opts);
+    const fid = fp.fid; const F = fid ? idx.factions[fid] : null;
+    const dsF = ds && ds.factions && fid ? ds.factions[fid] : null;
+    const P = { format, formatName: TI_FORMAT_NAMES[format] || format, faction: fid, sub: fp.sub || fid, factionHow: fp.how, vote: fp.vote,
+      name: null, statedTotal: null, size: null, sizeText: null, dets: [], detsUnmatched: [], disposition: null, dispositionText: null,
+      items: [], lines: [], hints: { warlord: null, enh: [] }, text: String(text || "") };
+    if (!F) { P.lines = lines.filter((l) => l.text).map((l) => ({ text: l.text, kind: "unrecognised" })); return P; }
+    let cur = null, group = null, inHeader = true, sawUnit = false, lastModel = null;
+    const vocabCache = new WeakMap();
+    const vocab = (u) => {
+      if (!u) return new Set(); if (vocabCache.has(u)) return vocabCache.get(u);
+      const s = new Set(); const add = (n) => { const k = tiCk(n); if (k) s.add(k); };
+      add(u.n); const M = loModel(u);
+      if (M) for (const t of M.types) { add(t.name); t.fixed.forEach(add); for (const sl of t.slots) sl.opts.forEach((o) => add(o.name)); }
+      if (M) for (const sl of M.unit) sl.opts.forEach((o) => add(o.name));
+      for (const w of u.w || []) add(w[0]);
+      const d = dsF && dsF.units && dsF.units[u.n];
+      if (d) { (d.wp || []).forEach((w) => add(w[0])); (d.wa || []).forEach((a) => { add(a[0]); add(a[1]); }); (d.ml || []).forEach((m) => add(m[0])); }
+      vocabCache.set(u, s); return s;
+    };
+    const inVocab = (u, name) => { const V = vocab(u); const c = tiCk(tiCountName(name).name.replace(/:.*$/, "")); return !!c && (V.has(c) || [...V].some((v) => v.length > 5 && (v === c + "s" || c === v + "s"))); };
+    const addLine = (ln, kind, extra) => P.lines.push({ text: ln.text, kind, ...(extra || {}) });
+    const newUnit = (ln, u, m, how) => {
+      const it = { kind: "unit", text: ln.text, name: u.name, tag: u.tag, count: u.count, copies: u.copies, pts: u.pts, match: m ? m.u.n : null,
+        status: m ? m.status : "unmatched", score: m ? m.score : 0, alts: m && m.alts ? m.alts : (!m ? tiCandidates(L, fid, u.name) : []),
+        subs: [], gear: [], models: [], enh: null, warlord: u.warlord, attachRole: null, attachTo: null, leading: null, group: group ? group.id : null,
+        include: true, how, line: P.items.length, unitRef: m ? m.u : null };
+      for (const g of u.gear) it.gear.push({ text: g, owner: null });
+      P.items.push(it); cur = it; lastModel = null; sawUnit = true; inHeader = false;
+      if (group) group.members.push(it);
+      return it;
+    };
+    let gid = 0;
+    const header = (ln) => {
+      const t = ln.text;
+      let m = t.match(/^\+?\s*([A-Za-z][A-Za-z ()']*?)\s*:\s*(.*)$/);
+      const key = m ? m[1].toLowerCase().trim().replace(/\s+used$/, "") : "";
+      const val = m ? m[2].trim() : "";
+      if (m && cur && !/^\+/.test(t) && !/^(faction keyword|factions?|detachments?|detachment\(s\)|force dispositions?|disposition|battle size|list name)$/.test(key)) return false;
+      if (m && /^(list name|name|player name|team name|nom|army name)$/.test(key)) { if (/^(list name|army name|name|nom)$/.test(key) && val && !/^[—-]$/.test(val) && (key === "list name" || !P.name)) P.name = val; addLine(ln, "header"); return true; }
+      if (m && /^(faction keyword|factions? used|faction|fraktion|facci[oó]n)$/.test(key)) { addLine(ln, "header"); return true; }
+      if (m && /^(detachments?|detachment\(s\)|detachment choice|kontingent|d[ée]tachements?|destacamentos?)$/.test(key)) { tiHeaderDets(P, L, fid, val.replace(/\[\d+\/\d+ DP\]|\(\d+ DP\)/g, " ")); addLine(ln, "header"); return true; }
+      if (m && /^(force dispositions?|disposition|force disposition)$/.test(key)) { tiHeaderDisp(P, L, val); addLine(ln, "header"); return true; }
+      if (m && /^(total army points|army points|points|total)$/.test(key)) { const n = val.match(/\d[\d,. ]*/); if (n && P.statedTotal == null) P.statedTotal = tiNum(n[0]); addLine(ln, "header"); return true; }
+      if (m && /^(points limit|battle size)$/.test(key)) { tiHeaderSize(P, idx, val); addLine(ln, "header"); return true; }
+      if (m && /^warlord$/.test(key)) { const w = tiUnitLine(val); P.hints.warlord = { tag: w.tag, name: w.name }; addLine(ln, "header"); return true; }
+      if (m && /^(enhancements?|army enhancements.*)$/.test(key) && !/^\d+(\/\d+)?$/.test(val)) { tiHeaderEnh(P, val); addLine(ln, "header"); return true; }
+      if (m && /^(number of units|secondary|secondaries|show legends|enhancements|game type|edition)$/.test(key)) { addLine(ln, "header"); return true; }
+      if (/^&\s*/.test(t) && !sawUnit) { tiHeaderEnh(P, t.replace(/^&\s*/, "")); addLine(ln, "header"); return true; }
+      if (/army roster/i.test(t) || /^\++ .*\++$/.test(t) || /new roster/i.test(t)) { const n = t.match(TI_PTS); if (n && P.statedTotal == null) P.statedTotal = tiNum(n[1]); addLine(ln, "header"); return true; }
+      return false;
+    };
+    const headerZone = (ln, first) => {
+      const t = ln.text;
+      // det line "A and B (3 Detachment Points)"
+      if (/\(\s*\d+\s*(detachment points?|points? de d[ée]tachement|kontingentspunkte|puntos de destacamento|dp)\s*\)/i.test(t)) { tiHeaderDets(P, L, fid, t.replace(/\([^)]*\)/g, " ")); addLine(ln, "header"); return true; }
+      // battle size "Strike Force (2,000 Points)"
+      const sz = TI_SIZES.find((s) => s[0].test(t));
+      if (sz && t.length < 60 && !/ - .* - /.test(t)) { tiHeaderSize(P, idx, t); addLine(ln, "header"); return true; }
+      // New Recruit simple: "<faction> - <list name> - [2000 pts]"
+      const nr = t.match(/^(.+?)\s+-\s+(.+?)\s+-\s+\[\s*(\d[\d,. ]*)\s*pts?\s*\]\s*$/i);
+      if (nr && first) { P.name = P.name || nr[2].trim(); tiHeaderSize(P, idx, nr[3]); addLine(ln, "header"); return true; }
+      // list name / ListForge header "name - faction - [disposition -] dets (N Points)"
+      const pm = t.match(/^(.*?)\s*\(\s*(\d[\d,. ]*)\s*(?:\/\s*\d[\d,. ]*\s*)?(points?|pts|punkte|puntos)\s*\)\s*$/i);
+      if (pm && !sawUnit && !tiMatchUnit(L, fid, pm[1].replace(/^\s*-\s*/, "").split(/\s+-\s+/)[0], "exact") && (first || P.name == null && P.statedTotal == null)) {
+        if (P.statedTotal == null) P.statedTotal = tiNum(pm[2]);
+        const segs = pm[1].split(/\s+-\s+/);
+        if (segs.length >= 3 || /^\s*-/.test(pm[1])) { const s2 = pm[1].replace(/^\s*-\s*/, "").split(/\s+-\s+/); if (/^\s*-/.test(pm[1])) s2.unshift("");
+          P.name = s2[0] || P.name; tiHeaderDets(P, L, fid, s2[s2.length - 1]); for (const x of s2.slice(2, -1)) tiHeaderDisp(P, L, x); }
+        else P.name = P.name || pm[1].trim();
+        addLine(ln, "header"); return true;
+      }
+      if (tiFactionHits(L, t, 0).length && t.length < 60) {
+        // "Custodes - Shield Host" / "My list - Necrons - Awakened Dynasty": the other segments are dets / disposition / name
+        const segs = t.split(/\s+[-–—|]\s+/).map((x) => x.trim()).filter(Boolean);
+        if (segs.length > 1) segs.forEach((x, k) => {
+          if (L.aliases.some((a) => a.ck === tiCk(x))) return;
+          if (L.fds.some((f) => f.ck === tiCk(x))) { tiHeaderDisp(P, L, x); return; }
+          if (tiFindDets(L, x, fid).found.length || k === segs.length - 1) { tiHeaderDets(P, L, fid, x); return; }
+          if (P.name == null) P.name = x;
+        });
+        addLine(ln, "header"); return true;
+      }
+      if (L.fds.some((f) => f.ck === tiCk(t)) || /^force dispositions?\s*:/i.test(t)) { tiHeaderDisp(P, L, t.replace(/^force dispositions?\s*:/i, "")); addLine(ln, "header"); return true; }
+      const fd = tiFindDets(L, t, fid);
+      if (fd.found.length && fd.rest.replace(/and|et|und|y/g, "").length < 6) { tiHeaderDets(P, L, fid, t); addLine(ln, "header"); return true; }
+      return false;
+    };
+    let firstText = true;
+    for (let i = 0; i < lines.length; i++) {
+      const ln = lines[i]; const t = ln.text;
+      if (!t) continue;
+      const first = firstText; firstText = false;
+      if (/^\+{3,}$/.test(t) || t === "+" || /^[=\-_~]{3,}$/.test(t)) { addLine(ln, "structure"); continue; }
+      if (TI_FOOTER.test(t)) { addLine(ln, "footer"); continue; }
+      if (!ln.bullet && header(ln)) continue;
+      if (!ln.bullet && (inHeader || !cur) && headerZone(ln, first)) continue;
+      // sections / attached groups
+      const plain = t.replace(/\s*[[(]\s*\d[\d,. ]*\s*(pts?|points?)\s*[\])]\s*$/i, "").replace(/^\+\s*|\s*\+$/g, "").replace(/:$/, "").trim();
+      if (!ln.bullet && TI_SECTIONS.test(plain)) { if (!/attached|attach|angeschlossene|adjunta|anexada/i.test(plain)) group = null; cur = null; inHeader = false; addLine(ln, "section"); continue; }
+      if (!ln.bullet && TI_GROUP.test(plain)) { group = { id: ++gid, members: [] }; cur = null; addLine(ln, "section"); continue; }
+      // ListForge "Leader + Bodyguard (275 pts)" group marker
+      if (!ln.bullet && / \+ /.test(t)) { const u0 = tiUnitLine(t); const parts = u0.name.split(/\s+\+\s+/); if (parts.length > 1 && parts.every((p) => tiMatchUnit(L, fid, p, true))) { group = { id: ++gid, members: [], lf: true }; cur = null; addLine(ln, "section"); continue; } }
+      // sub-lines of the current unit
+      const sub = cur && tiSubLine(P, L, fid, cur, ln, inVocab);
+      if (sub === true) continue;
+      const u = tiUnitLine(t);
+      const looksUnit = u.name && (u.pts != null || u.count != null || !cur || format === "freeform");
+      if (!ln.bullet || !cur || (u.pts != null && !inVocab(cur.match && F.units[cur.match], u.name))) {
+        if (looksUnit && (!ln.bullet && u.pts != null || !(cur && inVocab(cur.match && F.units[cur.match], u.name)))) {
+          // free-form "A attached to B" / "A leading B" / "A and B with N C"
+          const fr = format === "freeform" || format === "tournament" ? tiFreeform(P, L, fid, ln, u, newUnit) : false;
+          if (fr) continue;
+          const exactFull = tiMatchUnit(L, fid, u.name, "exact");
+          const m = exactFull || (/\s(with|w\/|w\.)\s/i.test(u.name) && tiSplitWith(L, fid, u, "exact")) || tiMatchUnit(L, fid, u.name, u.pts == null && u.count == null ? "strict" : false) || tiSplitWith(L, fid, u);
+          if (m || u.pts != null) { if (group && group.lf && ln.ind === 0 && group.members.length >= 2) group = null; newUnit(ln, u, m, "line"); continue; }
+        }
+      }
+      if (cur) { tiSubLine(P, L, fid, cur, ln, inVocab, true); continue; }
+      addLine(ln, inHeader ? "unrecognised-header" : "unrecognised");
+    }
+    tiResolveItems(P, idx, L, F, dsF);
+    return P;
+  }
+  function tiHeaderDets(P, L, fid, text) {
+    const r = tiFindDets(L, text, fid);
+    for (const f of r.found) if (!P.dets.includes(f.d.n)) P.dets.push(f.d.n);
+    // leftovers that look like names (another faction's detachment, a typo, a translation)
+    const left = String(text).split(/,|\s+and\s+|\s+et\s+|\s+und\s+|\s+y\s+|&/i).map((x) => x.replace(/\([^)]*\)/g, "").trim()).filter((x) => x && !r.found.some((f) => tiCk(f.d.n) === tiCk(x)) && tiCk(x).length > 3 && !r.found.some((f) => tiCk(x).includes(tiCk(f.d.n))));
+    for (const x of left) { const best = L.dets.filter((d) => d.fid === fid).map((d) => ({ d: d.d, s: tiSim(x, d.d.n) })).sort((a, b) => b.s - a.s)[0];
+      if (best && best.s >= 0.8 && !P.dets.includes(best.d.n)) { P.dets.push(best.d.n); P.detsGuessed = (P.detsGuessed || []).concat([[x, best.d.n]]); } else if (!(best && P.dets.includes(best.d.n) && best.s >= 0.8)) P.detsUnmatched.push(x); }
+  }
+  function tiHeaderDisp(P, L, text) {
+    for (const part of String(text).split(/,|\//)) { const ck = tiCk(part); if (!ck) continue; const f = L.fds.find((x) => x.ck === ck) || L.fds.map((x) => ({ ...x, s: tiSim(part, x.v) })).filter((x) => x.s > 0.85).sort((a, b) => b.s - a.s)[0];
+      if (f) { if (!P.disposition) P.disposition = f.v; else (P.dispositionsExtra = P.dispositionsExtra || []).push(f.v); } else P.dispositionText = (P.dispositionText ? P.dispositionText + ", " : "") + part.trim(); }
+  }
+  function tiHeaderSize(P, idx, text) {
+    P.sizeText = String(text).trim();
+    const n = String(text).match(/(\d[\d,. ]{2,})/); const pts = n ? tiNum(n[1]) : null;
+    const byName = TI_SIZES.find((s) => s[0].test(text));
+    const want = byName ? byName[1] : pts;
+    const s = (idx.data.battle_sizes || []).find((x) => x.points === want) || (pts && (idx.data.battle_sizes || []).find((x) => x.points >= pts));
+    if (s) P.size = s.id;
+  }
+  function tiHeaderEnh(P, text) {
+    for (const part of String(text).split(/;|\),\s*|\s&\s/)) { const m = part.match(/^\s*(.+?)\s*\(\s*(?:on\s+)?(?:([A-Z][A-Za-z]{1,5}\d*)\s*:\s*)?(.+?)\)?\s*$/i);
+      if (m) P.hints.enh.push({ name: m[1].replace(/\(\+?\d+\s*pts?\)/i, "").trim(), tag: m[2] && /\d/.test(m[2]) ? m[2] : null, unit: m[3].trim() }); }
+  }
+  /* "Canoness with the Catechism attached to 10 Sacresants", "Triumph and Hospitaller attached to a Battle Sisters squad" */
+  function tiFreeform(P, L, fid, ln, u, newUnit) {
+    const t = ln.text.replace(/\.$/, "");
+    const m = t.match(/^(.+?)\s+(attached to|leading|joining|joined to|with)\s+(.+)$/i);
+    if (!m) return false;
+    const leftNames = m[1].split(/\s*(?:,|\+|\band\b|&)\s*/i).map((x) => x.trim()).filter(Boolean);
+    const leftU = leftNames.map((n) => ({ n, lu: tiUnitLine(n) })).map((x) => ({ ...x, m: tiMatchUnit(L, fid, x.lu.name, "strict") }));
+    if (!leftU.length || !leftU.every((x) => x.m)) return false;
+    let right = m[3].replace(/^(a|an|the|one)\s+/i, "");
+    const ru = tiUnitLine(right); const rm = tiMatchUnit(L, fid, ru.name, "strict");
+    if (/^with$/i.test(m[2])) {
+      if (rm && ru.count) { // "Priest with 10 Arco-flagellants": the left units lead the right unit
+        const body = newUnit({ text: right }, ru, rm, "freeform"); for (const x of leftU) { const it = newUnit({ text: x.n }, x.lu, x.m, "freeform"); it.attachToItem = body; }
+        P.lines.push({ text: ln.text, kind: "freeform" }); return true;
+      }
+      if (leftU.length === 1) { const it = newUnit({ text: ln.text }, leftU[0].lu, leftU[0].m, "freeform"); const pt = m[3].match(TI_PTS_TAIL); if (pt && it.pts == null) it.pts = +pt[1]; it.gear.push({ text: m[3].replace(TI_PTS_TAIL, "").trim(), owner: null }); P.lines.push({ text: ln.text, kind: "freeform" }); return true; }
+      return false;
+    }
+    if (!rm) return false;
+    // "Royal Warden attached to Necron Warriors": an already-listed unit of that name is the bodyguard
+    const taken = new Set(P.items.map((x) => x.attachToItem).filter(Boolean));
+    const prior = ru.count == null && ru.pts == null ? P.items.filter((x) => x.match === rm.u.n && !x.attachToItem && !taken.has(x)).pop() : null;
+    const body = prior || newUnit({ text: right }, ru, rm, "freeform");
+    for (const x of leftU) { const it = newUnit({ text: x.n }, x.lu, x.m, "freeform"); it.attachToItem = body; }
+    P.lines.push({ text: ln.text, kind: "freeform" });
+    return true;
+  }
+  /* "Shield-Captain w/ Admonimortis" / "Shield-Captain with Praesidius" -> unit + gear/enhancement */
+  function tiSplitWith(L, fid, u, mode) {
+    const m = String(u.name).match(/^(.+?)\s+(?:with|w\/|w\.)\s+(.+)$/i); if (!m) return null;
+    const r = tiMatchUnit(L, fid, m[1], mode || (u.pts == null && u.count == null ? "strict" : false)); if (!r) return null;
+    u.name = m[1]; u.gear.unshift(m[2].replace(TI_PTS_TAIL, "").trim()); return r;
+  }
+  /* bullet / continuation lines under a unit; returns true when consumed */
+  function tiSubLine(P, L, fid, cur, ln, inVocab, force) {
+    let t = ln.text;
+    const U = cur.match ? null : null; void U;
+    if (TI_WARLORD.test(t)) { cur.warlord = true; cur.subs.push({ text: t, kind: "warlord" }); return true; }
+    let m = t.match(TI_ATTACHED_AS);
+    if (m) { const r = m[2]; cur.attachRole = /bodyguard|garde|leibw|guardaespaldas|escolta/i.test(r) ? "bodyguard" : /support|soutien|unterst|apoyo/i.test(r) ? "support" : /leader|meneur|anf[üu]hrer|l[ií]der|lider/i.test(r) ? "leader" : r ? "other" : "bodyguard"; cur.subs.push({ text: t, kind: "attach" }); return true; }
+    m = t.match(/^(attached to|leading|joined to|joining)\s*:?\s*(.+?)\s*(?:\[(\d+)\]|#(\d+))?\s*(\((?:support|joined|leader)\))?$/i);
+    if (m) { const ref = { name: m[2].trim(), n: +(m[3] || m[4] || 0) || null };
+      if (/^attached|^joined/i.test(m[1])) cur.attachTo = ref; else cur.leading = (cur.leading || []).concat([ref]); cur.subs.push({ text: t, kind: "attach" }); return true; }
+    if (/^(imported, not matched|enhancement not applied)\s*:/i.test(t)) { cur.notes = (cur.notes || []).concat([t]); cur.subs.push({ text: t, kind: "note" }); return true; }
+    if (/^led by\s*:/i.test(t)) { cur.subs.push({ text: t, kind: "attach" }); return true; }
+    m = t.match(TI_ENH);
+    if (m && !/^upgrades?$/i.test(m[1]) || m && /^upgrades?$/i.test(m[1])) { cur.enhText = m[2].replace(/\s*\((?:\+?\d+\s*pts?|upgrade|am[ée]lioration|mejora|verbesserung)\)\s*/ig, "").trim(); cur.subs.push({ text: t, kind: "enh" }); return true; }
+    m = t.match(/^mark of chaos\s*:\s*(.+)$/i); if (m) { cur.markText = m[1].trim(); cur.subs.push({ text: t, kind: "mark" }); return true; }
+    // WTC full "6 with Close combat weapon, Gauss cannon"
+    m = t.match(/^(\d+)\s+with\s+(.+?)(?:\s+\(([^)]+)\))?$/i);
+    if (m) { const mod = { n: +m[1], name: m[3] || null, gear: [] }; cur.models.push(mod); cur.withN = (cur.withN || 0) + mod.n;
+      for (const g of tiSplitGear(m[2])) cur.gear.push({ text: g, owner: mod, per: mod.n }); cur.subs.push({ text: t, kind: "models" }); return true; }
+    if (!ln.bullet && !force) {
+      // an unbulleted line is a sub-line only if it does not look like a unit of its own
+      const u = tiUnitLine(t);
+      if (u.pts != null) return false;
+      if (!inVocab(cur.unitRef, t) && tiMatchUnit(L, fid, u.name, "exact")) return false;
+      if (!cur.lastBullet && !inVocab(cur.unitRef, t)) return false;
+    }
+    if (ln.bullet) cur.lastBullet = ln;
+    // "1x Model: gear, gear" (NR simple / BattleScribe) or "Nx Name" model/gear lines
+    const [head, tail] = (() => { const k = t.indexOf(":"); return k > 0 && !/^https?/i.test(t) ? [t.slice(0, k), t.slice(k + 1)] : [t, null]; })();
+    const items = tail != null ? [head] : tiSplitGear(t);
+    for (const raw of items) {
+      const cn = tiCountName(raw.replace(/\s*\[\s*\+?\d+\s*pts?\s*\]\s*$/i, "").replace(/\s*\(\s*\+?\d+\s*pts?\s*\)\s*$/i, ""));
+      if (TI_WARLORD.test(cn.name)) { cur.warlord = true; continue; }
+      if (/^(\w+\s+)*character$|^epic hero$/i.test(cn.name)) continue;
+      const deeper = ln.bullet === "◦" || ln.bullet === ".." || ln.ind > (cur.modelInd != null ? cur.modelInd : 0) && cur.lastModel && ln.ind > 0;
+      cur.gear.push({ text: raw, cn, ln: { bullet: ln.bullet, ind: ln.ind }, deeper, tail: tail != null ? tiSplitGear(tail) : null });
+    }
+    cur.subs.push({ text: t, kind: "line" });
+    return true;
+  }
+  /* datasheet-level matching of every unit item: models, gear, enhancement, warlord, attachments */
+  function tiResolveItems(P, idx, L, F, dsF) {
+    const fid = P.faction;
+    for (const it of P.items) {
+      // a guessed "X with Y" variant: let the listed wargear pick between the variants
+      if (it.status === "guessed" && /\bwith\s/i.test(it.match || "") && (it.alts || []).length) {
+        const txt = " " + tiKey(it.gear.map((g) => g.text).concat(it.subs.map((x) => x.text)).join(" ")).split(" ").map(tiSing).join(" ") + " ";
+        const ev = (n) => { const m = String(n).match(/\bwith\s+(.+)$/i); if (!m) return 0; const w = tiKey(m[1]).split(" ").map(tiSing).filter((x) => x.length > 2); return w.filter((x) => txt.includes(" " + x + " ")).length / (w.length || 1); };
+        const best = [it.match].concat(it.alts).filter((n) => F.units[n]).map((n) => ({ n, s: ev(n) })).sort((a, b) => b.s - a.s)[0];
+        if (best && best.s === 1 && ev(it.match) < 1) { it.alts = [it.match].concat(it.alts.filter((x) => x !== best.n)); it.match = best.n; }
+      }
+      const u = it.match ? F.units[it.match] : null; it.unitRef = u;
+      if (!u) { const k = tiCk(it.name), k2 = tiCk(tiStripFaction(L, it.name) || ""); const recs = (L.units.get(k) || []).concat(k2 ? L.units.get(k2) || [] : []);
+        it.elsewhere = [...new Set(recs.filter((r) => r.fid !== fid).map((r) => idx.factions[r.fid].f.name))]; }
+      tiResolveGear(P, L, F, dsF, it, u);
+    }
+    // header hints: warlord / enhancements by Char tag or name
+    const byTag = (tag, name) => P.items.find((x) => tag && x.tag === tag) || P.items.find((x) => name && x.match && tiCk(x.match) === tiCk(name) && !x.enhText) || P.items.find((x) => name && tiCk(x.name) === tiCk(name));
+    if (P.hints.warlord && !P.items.some((x) => x.warlord)) { const w = byTag(P.hints.warlord.tag, P.hints.warlord.name); if (w) w.warlord = true; }
+    for (const h of P.hints.enh) { if (P.items.some((x) => x.enhText && tiCk(x.enhText) === tiCk(h.name.replace(/\s*\([^)]*\)/g, "")) || x.enhText && tiCk(x.enhText) === tiCk(h.name))) continue;
+      const w = byTag(h.tag, h.unit); if (w && !w.enhText) w.enhText = h.name.replace(/\s*\((?:upgrade|one per army)\)/ig, ""); }
+    // enhancements -> detachment enhancement
+    for (const it of P.items) if (it.enhText) {
+      const r = tiFindEnh(L, fid, P.dets, it.enhText);
+      it.enh = r ? { det: r.det, name: r.en[0], status: r.status, text: it.enhText } : { det: null, name: null, status: "unmatched", text: it.enhText };
+    }
+    // attachments
+    const units = P.items;
+    const nth = (name, n) => { const ms = units.filter((x) => tiCk(x.match || x.name) === tiCk(name) || tiCk(x.name) === tiCk(name)); return n ? ms[n - 1] : ms.find((x) => !x._ledBy) || ms[0]; };
+    for (const it of units) {
+      if (it.attachToItem) { it.attachTarget = it.attachToItem; continue; }
+      if (it.attachTo) { const t = nth(it.attachTo.name, it.attachTo.n); if (t && t !== it) { it.attachTarget = t; t._ledBy = true; } else it.attachUnresolved = it.attachTo.name; }
+    }
+    for (const it of units) for (const ref of it.leading || []) {
+      const t = nth(ref.name, ref.n); if (!t || t === it) { it.attachUnresolved = ref.name; continue; }
+      // WTC: the Leading line sits on the leader; the "Attached to" line on the bodyguard names the leader
+      if (!it.attachTarget && !(it.unitRef && t.unitRef && !isCharacter(it.unitRef) && isCharacter(t.unitRef))) { it.attachTarget = t; t._ledBy = true; }
+    }
+    for (const it of units) if (it.attachTarget && it.attachTarget.unitRef && it.unitRef && !isCharacter(it.unitRef) && isCharacter(it.attachTarget.unitRef)) {
+      // the bodyguard said "Attached to <leader>": flip it so the leader points at the bodyguard
+      const ldr = it.attachTarget; if (!ldr.attachTarget) ldr.attachTarget = it; it.attachTarget = null;
+    }
+    // GW app "Attached unit N" groups / ListForge "A + B" groups: leaders/support attach to the bodyguard
+    const groups = {};
+    for (const it of units) if (it.group) (groups[it.group] = groups[it.group] || []).push(it);
+    for (const g of Object.values(groups)) {
+      const body = g.find((x) => x.attachRole === "bodyguard") || g.find((x) => x.unitRef && !isCharacter(x.unitRef)) || g.find((x) => x.unitRef && x.unitRef.ldr == null && !(x.unitRef.sup || []).length);
+      for (const x of g) if (x !== body && body && !x.attachTarget) x.attachTarget = body;
+    }
+  }
+  function tiFindEnh(L, fid, dets, text) {
+    const ck = tiCk(text); const P = L.perF[fid]; if (!P || !ck) return null;
+    const cands = P.enh.get(ck) || [];
+    const inDet = cands.find((c) => dets.includes(c.det)); if (inDet) return { ...inDet, status: "ok" };
+    if (cands.length) return { ...cands[0], status: "other-detachment" };
+    let best = null;
+    for (const [k, vs] of P.enh) { const s = tiSim(text, String(vs[0].en[0]).replace(/\s*\([^)]*\)/g, "")); if (s >= 0.8 && (!best || s > best.s || (s === best.s && vs.some((v) => dets.includes(v.det))))) best = { s, v: vs.find((v) => dets.includes(v.det)) || vs[0] }; void k; }
+    return best ? { ...best.v, status: dets.includes(best.v.det) ? "guessed" : "other-detachment" } : null;
+  }
+  /* model counts + loadout picks + priced wargear from the item's sub-lines */
+  function tiResolveGear(P, L, F, dsF, it, u) {
+    it.gearOk = []; it.gearBad = [];
+    if (!u) { it.gearBad = it.gear.map((g) => g.text); return; }
+    const M = loModel(u); const ds = dsF && dsF.units ? dsF.units[u.n] : null;
+    const types = M ? M.types : [];
+    const mlNames = (ds && ds.ml ? ds.ml.map((x) => x[0]) : []);
+    const isModelName = (name0) => {
+      const sf = tiStripFaction(L, name0); const name = sf && !types.some((x) => tiCk(x.name) === tiCk(name0)) ? sf : name0;
+      const c = tiCk(name); if (!c) return null;
+      let t = types.find((x) => tiCk(x.name) === c); if (t) return { name: t.name, exact: true };
+      const base = (types.find((x) => !x.up && !x.addOn) || {}).name;
+      if (mlNames.some((n) => tiCk(n) === c) || tiCk(u.n) === c) return { name: types.length === 1 ? types[0].name : base || name, exact: true };
+      t = types.find((x) => { const k = tiCk(x.name); return (k.startsWith(c) || c.startsWith(k)) && Math.abs(k.length - c.length) <= 3; });
+      if (t) return { name: t.name, exact: false };
+      if (tiCk(u.n).startsWith(c) && c.length > 5 && tiCk(u.n).length - c.length <= 6) return { name: types.length === 1 ? types[0].name : base || name, exact: false };
+      return null;
+    };
+    // pass 0: "3x Tyrant Guard: Bone cleaver" inside a one-line unit (WTC compact) -> model line + its gear;
+    // option names that contain commas ("Bone cleaver, lash whip and rending claws") are re-joined
+    const commaOpts = M ? [...new Set([...M.types.flatMap((t) => t.slots.flatMap((sl) => sl.opts.map((o) => o.name))), ...M.unit.flatMap((sl) => sl.opts.map((o) => o.name)), ...M.types.flatMap((t) => t.fixed)].filter((n) => /,/.test(n)))] : [];
+    if (commaOpts.length) for (let gi = 0; gi < it.gear.length; gi++) for (const on of commaOpts) {
+      const parts = on.split(/\s*,\s*/); if (gi + parts.length > it.gear.length) continue;
+      const seq = it.gear.slice(gi, gi + parts.length).map((x) => x.text);
+      const first = seq[0].replace(/^.*:\s*/, "").replace(/^\d+\s*x\s*/i, "");
+      if (tiCk(first) === tiCk(parts[0]) && seq.slice(1).every((x, j) => tiCk(x) === tiCk(parts[j + 1]))) {
+        it.gear[gi] = { ...it.gear[gi], text: seq[0].slice(0, seq[0].length - first.length) + on, cn: null }; it.gear.splice(gi + 1, parts.length - 1); }
+    }
+    for (let gi = 0; gi < it.gear.length; gi++) { const g = it.gear[gi]; if (g.owner || g.tail) continue;
+      const cm = g.text.match(/^((?:\d+\s*x\s*)?[^:]{2,60}):\s*(.+)$/i);
+      if (cm && !/^(enhancements?|mark of chaos|attached|e)$/i.test(cm[1].trim()) && isModelName(tiCountName(cm[1]).name)) { g.text = cm[1].trim(); g.cn = null; g.tail = [cm[2].trim()]; } }
+    // pass 1: split model lines from gear lines (the GW app nests weapons under "Nx Model"; pastes often lose the bullets)
+    const modelLines = []; let curModel = null;
+    const G = it.gear;
+    for (let gi = 0; gi < G.length; gi++) {
+      const g = G[gi];
+      if (g.owner) { continue; }
+      if (!g.cn) g.cn = tiCountName(g.text);
+      let mt = isModelName(g.cn.name);
+      const isWeapon = tiGearHit(u, M, ds, g.cn.name, null);
+      // structure: a shallow bullet followed by deeper (◦ / indented) lines is a model line even when its name is not in our data
+      const nx = G[gi + 1];
+      if (!mt && !g.deeper && nx && nx.deeper && !nx.owner && (!isWeapon || isWeapon.kind === "ds" && !G.slice(0, gi).some((x) => x.deeper))) {
+        const best = types.map((t) => ({ t, s: tiSim(g.cn.name, t.name) })).sort((a, b) => b.s - a.s)[0];
+        mt = { name: best && (best.s >= 0.45 || types.filter((t) => !t.addOn).length === 1) ? best.t.name : g.cn.name, exact: false, structural: true };
+      }
+      if (mt && (g.tail || !g.deeper) && (!isWeapon || mt.exact || mt.structural)) {
+        curModel = { n: g.cn.n, name: mt.name, gear: [] }; modelLines.push(curModel); g.model = curModel;
+        if (g.tail) for (const x of g.tail) it.gear.push({ text: x, cn: tiCountName(x), owner: curModel, per: curModel.n });
+        continue;
+      }
+      g.owner = curModel;
+    }
+    for (const m of it.models || []) modelLines.push(m);
+    // model count
+    const sumModels = modelLines.reduce((n, m) => n + (types.find((t) => t.name === m.name && t.addOn) ? 0 : m.n), 0);
+    const opts = modelOptions(u, 1);
+    let models = it.count != null && !(opts.length === 1 && it.count === 1) ? it.count : sumModels || null;
+    if (it.copies > 1 && it.count) models = it.count;
+    if (models == null && it.pts != null && opts.length > 1) { const hit = opts.find((o) => o.points === it.pts) || opts.filter((o) => o.points <= it.pts).sort((a, b) => b.points - a.points)[0]; if (hit) { models = hit.models; it.sizeGuess = true; } }
+    if (models == null) models = opts.length ? opts[0].models : 1;
+    if (opts.length && !opts.some((o) => o.models === models)) { const near = [...opts].sort((a, b) => Math.abs(a.models - models) - Math.abs(b.models - models))[0]; it.sizeNote = `${models} models is not a listed size; using ${near.label}`; models = near.models; }
+    it.models_n = models;
+    // loadout
+    const lo = M ? { c: {}, p: {} } : null;
+    if (M) for (const m of modelLines) if (types.some((t) => t.name === m.name)) lo.c[m.name] = (lo.c[m.name] || 0) + m.n;
+    const wargear = {}; const addons = []; const defC = M ? defaultCounts(M, loN(M, models), null) : {};
+    const linked = linkedWargear(u);
+    for (const g of it.gear) {
+      if (g.model) continue;
+      const cn = g.cn || tiCountName(g.text);
+      if (TI_WARLORD.test(cn.name)) { it.warlord = true; continue; }
+      const em = cn.name.match(TI_ENH); if (em) { it.enhText = em[2].replace(/\s*\(.*\)\s*$/, ""); continue; }
+      if (/^(\w+\s+)*character$|^epic hero$/i.test(cn.name)) continue;
+      const mk = cn.name.match(/^mark of chaos\s*:\s*(.+)$|^mark of (khorne|nurgle|slaanesh|tzeentch)$/i); if (mk) { it.markText = (mk[1] || mk[2]).trim(); continue; }
+      const n = cn.explicit ? cn.n : (g.per || (g.owner ? g.owner.n : 1));
+      const hit = tiGearHit(u, M, ds, cn.name, g.owner ? g.owner.name : null);
+      if (hit && hit.kind === "opt" && hit.all && hit.all.length > 1) {   // the same option in several slots (Weapon 1 / Weapon 2): fill the one with room
+        const cap = (h) => { const [tn, sn] = h.key.split("|"); const T = tn === "*" ? null : M.types.find((x) => x.name === tn);
+          const sl = tn === "*" ? M.unit.find((x) => x.name === sn) : T && T.slots.find((x) => x.name === sn); if (!sl) return 0;
+          const k = tn === "*" ? 1 : (lo.c[tn] != null ? lo.c[tn] : defC[tn] || 0); const used = Object.values(lo.p[h.key] || {}).reduce((a, b) => a + b, 0);
+          return slotRange(sl, k)[1] - used; };
+        const pref = hit.all.filter((h) => !g.owner || h.key.startsWith(g.owner.name + "|")); const L2 = pref.length ? pref : hit.all;
+        const h = L2.find((x) => cap(x) >= n) || L2.find((x) => cap(x) > 0) || L2[0];
+        if (cap(h) < n) { let left = n; for (const x of L2) { const c2 = Math.min(left, Math.max(0, cap(x))); if (c2 > 0) { lo.p[x.key] = lo.p[x.key] || {}; lo.p[x.key][x.opt] = (lo.p[x.key][x.opt] || 0) + c2; left -= c2; } if (!left) break; }
+          if (!left) { it.gearOk.push(g.text); continue; } }
+        hit.key = h.key; hit.opt = h.opt;
+      }
+      if (hit && hit.kind === "opt") { const k = hit.key; lo.p[k] = lo.p[k] || {}; lo.p[k][hit.opt] = (lo.p[k][hit.opt] || 0) + n; it.gearOk.push(g.text); continue; }
+      if (hit && hit.kind === "w" && !linked.has(hit.wi)) { wargear[hit.name] = (wargear[hit.name] || 0) + n; it.gearOk.push(g.text); continue; }
+      if (hit && hit.kind === "addon") { if (!addons.includes(hit.label)) addons.push(hit.label); it.gearOk.push(g.text); continue; }
+      if (hit) { it.gearOk.push(g.text); continue; }
+      // an enhancement written as gear (NR simple "Name [15 pts]: Enh [15 pts], gear")
+      const en = tiFindEnh(L, P.faction, P.dets, cn.name);
+      if (en && !it.enhText && (en.status === "ok" || tiCk(en.en[0]) === tiCk(cn.name))) { it.enhText = cn.name; continue; }
+      it.gearBad.push(g.text);
+    }
+    it.lo = lo && (Object.keys(lo.c).length || Object.keys(lo.p).length) ? lo : null;
+    it.wargear = wargear; it.addons = addons;
+  }
+  /* does a gear name belong to the datasheet? -> {kind:"opt", key, opt} | {kind:"fixed"} | {kind:"w", wi, name} | {kind:"addon"} | {kind:"ds"} | null */
+  function tiGearHit(u, M, ds, name, typeName) {
+    const c = tiCk(name); if (!c) return null;
+    const eq = (a) => { const x = tiCk(a); return x === c || x.replace(/linked/g, "") === c.replace(/linked/g, "") || x.replace(/twin/g, "") === c.replace(/twin/g, "") && c.length > 6 && false; };
+    if (M) {
+      const order = [...M.types].sort((a, b) => (b.name === typeName) - (a.name === typeName));
+      const hs = [];
+      for (const t of order) for (const s of t.slots) for (const o of s.opts) if (eq(o.name)) hs.push({ key: `${t.name}|${s.name}`, opt: o.name });
+      for (const s of M.unit) for (const o of s.opts) if (eq(o.name)) hs.push({ key: `*|${s.name}`, opt: o.name });
+      if (hs.length) return { kind: "opt", key: hs[0].key, opt: hs[0].opt, all: hs };
+      for (const t of order) if (t.fixed.some(eq)) return { kind: "fixed" };
+      // a combined option ("Bolt pistol and chainsword") named by one of its weapons
+      for (const t of order) for (const s of t.slots) for (const o of s.opts) { const parts = gearWeapons(o.name, [name]); if (parts.length && tiCk(o.name).includes(c) && c.length > 4) return { kind: "opt", key: `${t.name}|${s.name}`, opt: o.name }; }
+    }
+    const wi = (u.w || []).findIndex((w) => eq(w[0])); if (wi >= 0) return { kind: "w", wi, name: u.w[wi][0] };
+    for (const a of addonOptions(u, 1)) if (tiCk(a.label.replace(/^\+\s*\d*\s*/, "")) === c || tiCk(a.label) === c) return { kind: "addon", label: a.label };
+    if (ds) { if ((ds.wp || []).some((w) => eq(w[0]))) return { kind: "ds" }; if ((ds.wa || []).some((a) => eq(a[0]) || eq(a[1]))) return { kind: "ds" }; }
+    if (M) for (const t of M.types) if (t.fixed.some((f) => tiCk(f).includes(c) && c.length > 5)) return { kind: "fixed" };
+    if (/^close ?combat weapons?$/.test(tiKey(name)) || /^(armou?red (hull|feet|tracks?)|wrecker|close combat weapon)$/i.test(name)) return { kind: "ds" };
+    // partial names ("Astartes chainsword" -> Chainsword, "Twin Icarus rocket pod" -> Icarus Rocket Pod, "Black Knight combat weapon" -> Corvus Hammers)
+    if (M) { const order = [...M.types].sort((a, b) => (b.name === typeName) - (a.name === typeName));
+      for (const t of order) for (const sl of t.slots) for (const o of sl.opts) { const k = tiCk(o.name); if (k.length > 4 && (c.includes(k) || k.includes(c) && c.length > 5)) return { kind: "opt", key: `${t.name}|${sl.name}`, opt: o.name, partial: true }; }
+      for (const sl of M.unit) for (const o of sl.opts) { const k = tiCk(o.name); if (k.length > 4 && (c.includes(k) || k.includes(c) && c.length > 5)) return { kind: "opt", key: `*|${sl.name}`, opt: o.name, partial: true }; } }
+    const wpN = ds ? (ds.wp || []).map((w) => w[0]) : []; if (M) for (const t of M.types) wpN.push(...t.fixed);
+    if (wpN.length && gearWeapons(name, wpN).length) return { kind: "ds", partial: true };
+    return null;
+  }
+  /* build a Muster list from a (possibly user-edited) parse; item.include=false skips, item.pick overrides the datasheet */
+  function buildFromParse(P, idx, ds, edits) {
+    edits = edits || {};
+    const fid = P.faction; const F = idx.factions[fid];
+    const list = newList({ name: P.name || "Imported list", faction: fid, sub: P.sub || fid, size: P.size || "strikeforce" });
+    list.dets = (P.dets || []).filter((d) => F && F.dets[d]);
+    if (P.disposition) list.disposition = P.disposition;
+    const rows = [];
+    const uidOf = new Map();
+    for (const it of P.items) {
+      if (!it.include) continue;
+      const name = it.pick || it.match; const u = name && F ? F.units[name] : null;
+      if (!u) continue;
+      if (it.pick && it.pick !== it.match) { it.match = it.pick; it.unitRef = u; tiResolveGear(P, tiLexicon(idx), F, ds && ds.factions ? ds.factions[fid] : null, it, u); if (it.enhText) { const r = tiFindEnh(tiLexicon(idx), fid, P.dets, it.enhText); it.enh = r ? { det: r.det, name: r.en[0], status: r.status, text: it.enhText } : { status: "unmatched", text: it.enhText }; } }
+      const copies = it.copies || 1;
+      for (let c = 0; c < copies; c++) {
+        const e = newEntry(u);
+        e.models = it.models_n || e.models;
+        if (it.lo) e.lo = JSON.parse(JSON.stringify(it.lo));
+        if (it.wargear && Object.keys(it.wargear).length) e.wargear = { ...it.wargear };
+        if (it.addons && it.addons.length) e.addons = [...it.addons];
+        if (c === 0 && it.warlord) e.warlord = true;
+        if (c === 0 && it.enh && it.enh.det && it.enh.name && list.dets.includes(it.enh.det)) e.enh = { det: it.enh.det, name: it.enh.name };
+        if (it.markText) { const mk = MARKS.find((x) => tiCk(x) === tiCk(it.markText) || tiCk(x).includes(tiCk(it.markText))); if (mk) e.mark = mk; }
+        const notes = c === 0 && it.notes ? [...it.notes] : [];
+        if (c === 0 && it.gearBad && it.gearBad.length) notes.push(`Imported, not matched: ${it.gearBad.join(", ")}`);
+        if (c === 0 && it.enh && !(e.enh)) notes.push(`Enhancement not applied: ${it.enhText}`);
+        if (notes.length) e.note = notes.join(" · ");
+        list.entries.push(e); rows.push({ it, e });
+        if (c === 0) uidOf.set(it, e.uid);
+      }
+    }
+    for (const { it, e } of rows) if (it.attachTarget && it.attachTarget.include !== false && uidOf.has(it.attachTarget)) {
+      const t = list.entries.find((x) => x.uid === uidOf.get(it.attachTarget)); const tu = F.units[t.unit]; const mu = F.units[e.unit];
+      if (attachKind(mu, tu, enhAttach(F, e)) || it.attachTo || it.leading || it.attachToItem || it.group) e.attach = t.uid;
+    }
+    const calc = calcList(list, idx);
+    const byUid = {}; for (const r of calc.entries) byUid[r.uid] = r;
+    for (const r of rows) r.row = byUid[r.e.uid];
+    return { list, calc, rows };
+  }
+  /* summary numbers for the review screen / tests */
+  function importSummary(P, B) {
+    const units = P.items.length, matched = P.items.filter((x) => x.match && x.status !== "guessed").length, guessed = P.items.filter((x) => x.match && x.status === "guessed").length;
+    const gearOk = P.items.reduce((n, x) => n + (x.gearOk || []).length, 0), gearBad = P.items.reduce((n, x) => n + (x.gearBad || []).length, 0);
+    const statedUnits = P.items.reduce((n, x) => n + (x.pts != null ? x.pts * (x.copies || 1) : 0), 0);
+    return { format: P.format, faction: P.faction, units, matched, guessed, unmatched: units - matched - guessed, gearOk, gearBad,
+      stated: P.statedTotal, statedUnits, computed: B ? B.calc.total : null, diff: B && P.statedTotal != null ? B.calc.total - P.statedTotal : null,
+      unrecognised: P.lines.filter((l) => /^unrecognised/.test(l.kind)).length, errors: B ? B.calc.errors.map((e) => e.msg) : [] };
+  }
+  /* ==== end text import ==== */
+
+  return { parseListText, buildFromParse, importSummary, tiKey, tiSim, tiDetectFormat, TI_FORMAT_NAMES, allyGodCounts, allyRatioIssues, allyAddCheck, unitMark, markEffects, wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };

@@ -1,0 +1,305 @@
+Wreckaz v3 (2000 points)
+
+Orks
+
+Blitz Brigade, Bully Boyz and Wreckas (3 Detachment Points)
+
+Take and Hold
+
+Strike Force (2000 points)
+
+Attached Units
+
+Attached Unit 1
+
+Nazdreg (175 points)
+
+• Attached as: Leader (Character)
+
+• Warlord
+
+• 1x Kustom Blasta X
+
+1x Moonchewa
+
+Meganobz (185 points)
+
+• Attached as: Bodyguard
+
+• 5x Meganob
+
+• 5x Kombi-weapon
+
+5x Power Klaw
+
+Attached Unit 2
+
+Beastboss (110 points)
+
+• Attached as: Leader (Character)
+
+• 1x Beast Snagga Klaw and Beastchoppa
+
+1x Shoota
+
+• Enhancement: Kaptin's Hat
+
+Mek (45 points)
+
+• Attached as: Support (Character)
+
+• 1x Kustom Mega-slugga
+
+1x Mek's Toolz
+
+Flash Gitz (210 points)
+
+• Attached as: Bodyguard
+
+• 9x Flash Git
+
+• 9x Choppa
+
+9x Snazzgun
+
+• 1x Kaptin
+
+• 1x Choppa
+
+1x Snazzgun
+
+Attached Unit 3
+
+Big Mek with Shokk Attack Gun (95 points)
+
+• Attached as: Leader (Character)
+
+• 1x Big Mek's Toolz
+
+1x Shokk Attack Gun
+
+Tankbustas (145 points)
+
+• Attached as: Bodyguard
+
+• 5x Tankbusta
+
+• 5x Busta Rokkit Launcha
+
+5x Gitstikka
+
+1x Pulsa Rokkit
+
+• 1x Nob
+
+• 1x Choppa
+
+1x Rokkit Pistol
+
+1x Smash Hammer
+
+CHARACTERS
+
+Big Mek Dakkarig (135 points)
+
+• 1x Blitzkannon
+
+1x Multi-busta Launcha
+
+1x Stompy Feet
+
+Boss Snikrot (80 points)
+
+• 1x Mork's Teef
+
+1x Slugga
+
+Warboss (100 points)
+
+• 1x Kombi-skorcha
+
+1x Power Klaw
+
+DEDICATED TRANSPORTS
+
+Trukk (60 points)
+
+• 1x Buzzsaw
+
+1x Dual Big Shoota
+
+1x Spiked Ram
+
+OTHER DATASHEETS
+
+Battlewagon (160 points)
+
+• 4x Big Shoota
+
+1x Crushin' Bulk
+
+1x Grabbin' Klaw
+
+1x Wreckin' Ball
+
+• Enhancement: Targetin' Gizmos (Upgrade)
+
+Gretchin (45 points)
+
+• 10x Gretchin
+
+• 10x Grot Blasta
+
+10x Scavenged Shivs
+
+Gretchin (45 points)
+
+• 10x Gretchin
+
+• 10x Grot Blasta
+
+10x Scavenged Shivs
+
+Kommandos (125 points)
+
+• 9x Kommando
+
+• 1x Breacha Ram
+
+1x Burna
+
+8x Choppa
+
+2x Kustom Shoota
+
+1x Rokkit Launcha
+
+9x Slugga
+
+• 1x Nob
+
+• 1x Power Klaw
+
+1x Slugga
+
+Stormboyz (70 points)
+
+• 4x Stormboy
+
+• 4x Choppa
+
+4x Slugga
+
+• 1x nob
+
+• 1x Power Klaw
+
+1x Slugga
+
+Stormboyz (70 points)
+
+• 4x Stormboy
+
+• 4x Choppa
+
+4x Slugga
+
+• 1x nob
+
+• 1x Power Klaw
+
+1x Slugga
+
+Tankbustas (145 points)
+
+• 5x Tankbusta
+
+• 5x Busta Rokkit Launcha
+
+5x Gitstikka
+
+1x Pulsa Rokkit
+
+• 1x Nob
+
+• 1x Choppa
+
+1x Rokkit Pistol
+
+1x Smash Hammer
+
+Exported with App Version: v2.6.0 (144), Data Version: v946
+
+Bully Boyz
+
+Meganobz have sustained hits in melee
+
+1CP -1W if str higher in shooting (2CP for true -1W in shooting)
+
+1CP 4+ FoD (3+ riled up)
+
+1CP RR hits on 1 (RR all hits riled up)
+
+Blitz brigade
+
+Wagon auto adv 6"
+
+1CP able to charge if normal move and disembark
+
+1CP return to transport if eligible to fight and within 6"
+
+1CP On charge, engage units take battleshock at -1
+
+Wreckaz
+
+RR hits of 1 when either is on objective for tankbustas and Flash Gitz
+
+1CP move after shooting, but must end on objective
+
+1CP +1 to hit from firing deck
+
+1CP If shot at, shoot back full BS
+
+Important combos/notes
+
+Kaptin's hat lets me redeploy 3 infantry units
+
+Kommandos can increase detection by 3" once per game
+
+I can end a move, rile up the transport and then embark
+
+I cannot disembark and use the move shoot move strat to re-embark. However I have a stratagem to re-embark a unit that has fought and Nazdreg can reactive on your turn to re-embark
+
+The base gitz profile is three shots 6 -1 2 lethals and sus vs non veh/mon, remind me to take hazardous if I use any other profile
+
+SNIKROT CAN RI TURN 1 ON OPP TURN FOR FREE (and he can up down if he is HIDDEN (must be on terrain) and unengaged end of your fight phase)
+
+FAQs
+
+How am I hitting on 3s in shooting?
+
+Flash Gitz base 4+, Beastboss grants +1 to hit, Mek grants ignore cover. Wreckas grants rerolls
+
+Tankbusta base 4+, Wreckas stratagem via firing deck to hit on 3s, Targeting gizmo enhancement from blitz brigade gives ign cover, sustained hits if Riled up
+
+Can that fit inside?
+
+Trukk transport cap is 12
+
+Wagon transport cap is 22
+
+Stormies and Mega armour take up 2 slots each. Stormies CANNOT go in the trukk, but Mega armour can
+
+What happens if I (the opponent) stand on an objective?
+
+Flash gitz get +1AP against you
+
+Flash Gitz and Tankbustas get to reroll hits of 1s in SHOOTING against you
+
+(I also get these bonuses if my gitz/bustas are on an objective)
+
+What reactive abilities do you have
+
+Nazdreg reactive D6, flat 5" if riled up
+
+1CP shoot back if shot at for Gitz/Tankbustas

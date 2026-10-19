@@ -1,0 +1,63 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: superpoulpe
++ TEAM NAME: FTA
++ FACTION KEYWORD: Xenos - Necrons
++ DETACHMENT: Hypercrypt Legion, Skyshroud Spearhead (Hyperphasing)
++ FORCE DISPOSITION: Reconnaissance
++ TOTAL ARMY POINTS: 1995pts
++
++ WARLORD: Char3: Nekrosor Ammentar
++ ENHANCEMENT: Dimensional Overseer (on Char5: Lokhust Lord)
+
+& Osteoclave Fulcrum (on Char6: Lokhust Lord)
+
+& Arisen Tyrant (on Char7: Plasmancer)
++ NUMBER OF UNITS: 14
++ SECONDARY: - Bring It Down: (2x4) - Assassination: 7 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x C'tan Shard of the Nightbringer (360 pts): Gaze of death, Scythe of the Nightbringer
+
+Char2: 1x C'tan Shard of the Void Dragon (345 pts): Canoptek tail blades, Spear of the Void Dragon, Voltaic storm
+
+Char4: 1x Hexmark Destroyer (75 pts): Close combat weapon, Enmitic disintegrator pistols
+
+Char5: 1x Lokhust Lord (105 pts): Resurrection orb, Lord's blade
+
+Enhancement: Dimensional Overseer (+25 pts)
+
+Leading Lokhust Destroyers[1]
+
+Char6: 1x Lokhust Lord (100 pts): Resurrection orb, Lord's blade
+
+Enhancement: Osteoclave Fulcrum (+20 pts)
+
+Leading Lokhust Destroyers[2]
+
+Char3: 1x Nekrosor Ammentar (185 pts): Warlord, Nullstone field generator, Blade tail and whip coils, Enmitic disintegrators, Unmaker gauntlet
+
+Char7: 1x Plasmancer (85 pts): Plasmic lance
+
+Enhancement: Arisen Tyrant (+25 pts)
+
+Supporting Immortals
+
+10x Immortals (140 pts): 10 with Close combat weapon, Tesla carbine
+
+Attached to Plasmancer
+
+5x Deathmarks (60 pts): 5 with Close combat weapon, Synaptic disintegrator
+
+5x Flayed Ones (55 pts): 5 with Flayer claws
+
+5x Flayed Ones (55 pts): 5 with Flayer claws
+
+6x Lokhust Destroyers (175 pts): 6 with Close combat weapon, Gauss cannon
+
+Attached to Lokhust Lord[1]
+
+6x Lokhust Destroyers (175 pts): 6 with Close combat weapon, Gauss cannon
+
+Attached to Lokhust Lord[2]
+
+3x Ophydian Destroyers (80 pts): 3 with Ophydian hyperphase weapons

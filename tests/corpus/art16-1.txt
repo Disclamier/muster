@@ -1,0 +1,78 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: Darkmikel
++ TEAM NAME: My Team
++ FACTION KEYWORD: Chaos - Chaos Daemons
++ DETACHMENT: Blood Legion, Cavalcade of Chaos (Murdercall)
++ FORCE DISPOSITION: Purge the Foe
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Be'lakor
++ ENHANCEMENT: Slaughterthirst (Aura) (on Char3: Rendmaster on Blood Throne)
+
+& Brazenmaw (on Char4: Skullmaster)
+
+& Apocalyptic Steeds (on Moun4: Bloodcrushers)
+
+& Apocalyptic Steeds (on Moun4: Bloodcrushers)
+
++ NUMBER OF UNITS: 11
++ SECONDARY: - Bring It Down: (2x6) - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x Be'lakor (390 pts)
+
+Char3: 1x Rendmaster on Blood Throne (185 pts)
+
+Enhancement: Slaughterthirst (Aura) (+25 pts)
+
+Char2: 1x Skarbrand (315 pts)
+
+Char4: 1x Skullmaster (100 pts)
+
+Enhancement: Brazenmaw (+15 pts)
+
+Leading Bloodcrushers[1]
+
+6x Bloodcrushers (210 pts)
+
+• 5x Bloodcrusher
+
+1 with Instrument of Chaos
+
+1 with Daemonic Icon
+
+Enhancement: Apocalyptic Steeds (+10 pts)
+
+• 1x Bloodhunter
+
+Attached to Skullmaster
+
+6x Bloodcrushers (210 pts)
+
+Enhancement: Apocalyptic Steeds (+10 pts)
+
+• 1x Bloodhunter
+
+• 5x Bloodcrusher
+
+1 with Instrument of Chaos
+
+1 with Daemonic Icon
+
+6x Bloodcrushers (240 pts)
+
+• 1x Bloodhunter
+
+• 5x Bloodcrusher
+
+1 with Instrument of Chaos
+
+1 with Daemonic Icon
+
+5x Flesh Hounds (75 pts)
+
+5x Flesh Hounds (75 pts)
+
+1x Skull Cannon (100 pts)
+
+1x Skull Cannon (100 pts)

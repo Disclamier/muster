@@ -1,0 +1,169 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: Jacquito
++ FACTION KEYWORD: Xenos - Tyranids
++ DETACHMENT: Subterranean Assault (Keywords)
++ FORCE DISPOSITION: Disruption
++ TOTAL ARMY POINTS: 2000pts
++
++ ENHANCEMENT: Trygon Prime (on Char8: Trygon)
++ NUMBER OF UNITS: 18
++ SECONDARY: - Bring It Down: (5x2) - Assassination: 8 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Tyranid Prime with Lash Whip (75 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Lash whip
+
+• 1x Rending claw
+
+• 1x Scything talons
+
+Hormagaunts (70 pts)
+
+• Attached as: Bodyguard
+
+• 10x Hormagaunts
+
+• 10x Hormagaunt talons
+
+Attached Unit 2
+
+Tyranid Prime with Lash Whip (75 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Lash whip
+
+• 1x Rending claw
+
+• 1x Scything talons
+
+Hormagaunts (70 pts)
+
+• Attached as: Bodyguard
+
+• 10x Hormagaunts
+
+• 10x Hormagaunt talons
+
+CHARACTER
+
+Hyperadapted Raveners (165 pts)
+
+• 1x Ravener Prime
+
+• 1x Prime claws and talons
+
+• 4x Ravener
+
+• 4x Ravener heavy claws and talons
+
+• 1x Venom bolt
+
+Hyperadapted Raveners (165 pts)
+
+• 1x Ravener Prime
+
+• 1x Prime claws and talons
+
+• 4x Ravener
+
+• 4x Ravener heavy claws and talons
+
+• 1x Venom bolt
+
+Old One Eye (140 pts)
+
+• 1x Old One Eye's claws and talons
+
+The Red Terror (130 pts)
+
+• 1x Gaping maw
+
+• 1x Scything talons
+
+Trygon (160 pts)
+
+• 1x Bio-electric pulse
+
+• 1x Trygon scything talons
+
+• Trygon Character upgrade
+
+• Trygon Prime (+20 pts)
+
+Tyranid Prime with Lash Whip (75 pts)
+
+• 1x Lash whip
+
+• 1x Rending claw
+
+• 1x Scything talons
+
+OTHER DATASHEETS
+
+Biovores (60 pts)
+
+• 1x Biovore
+
+• 1x Chitin-barbed limbs
+
+• 1x Spore mine launcher
+
+Haruspex (125 pts)
+
+• 1x Grasping tongue
+
+• 1x Ravenous maw
+
+• 1x Shovelling claws
+
+Hive Guard (160 pts)
+
+• 6x Hive Guard
+
+• 6x Chitinous claws and teeth
+
+• 6x Shockcannon
+
+Maleceptor (180 pts)
+
+• 1x Massive scything talons
+
+• 1x Psychic overload
+
+Neurolictor (80 pts)
+
+• 1x Piercing claws and talons
+
+Raveners (125 pts)
+
+• 5x Ravener
+
+• 5x Ravener claws and talons
+
+Von Ryan's Leapers (55 pts)
+
+• 3x Von Ryan's Leaper
+
+• 3x Leaper's talons
+
+Zoanthropes (90 pts)
+
+• 1x Neurothrope
+
+• 1x Chitinous claws and teeth
+
+• 1x Warp blast
+
+• 2x Zoanthrope
+
+• 2x Chitinous claws and teeth
+
+• 2x Warp blast

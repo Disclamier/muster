@@ -1,0 +1,91 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Chaos - World Eaters
++ DETACHMENT: Brazen Engines, Possessed Slaughterband (Rampaging Terrors)
++ FORCE DISPOSITION: Purge the Foe
++ TOTAL ARMY POINTS: 1995pts
++
++ WARLORD: Char1: Daemon Prince of Khorne
++ ENHANCEMENT: Frenzied Focus (on Char2: Slaughterbound)
++ NUMBER OF UNITS: 14
++ SECONDARY: - Bring It Down: (3x2) + (1x4) - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x Daemon Prince of Khorne (200 pts): Warlord, Hellforged weapons, Infernal cannon
+
+Char2: 1x Slaughterbound (120 pts): Lacerator and daemonic claw
+
+Enhancement: Frenzied Focus (+20 pts)
+
+Leading Eightbound[1]
+
+Char3: 1x Slaughterbound (100 pts): Lacerator and daemonic claw
+
+Leading Exalted Eightbound[1]
+
+Char4: 1x Slaughterbound (100 pts): Lacerator and daemonic claw
+
+Leading Exalted Eightbound[2]
+
+2x Chaos Spawn (95 pts): 2 with Hideous Mutations
+
+1x Defiler (300 pts): Ectoplasma destructor, 2x Excruciator cannon, Heavy reaper autocannon, Heavy reaper autocannon, Shearing claws
+
+6x Eightbound (255 pts)
+
+• 1x Eightbound Champion: Chainblades
+
+• 5x Eightbound: 5 with Chainblades
+
+Attached to Slaughterbound[1]
+
+3x Eightbound (125 pts)
+
+• 1x Eightbound Champion: Chainblades
+
+• 2x Eightbound: 2 with Chainblades
+
+3x Exalted Eightbound (130 pts)
+
+• 1x Exalted Eightbound Champion: Chainblades
+
+• 2x Exalted Eightbound: 2 with Chainblades
+
+Attached to Slaughterbound[2]
+
+3x Exalted Eightbound (130 pts)
+
+• 1x Exalted Eightbound Champion: Chainblades
+
+• 2x Exalted Eightbound: 2 with Chainblades
+
+Attached to Slaughterbound[3]
+
+1x Forgefiend (155 pts): 2x Ectoplasma cannon, Ectoplasma cannon, Forgefiend claws
+
+1x Forgefiend (155 pts): 2x Ectoplasma cannon, Ectoplasma cannon, Forgefiend claws
+
+10x Jakhals (65 pts)
+
+• 8x Jakhal
+
+7 with Autopistol, Chainblades
+
+1 with Icon of Khorne, Autopistol, Chainblades
+
+• 1x Jakhal Pack Leader: Autopistol, Chainblades
+
+• 1x Dishonoured: Skullsmasher and mangler
+
+10x Jakhals (65 pts)
+
+• 8x Jakhal
+
+7 with Autopistol, Chainblades
+
+1 with Icon of Khorne, Autopistol, Chainblades
+
+• 1x Jakhal Pack Leader: Autopistol, Chainblades
+
+• 1x Dishonoured: Skullsmasher and mangler
+
+Created with newrecruit.eu v35.70

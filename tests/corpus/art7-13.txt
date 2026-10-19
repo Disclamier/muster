@@ -1,0 +1,238 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: liam vsl
++ TEAM NAME: Ignite
++ FACTION KEYWORD: Chaos - Chaos Space Marines
++ DETACHMENT: Cabal of Chaos, Veterans of the Long War (Empyric Wellspring)
++ FORCE DISPOSITION: take and hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char2: Fabius Bile
++ NUMBER OF UNITS: 15
++ SECONDARY: - Bring It Down: (2x2) + (1x4) - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Fabius Bile (100 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Fabius Bile
+
+• 1x Rod of Torment
+
+• 1x The Chirurgeon
+
+• 1x Xyclos needler
+
+• 1x Surgeon Acolyte
+
+• 1x Surgeon Acolyte's tools
+
+• Warlord
+
+Masters of the Maelstrom (145 pts)
+
+• Attached as: Support (Character)
+
+• 1x Captain Sargotta
+
+• 1x Laspistol
+
+• 1x Power sabre
+
+• 1x Garlon Souleater
+
+• 1x Force stave
+
+• 1x Mind Wrench
+
+• 1x Garreon the Corpsemaster
+
+• 1x Absolver bolt pistol
+
+• 1x Reductor array
+
+• Choice Samples
+
+• 1x Katar Garrix
+
+• 1x Axe of Ending
+
+• 1x Bolt pistol
+
+• 1x The Enforcer
+
+• 1x Bionic gauntlet
+
+• 1x Londaxi maimer
+
+Chosen (135 pts)
+
+• Attached as: Bodyguard
+
+• Attached as: Bodyguard
+
+• 1x Chosen Champion
+
+• 1x Plasma pistol
+
+• 1x Power fist
+
+• 1x Boltgun
+
+• 4x Chosen
+
+• 3x Accursed weapon
+
+• 4x Bolt pistol
+
+• 1x Boltgun
+
+• 2x Combi-weapon
+
+• 1x Paired accursed weapons
+
+Attached Unit 2
+
+Kravek Morne (120 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Baleflamer
+
+• 1x Combi-bolter
+
+• 1x Last Argument and power fist
+
+• 1x Servo-harness
+
+Mutilators (165 pts)
+
+• Attached as: Bodyguard
+
+• 3x Mutilator
+
+• 3x Fleshmetal weapons
+
+CHARACTER
+
+Cypher (90 pts)
+
+• 1x Cypher's bolt pistol
+
+• 1x Cypher's plasma pistol
+
+Heretic Astartes Daemon Prince with wings (180 pts)
+
+• 1x Hellforged weapons
+
+• 1x Infernal cannon
+
+• Mark of Slaanesh
+
+BATTLELINE
+
+Cultist Mob (50 pts)
+
+• 1x Cultist Champion
+
+• 1x Brutal assault weapon
+
+• 1x Bolt pistol
+
+• 9x Cultist
+
+• 9x Autopistol
+
+• 9x Brutal assault weapon
+
+OTHER DATASHEETS
+
+Chaos Rhino (65 pts)
+
+• 1x Armoured tracks
+
+• 1x Combi-bolter
+
+• 1x Havoc launcher
+
+• 1x Combi-bolter
+
+Defiler (330 pts)
+
+• 1x Ectoplasma destructor
+
+• 2x Excruciator cannon
+
+• 1x Heavy reaper autocannon
+
+• 1x Heavy reaper autocannon
+
+• 1x Shearing claws
+
+Noise Marines (145 pts)
+
+• 1x Disharmonist
+
+• 1x Close combat weapon
+
+• 1x Power sword
+
+• 1x Screamer pistol
+
+• 5x Noise Marine
+
+• 2x Blastmaster
+
+• 5x Close combat weapon
+
+• 3x Sonic blaster
+
+Nurglings (45 pts)
+
+• 3x Nurgling Swarm
+
+• 3x Diseased claws and teeth
+
+Obliterators (160 pts)
+
+• 2x Obliterator
+
+• 2x Crushing fists
+
+• 2x Fleshmetal guns
+
+Obliterators (160 pts)
+
+• 2x Obliterator
+
+• 2x Crushing fists
+
+• 2x Fleshmetal guns
+
+Red Corsairs Raiders (110 pts)
+
+• 1x Red Corsairs Raider Champion
+
+• 1x Boltgun
+
+• 1x Reaver's blade
+
+• 1x Hand flamer
+
+• 4x Red Corsairs Raider
+
+• 4x Bolt pistol
+
+• 3x Boltgun
+
+• 3x Reaver's blade
+
+• 1x Meltagun
+
+• 1x Power fist
+
+Created with newrecruit.eu v35.79

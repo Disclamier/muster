@@ -1,0 +1,63 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: RezoElder
++ TEAM NAME: TAG
++ FACTION KEYWORD: Imperium - Grey Knights
++ DETACHMENT: Warpbane Task Force (Hallowed Ground)
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Castellan Crowe
++ ENHANCEMENT: Paragon of Sanctity (on Char2: Grand Master in Nemesis Dreadknight)
++ NUMBER OF UNITS: 13
++ SECONDARY: - Bring It Down: (2x2) - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x Castellan Crowe (100 pts): Warlord
+
+Leading Purifier Squad[1]
+
+Char2: 1x Grand Master in Nemesis Dreadknight (240 pts): Fragstorm grenade launcher, Nemesis daemon greathammer, Heavy psycannon, Sublimator
+
+Enhancement: Paragon of Sanctity (+10 pts)
+
+Char3: 1x Grand Master in Nemesis Dreadknight (230 pts): Fragstorm grenade launcher, Nemesis daemon greathammer, Heavy psycannon, Sublimator
+
+5x Brotherhood Terminator Squad (175 pts)
+
+• 1x Terminator
+
+• 1x Terminator with Ancient's Banner: Psilencer
+
+• 1x Terminator with Heavy Weapon: Psilencer
+
+• 1x Terminator with Narthecium
+
+5x Brotherhood Terminator Squad (175 pts)
+
+• 1x Terminator
+
+• 1x Terminator with Ancient's Banner: Psilencer
+
+• 1x Terminator with Heavy Weapon: Psilencer
+
+• 1x Terminator with Narthecium
+
+5x Strike Squad (115 pts)
+
+5x Strike Squad (115 pts)
+
+Char4: 1x Eversor Assassin (110 pts)
+
+5x Purgation Squad (105 pts)
+
+5x Purgation Squad (105 pts)
+
+10x Purifier Squad (260 pts)
+
+Attached to Castellan Crowe
+
+5x Purifier Squad (130 pts)
+
+5x Purifier Squad (140 pts)
+
+Created with newrecruit.eu v35.80

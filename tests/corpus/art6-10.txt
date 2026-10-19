@@ -1,0 +1,217 @@
+A Story of Princes and Ponies...
+
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: KuNk
++ TEAM NAME: Merguez Hammer
++ FACTION KEYWORD: Chaos - World Eaters
++ DETACHMENT: Khorne Daemonkin, Vessels of Wrath (Blood Tithe)
++ FORCE DISPOSITION: Priority Assets
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Daemon Prince of Khorne with wings
++ ENHANCEMENT: Blade of Endless Bloodshed (Daemon Prince of Khorne with wings)
+
+& Disciple of Khorne (Lord on Juggernaut)
+
+& Blood-forged Armour (Lord on Juggernaut)
++ NUMBER OF UNITS: 14
++ SECONDARY: - Bring It Down: (4x2) - Assassination: 4 Characters - Cull The Horde: 1x5 (before leaders attached)
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Unit 1 : Schrödinger's Berzerkers
+
+Lord on Juggernaut (110 points)
+
+• Attached as: Leader (Character)
+
+• 1x Bladed horn
+
+1x Exalted chainblade
+
+1x Plasma pistol
+
+• Enhancement: Disciple of Khorne
+
+Khorne Berzerkers (320 points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 1x Khorne Berzerker Champion
+
+• 1x Chainblade
+
+1x Icon of Khorne
+
+1x Plasma pistol
+
+• 19x Khorne Berzerker
+
+• 15x Bolt pistol
+
+15x Chainblade
+
+4x Khornate eviscerator
+
+4x Plasma pistol
+
+CHARACTERS
+
+Daemon Prince of Khorne with Wings (200 points)
+
+• Warlord
+
+• 1x Hellforged weapons
+
+1x Infernal cannon
+
+• Enhancement: Blade of Endless Bloodshed
+
+Daemon Prince of Khorne with Wings (170 points)
+
+• 1x Hellforged weapons
+
+1x Infernal cannon
+
+Lord on Juggernaut (115 points)
+
+• 1x Bladed horn
+
+1x Exalted chainblade
+
+1x Plasma pistol
+
+• Enhancement: Blood-Forged Armour
+
+BATTLELINE
+
+Bloodletters (90 points)
+
+• 1x Bloodreaper
+
+• 1x Hellblade
+
+• 9x Bloodletter
+
+• 1x Daemonic Icon
+
+9x Hellblade
+
+1x Instrument of Chaos
+
+Bloodletters (90 points)
+
+• 1x Bloodreaper
+
+• 1x Hellblade
+
+• 9x Bloodletter
+
+• 1x Daemonic Icon
+
+9x Hellblade
+
+1x Instrument of Chaos
+
+OTHER DATASHEETS
+
+Bloodcrushers (190 points)
+
+• 1x Bloodhunter
+
+• 1x Hellblade
+
+1x Juggernaut's bladed horn
+
+• 5x Bloodcrusher
+
+• 1x Daemonic Icon
+
+5x Hellblade
+
+1x Instrument of Chaos
+
+5x Juggernaut's bladed horn
+
+Bloodcrushers (190 points)
+
+• 1x Bloodhunter
+
+• 1x Hellblade
+
+1x Juggernaut's bladed horn
+
+• 5x Bloodcrusher
+
+• 1x Daemonic Icon
+
+5x Hellblade
+
+1x Instrument of Chaos
+
+5x Juggernaut's bladed horn
+
+Flesh Hounds (75 points)
+
+• 1x Gore Hound
+
+• 1x Burning roar
+
+1x Collar of Khorne
+
+1x Gore-drenched fangs
+
+• 4x Flesh Hound
+
+• 4x Collar of Khorne
+
+4x Gore-drenched fangs
+
+Forgefiend (155 points)
+
+• 3x Ectoplasma cannon
+
+1x Forgefiend claws
+
+Forgefiend (155 points)
+
+• 3x Ectoplasma cannon
+
+1x Forgefiend claws
+
+Goremongers (75 points)
+
+• 1x Blood Herald
+
+• 1x Autopistol
+
+1x Chainblade
+
+1x Close combat weapon
+
+• 7x Goremongers
+
+• 7x Autopistol
+
+7x Chainblade
+
+7x Close combat weapon
+
+Jakhals (65 points)
+
+• 1x Jakhal Pack Leader
+
+• 1x Autopistol
+
+1x Chainblades
+
+• 1x Dishonoured
+
+• 1x Paired manglers
+
+• 8x Jakhal
+
+• 8x Autopistol
+
+8x Chainblades
+
+Exported with App Version: v2.6.0 (144), Data Version: v946

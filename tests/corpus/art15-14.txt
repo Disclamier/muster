@@ -1,0 +1,100 @@
+I'm going to miss WarOrgan so much
+
+Anyway, here's a Tau list I wrote 2 minutes before list sub deadline because I couldn't get Kauyon to work
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Tau Empire
++ DETACHMENT: Mont'ka
++ FORCE DISPOSITION: Priority Assets
++ TOTAL ARMY POINTS: 2000pts
++ POINTS LIMIT: 2000pts
++
++ ENHANCEMENT: Strategic Conqueror(on Char2: Kroot War Shaper)
++ NUMBER OF UNITS: 18
++ SECONDARY: -Bring It Down: 9x2 - Assassination: 3 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x Cadre Fireblade (50 points): Close combat weapon, Fireblade pulse rifle and 2 Gun drone with twin pulse carbine
+
+Char2: 1x Kroot War Shaper (75 points): Dart-bow & tri-blade, Kroot pistol and Shaper's blade
+
+Enhancement: Strategic Conqueror (+15 pts)
+
+Char3: 2x The Twin Lance (230 points)
+
+• 1x Ri'Lantar: Fusion eliminator, Mv15 gun drone with twin pulse blaster, Shardstorm burst system and Xv pulse pistol
+
+• 1x Ri'Locai: Ion scattercannon, Mv15 gun drone with twin pulse blaster, Shardstorm burst system and Xv pulse pistol
+
+• Warlord
+
+10x Breacher Team (90 points)
+
+• 1x Breacher Fire Warrior Shas'ui: Close combat weapon, Guardian drone, Gun drone with twin pulse carbine, Pulse blaster and Pulse pistol
+
+• 9x Breacher Fire Warriors: Close combat weapon, Pulse blaster and Pulse pistol
+
+1x Broadside Battlesuits (75 points): Crushing bulk, Heavy rail rifle, Missile drone, Seeker missile , Shield drone and Twin plasma rifle
+
+1x Broadside Battlesuits (75 points): Crushing bulk, Heavy rail rifle, Missile drone, Seeker missile , Shield drone and Twin plasma rifle
+
+1x Devilfish (75 points): 2 Seeker missiles, 2 Twin pulse carbines, Accelerator burst cannon and Armoured hull
+
+1x Hammerhead Gunship (150 points): 2 Accelerator burst cannons, 2 Seeker missiles, Armoured hull and Railgun
+
+1x Hammerhead Gunship (150 points): 2 Accelerator burst cannons, 2 Seeker missiles, Armoured hull and Railgun
+
+10x Kroot Carnivores (65 points)
+
+• 1x Long-quill: Close combat weapon, Kroot pistol and Kroot rifle
+
+• 8x Kroot Carnivores: Close combat weapon and Kroot rifle
+
+• 1x Kroot Carnivores: Close combat weapon and Tanglebomb launcher
+
+10x Pathfinder Team (100 points)
+
+• 1x Pathfinder Shas'ui: Close combat weapon, Pulse carbine and semi-automatic grenade launcher, Pulse pistol and Recon drone with burst cannon
+
+• 6x Pathfinders: Close combat weapon, Pulse carbine and Pulse pistol
+
+• 3x Pathfinders: Close combat weapon, Ion rifle and Pulse pistol
+
+10x Pathfinder Team (100 points)
+
+• 1x Pathfinder Shas'ui: Close combat weapon, Grav-inhibitor drone, Pulse carbine and semi-automatic grenade launcher and Pulse pistol
+
+• 6x Pathfinders: Close combat weapon, Pulse carbine and Pulse pistol
+
+• 3x Pathfinders: Close combat weapon, Ion rifle and Pulse pistol
+
+1x Piranhas (65 points): 2 Twin pulse carbines, Armoured hull, Piranha fusion blaster and 2 Seeker missiles
+
+1x Riptide Battlesuit (215 points): 2 Missile drones, Ion accelerator, Riptide fists and Twin plasma rifle
+
+1x Riptide Battlesuit (215 points): 2 Missile drones, Ion accelerator, Riptide fists and Twin plasma rifle
+
+5x Stealth Battlesuits (100 points)
+
+• 1x Stealth Shas'vre: Battlesuit fists, Fusion blaster, Gun drone with twin pulse carbine, Marker drone and Pulse pistol
+
+• 1x Stealth Shas'ui: Battlesuit fists, Fusion blaster and Homing beacon
+
+• 1x Stealth Shas'ui: Battlesuit fists and Burst cannon
+
+• 1x Stealth Shas'ui: Battlesuit fists and Burst cannon
+
+• 1x Stealth Shas'ui: Battlesuit fists and Burst cannon
+
+5x Stealth Battlesuits (100 points)
+
+• 1x Stealth Shas'vre: Battlesuit fists, Fusion blaster, Gun drone with twin pulse carbine, Marker drone and Pulse pistol
+
+• 1x Stealth Shas'ui: Battlesuit fists, Fusion blaster and Homing beacon
+
+• 1x Stealth Shas'ui: Battlesuit fists and Burst cannon
+
+• 1x Stealth Shas'ui: Battlesuit fists and Burst cannon
+
+• 1x Stealth Shas'ui: Battlesuit fists and Burst cannon
+
+5x Vespid Stingwings (70 points): Neutron blaster and Stingwing claws

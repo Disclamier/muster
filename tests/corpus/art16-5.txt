@@ -1,0 +1,191 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: Eetu
++ FACTION KEYWORD: Xenos - Necrons
++ DETACHMENT: Cursed Legion, Skyshroud Spearhead (Cold Fervour)
++ FORCE DISPOSITION: Purge the Foe
++ TOTAL ARMY POINTS: 1995pts
++
++ WARLORD: Char1: Imotekh the Stormlord
++ ENHANCEMENT: Destroyer Ankh (on Char6: Overlord)
+
+& Murdermind (on Char9: Technomancer)
+
+& Deepening Madness (on Moun9: Lokhust Destroyers)
+
+& Deepening Madness (on Moun9: Lokhust Destroyers)
+
++ NUMBER OF UNITS: 17
++ SECONDARY: - Bring It Down: (1x2) - Assassination: 9 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Lokhust Lord (80 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Lord's blade
+
+• Resurrection orb
+
+Lokhust Destroyers (195 pts)
+
+• Attached as: Bodyguard
+
+• 6x Lokhust Destroyer
+
+• 6x Close combat weapon
+
+• 6x Gauss cannon
+
+• Deepening Madness (+20 pts)
+
+Attached Unit 2
+
+Lokhust Lord (80 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Lord's blade
+
+• Resurrection orb
+
+Lokhust Destroyers (195 pts)
+
+• Attached as: Bodyguard
+
+• 6x Lokhust Destroyer
+
+• 6x Close combat weapon
+
+• 6x Gauss cannon
+
+• Deepening Madness (+20 pts)
+
+Attached Unit 3
+
+Overlord (110 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Voidscythe
+
+• Resurrection orb
+
+• Destroyer Ankh (+20 pts)
+
+Lychguard (160 pts)
+
+• Attached as: Bodyguard
+
+• 10x Lychguard
+
+• 10x Dispersion shield
+
+• 10x Hyperphase sword
+
+Attached Unit 4
+
+Skorpekh Lord (95 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Enmitic annihilator
+
+• 1x Flensing claw
+
+• 1x Hyperphase harvester
+
+Technomancer (95 pts)
+
+• Attached as: Support (Character)
+
+• 1x Staff of light
+
+• Murdermind (+15 pts)
+
+Skorpekh Destroyers (170 pts)
+
+• Attached as: Bodyguard
+
+• Attached as: Bodyguard
+
+• 6x Skorpekh Destroyer
+
+• 6x Skorpekh hyperphase weapons
+
+• 2x Plasmacyte
+
+Attached Unit 5
+
+Skorpekh Lord (95 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Enmitic annihilator
+
+• 1x Flensing claw
+
+• 1x Hyperphase harvester
+
+Skorpekh Destroyers (170 pts)
+
+• Attached as: Bodyguard
+
+• 6x Skorpekh Destroyer
+
+• 6x Skorpekh hyperphase weapons
+
+• 2x Plasmacyte
+
+CHARACTER
+
+Hexmark Destroyer (75 pts)
+
+• 1x Close combat weapon
+
+• 1x Enmitic disintegrator pistols
+
+Imotekh the Stormlord (100 pts)
+
+• 1x Gauntlet of Fire
+
+• 1x Staff of the Destroyer
+
+• Warlord
+
+Nekrosor Ammentar (185 pts)
+
+• 1x Blade tail and whip coils
+
+• 1x Enmitic disintegrators
+
+• 1x Unmaker gauntlet
+
+• Nullstone field generator
+
+OTHER DATASHEETS
+
+Canoptek Reanimator (75 pts)
+
+• 2x Atomiser beam
+
+• 1x Reanimator's claws
+
+Cryptothralls (60 pts)
+
+• 2x Cryptothrall
+
+• 2x Scouring eye
+
+• 2x Scythed limbs
+
+Flayed Ones (55 pts)
+
+• 5x Flayed One
+
+• 5x Flayer claws
+
+Created with newrecruit.eu v35.82

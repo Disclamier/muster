@@ -278,6 +278,30 @@ test("JSON import via Text Import", async () => {
   assert.match(d.querySelector(".lists-page").textContent, /Imported One/);
 });
 
+test("plain-text import: review screen (matched / guessed / unmatched), remove a row, save", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  click(w, d.querySelector("[data-action=import-text]"));
+  d.querySelector("[data-import]").value = fs.readFileSync(path.join(__dirname, "corpus/synth-freeform-custodes.txt"), "utf8");
+  click(w, d.querySelector("#modal [data-ok]"));
+  const rev = await until(() => d.querySelector("[data-testid=import-review]"));
+  assert.equal(rev.querySelector("[data-testid=imp-faction]").value, "adeptus-custodes");
+  const rows = [...rev.querySelectorAll("[data-testid=imp-unit]")];
+  assert.equal(rows.length, 10);
+  assert.ok(rows.some((r) => r.dataset.status === "bad"), "unmatched row highlighted");
+  assert.ok(rows.some((r) => r.dataset.status === "guess"), "guessed row highlighted");
+  assert.match(rev.querySelector("[data-testid=imp-summary]").textContent, /pts/);
+  assert.match(rev.querySelector("[data-testid=imp-dets]").textContent, /Shield Host – not matched/);
+  const inc = rows.find((r) => r.dataset.status === "bad").querySelector("[data-imp=inc]");
+  inc.checked = false; inc.dispatchEvent(new w.Event("change", { bubbles: true }));
+  click(w, d.querySelector("[data-testid=imp-save]"));
+  await until(() => w.Muster.S.lists.length === 1);
+  const l = w.Muster.S.lists[0];
+  assert.equal(l.faction, "adeptus-custodes");
+  assert.equal(l.entries.length, 9);
+  assert.ok(l.entries.some((e) => e.unit === "Blade Champion" && e.attach));
+});
+
 test("every faction: editor + all panel types render without errors", async () => {
   const { w, d } = makeApp();
   await until(() => d.querySelector(".lists-page"));
@@ -999,7 +1023,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v62/);
+  assert.match(read("sw.js"), /muster-shell-v63/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */

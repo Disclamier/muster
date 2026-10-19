@@ -1,0 +1,65 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ PLAYER NAME: Namarand
++ TEAM NAME: Bisounours
++ FACTION KEYWORD: Xenos - Necrons
++ DETACHMENT: Cursed Legion, Skyshroud Spearhead (Cold Fervour)
++ FORCE DISPOSITION: Purge the Foe
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char3: Nekrosor Ammentar
++ ENHANCEMENT: Destroyer Ankh (on Char6: Overlord)
+
+& Deepening Madness (on Moun6: Lokhust Destroyers)
+
+& Deepening Madness (on Moun6: Lokhust Destroyers)
++ NUMBER OF UNITS: 12
++ SECONDARY: - Bring It Down: (2x4) - Assassination: 6 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x C'tan Shard of the Nightbringer (360 pts): Gaze of death, Scythe of the Nightbringer
+
+Char2: 1x C'tan Shard of the Void Dragon (345 pts): Canoptek tail blades, Spear of the Void Dragon, Voltaic storm
+
+Char4: 1x Lokhust Lord (80 pts): Resurrection orb, Lord's blade
+
+Leading Lokhust Destroyers[1]
+
+Char5: 1x Lokhust Lord (80 pts): Resurrection orb, Lord's blade
+
+Leading Lokhust Destroyers[2]
+
+Char3: 1x Nekrosor Ammentar (185 pts): Warlord, Nullstone field generator, Blade tail and whip coils, Enmitic disintegrators, Unmaker gauntlet
+
+Char6: 1x Overlord (110 pts): Resurrection orb, Voidscythe
+
+Enhancement: Destroyer Ankh (+20 pts)
+
+Leading Lychguard
+
+5x Flayed Ones (55 pts): 5 with Flayer claws
+
+6x Lokhust Destroyers (195 pts)
+
+Enhancement: Deepening Madness (+20 pts)
+
+6 with Close combat weapon, Gauss cannon
+
+Attached to Lokhust Lord[1]
+
+6x Lokhust Destroyers (195 pts)
+
+Enhancement: Deepening Madness (+20 pts)
+
+6 with Close combat weapon, Gauss cannon
+
+Attached to Lokhust Lord[2]
+
+10x Lychguard (160 pts): 10 with Dispersion shield, Hyperphase sword
+
+Attached to Overlord
+
+6x Ophydian Destroyers (150 pts): 2x Plasmacyte, 6 with Ophydian hyperphase weapons
+
+3x Skorpekh Destroyers (85 pts): Plasmacyte, 3 with Skorpekh hyperphase weapons
+
+Created with newrecruit.eu v36.25

@@ -1,0 +1,47 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Adeptus Custodes
++ DETACHMENT: Lions of The Emperor
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++ POINTS LIMIT: 2000pts
++
++ ENHANCEMENT: Fierce Conqueror(on Char1: Shield-captain On Dawneagle Jetbike)
++ NUMBER OF UNITS: 11
++ SECONDARY: Assassination: 2 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached unit 1
+
+Valerian (110 points): Warlord, Gnosis
+
+5x Custodian Wardens (250 points)
+
+• 1x Custodian Wardens: guardian spear
+
+• 1x Custodian Wardens: guardian spear
+
+• 1x Custodian Wardens: guardian spear
+
+• 1x Custodian Wardens: guardian spear
+
+• 1x Custodian Wardens: Guardian spear and Vexilla
+
+Char1: 1x Shield-captain On Dawneagle Jetbike (155 points): Interceptor lance and Vertus hurricane bolter
+
+Enhancement: Fierce Conqueror (+15 pts)
+
+6x Allarus Custodians (340 points): Balistus grenade launcher and Guardian spear
+
+6x Allarus Custodians (340 points): Balistus grenade launcher and Guardian spear
+
+6x Allarus Custodians (370 points): Balistus grenade launcher and Guardian spear
+
+4x Prosecutors (45 points): Boltgun and Close combat weapon
+
+4x Prosecutors (45 points): Boltgun and Close combat weapon
+
+2x Vertus Praetors (145 points): Interceptor lance and Vertus hurricane bolter
+
+2x Vertus Praetors (145 points): Interceptor lance and Vertus hurricane bolter
+
+5x Witchseekers (55 points): Close combat weapon and Witchseeker flamer

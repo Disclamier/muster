@@ -1,0 +1,256 @@
++++++++++++++++++++++++++++++++++++++++++++++++
+
++ NAME: A last Time Oath, Uriel and Preds…….
+
++ TEAM NAME: Zugzwang
++ FACTION KEYWORD: Imperium - Adeptus Astartes - Ultramarines
++ DETACHMENT: Blade of Ultramar (Mastered Doctrines)
++ FORCE DISPOSITION: Priority Assets
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Roboute Guilliman
++ NUMBER OF UNITS: 15
++ SECONDARY: - Bring It Down: (5x2) + (1x4) - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Uriel Ventris (105 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Bolt pistol
+
+• 1x Invictus
+
+• 1x Sword of Idaeus
+
+Victrix Honour Guard (245 pts)
+
+• Attached as: Bodyguard
+
+• 1x Chapter Ancient
+
+• 1x Master-crafted power weapon
+
+• Banner of Macragge, Attached Unit
+
+• 5x Victrix Honour Guard
+
+• 5x Master-crafted Bolt Carbine
+
+• 5x Master-crafted power weapon
+
+• 5x Attached Unit
+
+CHARACTER
+
+Roboute Guilliman (355 pts)
+
+• 1x Hand of Dominion
+
+• 1x The Emperor's Sword
+
+• Warlord
+
+Techmarine (55 pts)
+
+• 1x Forge Bolter
+
+• 1x Grav-pistol
+
+• 1x Omnissian power axe
+
+• 1x Servo-arm
+
+Techmarine (55 pts)
+
+• 1x Forge Bolter
+
+• 1x Grav-pistol
+
+• 1x Omnissian power axe
+
+• 1x Servo-arm
+
+BATTLELINE
+
+Intercessor Squad (80 pts)
+
+• 1x Intercessor Sergeant
+
+• 1x Bolt pistol
+
+• 1x Astartes grenade launcher
+
+• 1x Bolt Rifle
+
+• 1x Power fist
+
+• 4x Intercessor
+
+• 4x Bolt pistol
+
+• 4x Bolt Rifle
+
+• 4x Close combat weapon
+
+OTHER DATASHEETS
+
+Eradicator Squad with Heavy Bolters (80 pts)
+
+• 2x Eradicator
+
+• 2x Bolt pistol
+
+• 2x Close combat weapon
+
+• 2x Heavy Bolter
+
+• 1x Eradicator Sergeant
+
+• 1x Bolt pistol
+
+• 1x Close combat weapon
+
+• 1x Heavy Bolter
+
+Eradicator Squad with Heavy Bolters (80 pts)
+
+• 2x Eradicator
+
+• 2x Bolt pistol
+
+• 2x Close combat weapon
+
+• 2x Heavy Bolter
+
+• 1x Eradicator Sergeant
+
+• 1x Bolt pistol
+
+• 1x Close combat weapon
+
+• 1x Heavy Bolter
+
+Predator Annihilator (135 pts)
+
+• 1x Armoured Tracks
+
+• 1x Hunter-killer missile
+
+• 1x Predator Twin Lascannon
+
+• 1x Storm bolter
+
+• 2x Lascannon
+
+Predator Annihilator (135 pts)
+
+• 1x Armoured Tracks
+
+• 1x Hunter-killer missile
+
+• 1x Predator Twin Lascannon
+
+• 1x Storm bolter
+
+• 2x Lascannon
+
+Predator Destructor (140 pts)
+
+• 1x Armoured Tracks
+
+• 1x Hunter-killer missile
+
+• 1x Predator Autocannon
+
+• 1x Storm bolter
+
+• 2x Heavy Bolter
+
+Predator Destructor (140 pts)
+
+• 1x Armoured Tracks
+
+• 1x Hunter-killer missile
+
+• 1x Predator Autocannon
+
+• 1x Storm bolter
+
+• 2x Heavy Bolter
+
+Repulsor Executioner (265 pts)
+
+• 1x Armoured Hull
+
+• 1x Heavy Onslaught Gatling Cannon
+
+• 1x Icarus Rocket Pod
+
+• 1x Ironhail Heavy Stubber
+
+• 1x Repulsor Executioner Defensive Array
+
+• 1x Twin heavy bolter
+
+• 1x Twin Icarus ironhail heavy stubber
+
+• 1x Heavy Laser Destroyer
+
+Scout Squad (65 pts)
+
+• 1x Scout Sergeant
+
+• 1x Bolt pistol
+
+• 1x Close combat weapon
+
+• 1x Astartes Chainsword
+
+• 1x Scout
+
+• 1x Bolt pistol
+
+• 1x Close combat weapon
+
+• 1x Heavy Bolter
+
+• 3x Scouts
+
+• 3x Bolt pistol
+
+• 3x Close combat weapon
+
+• 3x Combat Knife
+
+Scout Squad (65 pts)
+
+• 1x Scout Sergeant
+
+• 1x Bolt pistol
+
+• 1x Close combat weapon
+
+• 1x Astartes Chainsword
+
+• 1x Scout
+
+• 1x Bolt pistol
+
+• 1x Close combat weapon
+
+• 1x Heavy Bolter
+
+• 3x Scouts
+
+• 3x Bolt pistol
+
+• 3x Close combat weapon
+
+• 3x Combat Knife
+
+Created with newrecruit.eu v35.79

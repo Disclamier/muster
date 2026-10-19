@@ -1,0 +1,73 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Xenos - Necrons
++ DETACHMENT: Cursed Legion, Skyshroud Spearhead (Cold Fervour)
++ FORCE DISPOSITION: Purge the Foe
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char3: Nekrosor Ammentar
++ ENHANCEMENT: Murdermind (on Char4: Chronomancer)
+
+& Destroyer Ankh (on Char7: Overlord)
+
+& Mark of the Nekrosor (on Char8: Skorpekh Lord)
++ NUMBER OF UNITS: 15
++ SECONDARY: - Bring It Down: (2x4) - Assassination: 9 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char1: 1x C'tan Shard of the Deceiver (330 pts): Cosmic insanity, Golden fists
+
+Char2: 1x C'tan Shard of the Nightbringer (360 pts): Gaze of death, Scythe of the Nightbringer
+
+Char4: 1x Chronomancer (85 pts): Chronomancer's stave
+
+Enhancement: Murdermind (+15 pts)
+
+Supporting Lokhust Destroyers
+
+Char5: 1x Hexmark Destroyer (75 pts): Close combat weapon, Enmitic disintegrator pistols
+
+Char6: 1x Lokhust Lord (80 pts): Resurrection orb, Lord's blade
+
+Leading Lokhust Destroyers
+
+Char3: 1x Nekrosor Ammentar (185 pts): Warlord, Nullstone field generator, Blade tail and whip coils, Enmitic disintegrators, Unmaker gauntlet
+
+Char7: 1x Overlord (110 pts): Resurrection orb, Voidscythe
+
+Enhancement: Destroyer Ankh (+20 pts)
+
+Leading Necron Warriors
+
+Char8: 1x Skorpekh Lord (115 pts): Enmitic annihilator, Flensing claw, Hyperphase harvester
+
+Enhancement: Mark of the Nekrosor (+20 pts)
+
+Leading Skorpekh Destroyers[1]
+
+Char9: 1x Skorpekh Lord (95 pts): Enmitic annihilator, Flensing claw, Hyperphase harvester
+
+Leading Skorpekh Destroyers[2]
+
+10x Necron Warriors (85 pts): 10 with Close combat weapon, Gauss reaper
+
+Attached to Overlord
+
+5x Flayed Ones (55 pts): 5 with Flayer claws
+
+6x Lokhust Destroyers (175 pts): 6 with Close combat weapon, Gauss cannon
+
+Attached to Chronomancer
+
+Attached to Lokhust Lord
+
+3x Ophydian Destroyers (80 pts): Plasmacyte, 3 with Ophydian hyperphase weapons
+
+3x Skorpekh Destroyers (85 pts): Plasmacyte, 3 with Skorpekh hyperphase weapons
+
+Attached to Skorpekh Lord[1]
+
+3x Skorpekh Destroyers (85 pts): Plasmacyte, 3 with Skorpekh hyperphase weapons
+
+Attached to Skorpekh Lord[2]
+
+Created with newrecruit.eu v36.6

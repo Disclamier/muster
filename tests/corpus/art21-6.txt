@@ -1,0 +1,340 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Imperium - Astra Militarum
++ DETACHMENT: Abhuman Auxiliaries, Mechanised Assault (Absolutist Principles)
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Commissar Yarrick
++ NUMBER OF UNITS: 19
++ SECONDARY: - Bring It Down: (2x2) + (1x6) - Assassination: 9 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Commissar Yarrick (120 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Bale Eye
+
+• 1x Laspistol
+
+• 1x Power klaw
+
+• 1x Power sword
+
+• 1x Storm bolter
+
+• Warlord
+
+Militarum Tempestus Command Squad (85 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Tempestor Prime
+
+• 1x Tempestus dagger
+
+• Command rod
+
+• Smoke Grenades (+10 pts)
+
+• 4x Tempestus Scion
+
+• 4x Close combat weapon
+
+• 1x Plasma gun
+
+• 1x Meltagun
+
+• 2x Hot-shot laspistol
+
+• Master vox, Medi-pack
+
+Tempestus Scions (75 pts)
+
+• Attached as: Bodyguard
+
+• Attached as: Bodyguard
+
+• 1x Tempestor
+
+• 1x Power fist
+
+• 1x Plasma pistol
+
+• 4x Tempestus Scion
+
+• 4x Close combat weapon
+
+• 1x Hot-shot lasgun
+
+• 1x Hot-shot laspistol
+
+• 1x Meltagun
+
+• 1x Plasma gun
+
+• Vox-caster
+
+Attached Unit 2
+
+Militarum Tempestus Command Squad (85 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Tempestor Prime
+
+• 1x Tempestus dagger
+
+• Command rod
+
+• 4x Tempestus Scion
+
+• 4x Close combat weapon
+
+• 1x Hot-shot lasgun
+
+• 1x Plasma gun
+
+• 1x Meltagun
+
+• 1x Hot-shot laspistol
+
+• Medi-pack, Regimental standard
+
+Tempestus Scions (75 pts)
+
+• Attached as: Bodyguard
+
+• 1x Tempestor
+
+• 1x Power weapon
+
+• 1x Plasma pistol
+
+• 4x Tempestus Scion
+
+• 4x Close combat weapon
+
+• 1x Hot-shot lasgun
+
+• 1x Hot-shot laspistol
+
+• 1x Meltagun
+
+• 1x Plasma gun
+
+• Vox-caster
+
+Attached Unit 3
+
+Militarum Tempestus Command Squad (95 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Tempestor Prime
+
+• 1x Tempestus dagger
+
+• Command rod
+
+• 4x Tempestus Scion
+
+• 4x Close combat weapon
+
+• 1x Hot-shot lasgun
+
+• 1x Plasma gun
+
+• 1x Meltagun
+
+• 1x Hot-shot laspistol
+
+• Medi-pack, Regimental standard
+
+Tempestus Scions (85 pts)
+
+• Attached as: Bodyguard
+
+• 1x Tempestor
+
+• 1x Power fist
+
+• 1x Plasma pistol
+
+• 4x Tempestus Scion
+
+• 4x Close combat weapon
+
+• 1x Hot-shot lasgun
+
+• 1x Hot-shot laspistol
+
+• 1x Meltagun
+
+• 1x Plasma gun
+
+• Vox-caster
+
+Attached Unit 4
+
+Commissar (30 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Plasma pistol
+
+• 1x Power weapon
+
+Bullgryn Squad (200 pts)
+
+• 1x Bullgryn Bone 'ead
+
+• 1x Close combat weapon
+
+• 1x Bullgryn maul
+
+• Brute shield
+
+• 5x Bullgryn
+
+• 5x Close combat weapon
+
+• 5x Bullgryn maul
+
+• 5x Brute shield
+
+Attached Unit 5
+
+Commissar (30 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Plasma pistol
+
+• 1x Power weapon
+
+Bullgryn Squad (215 pts)
+
+• 1x Bullgryn Bone 'ead
+
+• 1x Close combat weapon
+
+• 1x Bullgryn maul
+
+• Brute shield
+
+• 5x Bullgryn
+
+• 5x Close combat weapon
+
+• 5x Bullgryn maul
+
+• 5x Brute shield
+
+Attached Unit 6
+
+Commissar (30 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Plasma pistol
+
+• 1x Power weapon
+
+Ogryn Squad (120 pts)
+
+• 1x Ogryn Bone 'ead
+
+• 1x Ripper gun
+
+• 5x Ogryn
+
+• 5x Ripper gun
+
+CHARACTER
+
+Gaunt's Ghosts (95 pts)
+
+• 1x Ibram Gaunt
+
+• 1x Bolt pistol
+
+• 1x Gaunt's chainsword
+
+• 5x Tanith Ghost
+
+• 1x Bragg's autocannon
+
+• 4x Straight silver knife
+
+• 1x Corbec's hot-shot lascarbine
+
+• 1x Larkin's long-las
+
+• 1x Lascarbine
+
+• 1x Mkoll's straight silver knife
+
+• 1x Rawne's lascarbine
+
+Tech-Priest Enginseer (45 pts)
+
+• 1x Enginseer Axe
+
+• 1x Mechanicus pistol
+
+• 1x Servo-arm
+
+OTHER DATASHEETS
+
+Ratlings (60 pts)
+
+• 5x Ratlings
+
+• 5x Close combat weapon
+
+• 5x Sniper rifle
+
+Stormlord (395 pts)
+
+• 1x Armoured tracks
+
+• 2x Heavy stubber
+
+• 2x Lascannon
+
+• 1x Twin heavy bolter
+
+• 1x Vulcan mega-bolter
+
+• 2x Twin heavy bolter
+
+• 2x Lascannon
+
+• 2x Twin heavy bolter
+
+Taurox Prime (75 pts)
+
+• 1x Armoured tracks
+
+• 1x Storm bolter
+
+• 1x Taurox missile launcher
+
+• 1x Twin autocannon
+
+Taurox Prime (75 pts)
+
+• 1x Armoured tracks
+
+• 1x Storm bolter
+
+• 1x Taurox missile launcher
+
+• 1x Twin autocannon
+
+Created with newrecruit.eu v35.56

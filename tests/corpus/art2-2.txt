@@ -1,0 +1,187 @@
++++++++++++++++++++++++++++++++++++++++++++++++
+
+You call this* a nerf? Please, I'm a CSM player. This is Nothing.
+
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Imperium - Adeptus Custodes
++ DETACHMENT: Lions of the Emperor (Against All Odds)
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Trajann Valoris
++ ENHANCEMENT: Superior Creation (on Char2: Blade Champion)
++ NUMBER OF UNITS: 14
++ SECONDARY: - Assassination: 4 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Blade Champion (135 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Vaultswords
+
+• Superior Creation (+25 pts)
+
+Custodian Wardens (200 pts)
+
+• Attached as: Bodyguard
+
+• 3x Custodian Warden (Guardian Spear)
+
+• 3x Guardian Spear
+
+• 1x Custodian Warden
+
+• 1x Guardian Spear
+
+• Vexilla
+
+Attached Unit 2
+
+Trajann Valoris (135 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Eagle's Scream
+
+• 1x Watcher's Axe
+
+• Warlord
+
+Custodian Guard (170 pts)
+
+• Attached as: Bodyguard
+
+• 3x Custodian Guard (Guardian Spear)
+
+• 3x Guardian Spear
+
+• 1x Custodian Guard (Vexilla, Praesidium Shield & Misericordia)
+
+• 1x Misericordia
+
+• Vexilla, Praesidium Shield
+
+Attached Unit 3
+
+Inquisitor (65 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Force Weapon
+
+• 1x Combi-weapon
+
+• 1x Psychic gifts
+
+Custodian Guard (170 pts)
+
+• Attached as: Bodyguard
+
+• 3x Custodian Guard (Guardian Spear)
+
+• 3x Guardian Spear
+
+• 1x Custodian Guard (Vexilla, Praesidium Shield & Misericordia)
+
+• 1x Misericordia
+
+• Vexilla, Praesidium Shield
+
+Attached Unit 4
+
+Inquisitor (65 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Force Weapon
+
+• 1x Combi-weapon
+
+• 1x Psychic gifts
+
+Custodian Guard (170 pts)
+
+• Attached as: Bodyguard
+
+• 3x Custodian Guard (Guardian Spear)
+
+• 3x Guardian Spear
+
+• 1x Custodian Guard (Vexilla, Praesidium Shield & Misericordia)
+
+• 1x Misericordia
+
+• Vexilla, Praesidium Shield
+
+OTHER DATASHEETS
+
+Allarus Custodians (340 pts)
+
+• 6x Allarus Custodian (Guardian Spear)
+
+• 6x Balistus grenade launcher
+
+• 6x Guardian Spear
+
+Allarus Custodians (340 pts)
+
+• 6x Allarus Custodian (Guardian Spear)
+
+• 6x Balistus grenade launcher
+
+• 6x Guardian Spear
+
+Prosecutors (45 pts)
+
+• 1x Prosecutor Sister Superior
+
+• 1x Boltgun
+
+• 1x Close combat weapon
+
+• 3x Prosecutor
+
+• 3x Boltgun
+
+• 3x Close combat weapon
+
+Vigilators (55 pts)
+
+• 1x Vigilator Sister Superior
+
+• 1x Executioner greatblade
+
+• 4x Vigilator
+
+• 4x Executioner greatblade
+
+Vigilators (55 pts)
+
+• 1x Vigilator Sister Superior
+
+• 1x Executioner greatblade
+
+• 4x Vigilator
+
+• 4x Executioner greatblade
+
+Witchseekers (55 pts)
+
+• 1x Witchseeker Sister Superior
+
+• 1x Close combat weapon
+
+• 1x Witchseeker flamer
+
+• 4x Witchseeker
+
+• 4x Close combat weapon
+
+• 4x Witchseeker flamer
+
+Created with newrecruit.eu v35.72

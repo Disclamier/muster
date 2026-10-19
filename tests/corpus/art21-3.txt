@@ -1,0 +1,66 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Imperium - Adeptus Custodes
++ DETACHMENT: Lions of the Emperor, Might of the Moritoi (Against All Odds)
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Trajann Valoris
++ NUMBER OF UNITS: 12
++ SECONDARY: - Assassination: 3 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Char3: 1x Shield-Captain on Dawneagle Jetbike (140 pts): Interceptor lance, Salvo launcher
+
+Leading Vertus Praetors[1]
+
+Char1: 1x Trajann Valoris (135 pts): Warlord, Eagle's Scream, Watcher's Axe
+
+Leading Custodian Guard[1]
+
+Char2: 1x Valerian (110 pts): Gnosis
+
+Leading Custodian Wardens
+
+4x Custodian Guard (170 pts)
+
+• 3x Custodian Guard (Guardian Spear): 3 with Guardian Spear
+
+• 1x Custodian Guard (Vexilla, Praesidium Shield & Misericordia): Vexilla, Misericordia
+
+Attached to Trajann Valoris
+
+4x Custodian Guard (170 pts)
+
+• 3x Custodian Guard (Guardian Spear): 3 with Guardian Spear
+
+• 1x Custodian Guard (Sentinel Blade & Praesidium Shield): Sentinel blade
+
+5x Allarus Custodians (275 pts): 5 with Balistus grenade launcher, Castellan Axe
+
+5x Custodian Wardens (250 pts)
+
+• 4x Custodian Warden (Guardian Spear): 4 with Guardian Spear
+
+• 1x Custodian Warden: Vexilla, Guardian Spear
+
+Attached to Valerian
+
+5x Prosecutors (50 pts)
+
+• 1x Prosecutor Sister Superior: Boltgun, Close combat weapon
+
+• 4x Prosecutor: 4 with Boltgun, Close combat weapon
+
+3x Vertus Praetors (215 pts): 3 with Interceptor lance, Salvo launcher
+
+Attached to Shield-Captain on Dawneagle Jetbike
+
+3x Vertus Praetors (215 pts): 3 with Interceptor lance, Salvo launcher
+
+3x Vertus Praetors (215 pts): 3 with Interceptor lance, Salvo launcher
+
+5x Witchseekers (55 pts)
+
+• 1x Witchseeker Sister Superior: Close combat weapon, Witchseeker flamer
+
+• 4x Witchseeker: 4 with Close combat weapon, Witchseeker flamer

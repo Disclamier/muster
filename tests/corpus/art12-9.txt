@@ -1,0 +1,249 @@
+Old deathwatch (2,000 in old points)
+
+Space Marines
+
+Deathwatch
+
+Black Spear Task Force (3 Detachment Points)
+
+Purge the Foe
+
+Strike Force (2,000 Points)
+
+ERRORS
+
+• You must select one CHARACTER model from your army to be your WARLORD.
+
+• You are using more points (2,250) than your Battle Size allows (2,000).
+
+ATTACHED UNITS
+
+Attached unit 1
+
+Captain in Gravis Armour (100 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Boltstorm Gauntlet
+
+• 1x Relic Blade
+
+• Enhancements: The Thief of Secrets
+
+Indomitor Kill Team (280 Points)
+
+• Attached as: Bodyguard
+
+• 4x Kill Team Heavy Intercessor with Deathwatch Heavy Bolt Rifle and Ceramite Fists.
+
+◦ 4x Ceramite Fists
+
+◦ 4x Deathwatch Heavy Bolt Rifle
+
+• 3x Kill Team Heavy Intercessor with Flamestorm Gauntlets and Twin Power Fists
+
+◦ 3x Flamestorm Gauntlets
+
+◦ 3x Twin Power Fists
+
+• 3x Kill Team Heavy Intercessor with Melta Rifle, Bolt Pistol and Ceramite Fists
+
+◦ 3x Bolt Pistol
+
+◦ 3x Ceramite Fists
+
+◦ 2x Melta Rifle
+
+◦ 1x Multi-melta
+
+Attached unit 2
+
+Captain with Jump Pack (105 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Plasma Pistol
+
+• 1x Power Fist
+
+• Enhancements: The Tome of Ectoclades
+
+Talonstrike Kill Team (280 Points)
+
+• Attached as: Bodyguard
+
+• 1x Kill Team Sergeant with Jump Pack
+
+◦ 1x Plasma Pistol
+
+◦ 1x Power Fist
+
+• 5x Kill Team Intercessor with Jump Pack
+
+◦ 5x Chainsword
+
+◦ 3x Heavy Bolt Pistol
+
+◦ 2x Plasma Pistol
+
+• 4x Kill Team Heavy Intercessor with Jump Pack
+
+◦ 4x Assault Bolters
+
+◦ 4x Ceramite Fists
+
+BATTLELINE
+
+Decimus Kill Team (110 Points)
+
+• 1x Kill Team Sergeant
+
+◦ 1x Plasma Pistol
+
+◦ 1x Power Weapon
+
+• 1x Gravis Veteran
+
+◦ 1x Bolt Pistol
+
+◦ 1x Infernus Heavy Bolter
+
+◦ 1x Knives and Fists
+
+• 1x Deathwatch Veteran with Heavy Thunder Hammer and Bolt Pistol
+
+◦ 1x Power Weapon
+
+◦ 1x Storm Shield
+
+• 1x Deathwatch Veteran with Deathwatch Marksman Bolt Carbine, Special-issue Bolt Pistol and Knives and Fists
+
+◦ 1x Deathwatch Marksman Bolt Carbine
+
+◦ 1x Knives and Fists
+
+◦ 1x Special-issue Bolt Pistol
+
+• 1x Deathwatch Veteran with Stalker Bolt Rifle, Bolt Pistol and Knives and Fists
+
+◦ 1x Bolt Pistol
+
+◦ 1x Knives and Fists
+
+◦ 1x Stalker Bolt Rifle
+
+OTHER DATASHEETS
+
+Deathwatch Terminator Squad (220 Points)
+
+• 1x Deathwatch Terminator Sergeant
+
+◦ 1x Power Fist
+
+◦ 1x Storm Bolter
+
+• 4x Deathwatch Terminator
+
+◦ 3x Cyclone Missile Launcher
+
+◦ 4x Power Fist
+
+◦ 4x Storm Bolter
+
+Deathwatch Terminator Squad (220 Points)
+
+• 1x Deathwatch Terminator Sergeant
+
+◦ 1x Power Fist
+
+◦ 1x Storm Bolter
+
+• 4x Deathwatch Terminator
+
+◦ 3x Cyclone Missile Launcher
+
+◦ 4x Power Fist
+
+◦ 4x Storm Bolter
+
+Deathwatch Terminator Squad (465 Points)
+
+• 1x Deathwatch Terminator Sergeant
+
+◦ 1x Storm Shield
+
+◦ 1x Thunder Hammer
+
+• 9x Deathwatch Terminator
+
+◦ 3x Cyclone Missile Launcher
+
+◦ 7x Power Fist
+
+◦ 7x Storm Bolter
+
+◦ 2x Storm Shield
+
+◦ 2x Thunder Hammer
+
+Incursor Squad (95 Points)
+
+• 4x Incursor
+
+◦ 4x Bolt Pistol
+
+◦ 4x Occulus Bolt Carbine
+
+◦ 4x Paired Combat Blades
+
+• 1x Incursor Sergeant
+
+◦ 1x Bolt Pistol
+
+◦ 1x Occulus Bolt Carbine
+
+◦ 1x Paired Combat Blades
+
+Incursor Squad (95 Points)
+
+• 4x Incursor
+
+◦ 4x Bolt Pistol
+
+◦ 4x Occulus Bolt Carbine
+
+◦ 4x Paired Combat Blades
+
+• 1x Incursor Sergeant
+
+◦ 1x Bolt Pistol
+
+◦ 1x Occulus Bolt Carbine
+
+◦ 1x Paired Combat Blades
+
+Indomitor Kill Team (280 Points)
+
+• 4x Kill Team Heavy Intercessor with Deathwatch Heavy Bolt Rifle and Ceramite Fists.
+
+◦ 4x Ceramite Fists
+
+◦ 4x Deathwatch Heavy Bolt Rifle
+
+• 3x Kill Team Heavy Intercessor with Flamestorm Gauntlets and Twin Power Fists
+
+◦ 3x Flamestorm Gauntlets
+
+◦ 3x Twin Power Fists
+
+• 3x Kill Team Heavy Intercessor with Melta Rifle, Bolt Pistol and Ceramite Fists
+
+◦ 3x Bolt Pistol
+
+◦ 3x Ceramite Fists
+
+◦ 2x Melta Rifle
+
+◦ 1x Multi-melta
+
+Exported with App Version: v2.7.0 (1), Data Version: v963

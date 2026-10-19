@@ -1,0 +1,186 @@
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+List Name: World Eaters
+
+Factions Used: World Eaters
+
+Army Points: 1995
+
+Army Enhancements (list on which model): None
+
+Disposition: Purge the Foe
+
+Detachment(s): Berzerker Warband, Vessels of Wrath
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ATTACHED UNITS:
+
+Khârn the Betrayer + Khorne Berzerkers (285 pts)
+
+Khârn the Betrayer (115 pts)
+
+• Gorechild
+
+• Plasma pistol
+
+Khorne Berzerkers (170 pts)
+
+• 7x Khorne Berzerker
+
+• 7x Bolt pistol
+
+• 7x Chainblade
+
+• Khorne Berzerker Champion
+
+• Bolt pistol
+
+• Chainblade
+
+• Icon of Khorne
+
+• 2x Khorne Berzerker w/ eviscerator and plasma pistol
+
+• 2x Khornate eviscerator
+
+• 2x Plasma pistol
+
+Slaughterbound + Exalted Eightbound (220 pts)
+
+Slaughterbound (90 pts)
+
+• Lacerator and daemonic claw
+
+Exalted Eightbound (130 pts)
+
+• 2x Exalted Eightbound
+
+• 2x Chainblades
+
+• Exalted Eightbound Champion
+
+• Chainblades
+
+Lord on Juggernaut + Khorne Berzerkers (425 pts)
+
+Lord on Juggernaut (95 pts)
+
+• Bladed horn
+
+• Exalted chainblade
+
+• Plasma pistol
+
+Khorne Berzerkers (330 pts)
+
+• 15x Khorne Berzerker
+
+• 15x Bolt pistol
+
+• 15x Chainblade
+
+• Khorne Berzerker Champion
+
+• Bolt pistol
+
+• Chainblade
+
+• Icon of Khorne
+
+• 4x Khorne Berzerker w/ eviscerator and plasma pistol
+
+• 4x Khornate eviscerator
+
+• 4x Plasma pistol
+
+CHARACTERS:
+
+Angron (330 pts)
+
+• Samni'arius and Spinegrinder
+
+• Warlord
+
+Slaughterbound (90 pts)
+
+• Lacerator and daemonic claw
+
+Slaughterbound (90 pts)
+
+• Lacerator and daemonic claw
+
+DEDICATED TRANSPORTS:
+
+Chaos Rhino (75 pts)
+
+• Armoured tracks
+
+• Combi-bolter
+
+• Combi-bolter
+
+• Havoc launcher
+
+OTHER DATASHEETS:
+
+Eightbound (125 pts)
+
+• 2x Eightbound
+
+• 2x Chainblades
+
+• Eightbound Champion
+
+• Chainblades
+
+Forgefiend (145 pts)
+
+• 2 Hades autocannons
+
+• 2x Hades autocannon
+
+• Ectoplasma cannon and claws
+
+• Ectoplasma cannon
+
+• Forgefiend claws
+
+Forgefiend (145 pts)
+
+• 2 Hades autocannons
+
+• 2x Hades autocannon
+
+• Ectoplasma cannon and claws
+
+• Ectoplasma cannon
+
+• Forgefiend claws
+
+Jakhals (65 pts)
+
+• 1 mauler chainblade, 7 chainblades
+
+• 7x Jakhal
+
+• 7x Autopistol
+
+• 7x Chainblades
+
+• Jakhal w/ mauler chainblade
+
+• Autopistol
+
+• Mauler chainblade
+
+• Dishonoured w/ skullsmasher and mangler
+
+• Skullsmasher and mangler
+
+• Icon of Khorne
+
+• Jakhal Pack Leader
+
+• Autopistol
+
+• Chainblades

@@ -1,0 +1,135 @@
+Necrons
+
+Cursed Legion and Skyshroud Spearhead (3 Detachment Points)
+
+Purge the Foe
+
+Strike Force (2 000 Points)
+
+ATTACHED UNITS
+
+Attached unit 1
+
+Lokhust Lord (80 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Lord's blade
+
+• 1x Resurrection Orb
+
+Lokhust Destroyers (195 Points)
+
+• Attached as: Bodyguard
+
+• Enhancements: Deepening Madness (Upgrade)
+
+• 6x Lokhust Destroyer
+
+◦ 6x Close combat weapon
+
+◦ 6x Gauss cannon
+
+Attached unit 2
+
+Lokhust Lord (80 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Lord's blade
+
+• 1x Resurrection Orb
+
+Lokhust Destroyers (195 Points)
+
+• Attached as: Bodyguard
+
+• Enhancements: Deepening Madness (Upgrade)
+
+• 6x Lokhust Destroyer
+
+◦ 6x Close combat weapon
+
+◦ 6x Gauss cannon
+
+Attached unit 3
+
+Overlord (110 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Resurrection Orb
+
+• 1x Voidscythe
+
+• Enhancements: Destroyer Ankh
+
+Lychguard (160 Points)
+
+• Attached as: Bodyguard
+
+• 10x Lychguard
+
+◦ 10x Dispersion Shield
+
+◦ 10x Hyperphase sword
+
+CHARACTERS
+
+C'tan Shard of the Nightbringer (360 Points)
+
+• 1x Gaze of death
+
+• 1x Scythe of the Nightbringer
+
+C'tan Shard of the Void Dragon (345 Points)
+
+• 1x Canoptek tail blades
+
+• 1x Spear of the Void Dragon
+
+• 1x Voltaic storm
+
+Nekrosor Ammentar (185 Points)
+
+• Warlord
+
+• 1x Blade tail and whip coils
+
+• 1x Enmitic disintegrators
+
+• 1x Nullstone Field Generator (Aura)
+
+• 1x Unmaker Gauntlet
+
+OTHER DATASHEETS
+
+Canoptek Reanimator (75 Points)
+
+• 2x Atomiser beam
+
+• 1x Reanimator's claws
+
+Flayed Ones (55 Points)
+
+• 5x Flayed One
+
+◦ 5x Flayer claws
+
+Ophydian Destroyers (80 Points)
+
+• 3x Ophydian Destroyer
+
+◦ 3x Ophydian hyperphase weapons
+
+◦ 1x Plasmacyte
+
+Ophydian Destroyers (80 Points)
+
+• 3x Ophydian Destroyer
+
+◦ 3x Ophydian hyperphase weapons
+
+◦ 1x Plasmacyte
+
+Exported with App Version: v2.6.0 (3), Data Version: v946

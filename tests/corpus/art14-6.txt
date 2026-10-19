@@ -1,0 +1,301 @@
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+List Name: NY-OOO1
+
+Factions Used: Adeptus Mechanicus
+
+Army Points: 2000
+
+Army Enhancements (list on which model): Vingh's Wafers of Dynamism (on Cybernetica Datasmith), Necromechanic (on Tech-Priest Enginseer)
+
+Disposition: Priority Assets
+
+Detachment(s): Cohort Cybernetica, Lords of the Forge
+
+Interactive List Link:
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ATTACHED UNITS:
+
+Cybernetica Datasmith + Kastelan Robots (350 pts)
+
+Cybernetica Datasmith (50 pts)
+
+• Mechanicus pistol
+
+• Power fist
+
+• Enhancement: Vingh's Wafers of Dynamism
+
+Kastelan Robots (300 pts)
+
+• 4x Kastelan Robot
+
+• 4x Incendine combustor
+
+• 4x Twin Kastelan fist
+
+CHARACTERS:
+
+Belisarius Cawl (220 pts)
+
+• Arc scourge
+
+• Cawl's Omnissian axe
+
+• Mechadendrite hive
+
+• Solar atomiser
+
+• Warlord
+
+Tech-Priest Enginseer (75 pts)
+
+• Mechanicus pistol
+
+• Omnissian axe
+
+• Servo arm
+
+• Enhancement: Necromechanic
+
+Tech-Priest Enginseer (55 pts)
+
+• Mechanicus pistol
+
+• Omnissian axe
+
+• Servo arm
+
+Thulia Ghuld (180 pts)
+
+• Jericho-class conversion resonator
+
+• Rod of the War Forge
+
+BATTLELINE:
+
+Skitarii Rangers (85 pts)
+
+• Skitarii Ranger Alpha
+
+• Alpha combat weapon
+
+• Close combat weapon
+
+• Galvanic rifle
+
+• Skitarii Ranger w/ arc rifle
+
+• Arc rifle
+
+• Close combat weapon
+
+• 5x Skitarii Ranger w/ galvanic rifle
+
+• 5x Close combat weapon
+
+• 5x Galvanic rifle
+
+• Skitarii Ranger w/ omnispex
+
+• Close combat weapon
+
+• Galvanic rifle
+
+• Omnispex
+
+• Skitarii Ranger w/ plasma caliver
+
+• Close combat weapon
+
+• Plasma caliver
+
+• Skitarii Ranger w/ transuranic arquebus
+
+• Close combat weapon
+
+• Transuranic arquebus
+
+Skitarii Vanguard (85 pts)
+
+• Skitarii Vanguard Alpha
+
+• Alpha combat weapon
+
+• Close combat weapon
+
+• Radium carbine
+
+• Skitarii Vanguard w/ arc rifle
+
+• Arc rifle
+
+• Close combat weapon
+
+• Skitarii Vanguard w/ omnispex
+
+• Close combat weapon
+
+• Omnispex
+
+• Radium carbine
+
+• Skitarii Vanguard w/ plasma caliver
+
+• Close combat weapon
+
+• Plasma caliver
+
+• 5x Skitarii Vanguard w/ radium carbine
+
+• 5x Close combat weapon
+
+• 5x Radium carbine
+
+• Skitarii Vanguard w/ transuranic arquebus
+
+• Close combat weapon
+
+• Transuranic arquebus
+
+OTHER DATASHEETS:
+
+Ironstrider Ballistarii (160 pts)
+
+• 2x Ironstrider Ballistarius (Twin cognis autocannon)
+
+• 2x Ironstrider feet
+
+• 2x Twin cognis autocannon
+
+Onager Dunecrawler (155 pts)
+
+• Broad spectrum data-tether
+
+• Cognis heavy stubber
+
+• Dunecrawler legs
+
+• Twin Onager heavy phosphor blaster
+
+Onager Dunecrawler (155 pts)
+
+• Broad spectrum data-tether
+
+• Cognis heavy stubber
+
+• Dunecrawler legs
+
+• Twin Onager heavy phosphor blaster
+
+Servitor Battleclade (65 pts)
+
+• 3x Combat Servitor w/ incendine igniter
+
+• 3x Incendine igniter
+
+• 3x Servo-claw
+
+• Combat Servitor w/ meltagun
+
+• Meltagun
+
+• Servo-claw
+
+• 2x Combat Servitor w/ phophor blaster
+
+• 2x Phosphor blaster
+
+• 2x Servo-claw
+
+• Gun Servitor w/ heavy arc rifle
+
+• Heavy arc rifle
+
+• Servo-claw
+
+• Gun Servitor w/ heavy bolter
+
+• Heavy bolter
+
+• Servo-claw
+
+• Servitor Underseer
+
+• Dataspikes
+
+• Mechanicus pistol
+
+Sicarian Infiltrators (75 pts)
+
+• 4x Sicarian Infiltrator (Taser goad & flechette blaster)
+
+• 4x Flechette blaster
+
+• 4x Taser goad
+
+• Sicarian Infiltrator Princeps (Taser goad & flechette blaster)
+
+• Flechette blaster
+
+• Taser goad
+
+Skorpius Disintegrator (170 pts)
+
+• Armoured hull
+
+• 3x Cognis heavy stubber
+
+• Disruptor missile launcher
+
+• Ferrumite cannon
+
+Skorpius Disintegrator (170 pts)
+
+• Armoured hull
+
+• 3x Cognis heavy stubber
+
+• Disruptor missile launcher
+
+• Ferrumite cannon
+
+Welcome to admech, where we have every rule in the game but only sometimes. The Robots can go through walls. Via strats and/or unit abilities, some or all of the units can sometimes:
+
+Ignore all modifers
+
+Ignore cover
+
+action and shoot
+
+have assault
+
+have extra movement
+
+have fall back and shoot
+
+have fall back and shoot and sometimes charge
+
+have advance and shoot and charge (not the robots)
+
+have lone op
+
+have AOC
+
+shoot and remain hidden
+
+cause a vehicle within 12 to take a battleshock (-1) in my shooting phase
+
+have a 5+ FNP
+
+have a 6+ FNP
+
+reroll all hits vs a chosen unit
+
+be -1 to hit in melee
+
+have +1 AP
+
+I'm confident I'm forgetting a few things.

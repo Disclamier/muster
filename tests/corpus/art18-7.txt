@@ -1,0 +1,191 @@
+Shocking Disruption (1995 points)
+
+Tyranids
+
+Subterranean Assault (3 Detachment Points)
+
+Disruption
+
+Strike Force (2000 points)
+
+Attached Units
+
+Attached Unit 1
+
+Tyranid Prime with Lash Whip (75 points)
+
+• Attached as: Leader (Character)
+
+• 1x Lash whip
+
+1x Rending claw
+
+1x Scything talons
+
+Hormagaunts (70 points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 10x Hormagaunt
+
+• 10x Hormagaunt talons
+
+Attached Unit 2
+
+Neurotyrant (130 points)
+
+• Attached as: Leader (Character)
+
+• 1x Neurotyrant claws and lashes
+
+1x Psychic scream
+
+Zoanthropes (190 points)
+
+• Attached as: Bodyguard
+
+• 1x Neurothrope
+
+• 1x Chitinous claws and teeth
+
+1x Warp Blast
+
+• 5x Zoanthrope
+
+• 5x Chitinous claws and teeth
+
+5x Warp Blast
+
+CHARACTERS
+
+The Red Terror (130 points)
+
+• Warlord
+
+• 1x Gaping maw
+
+1x Scything talons
+
+The Swarmlord (210 points)
+
+• 1x Bone sabres
+
+1x Synaptic pulse
+
+OTHER DATASHEETS
+
+Biovores (60 points)
+
+• 1x Chitin-barbed limbs
+
+1x Spore Mine launcher
+
+Hive Guard (160 points)
+
+• 6x Hive Guard
+
+• 6x Chitinous claws and teeth
+
+6x Shockcannon
+
+Maleceptor (180 points)
+
+• 1x Massive scything talons
+
+1x Psychic overload
+
+Maleceptor (180 points)
+
+• 1x Massive scything talons
+
+1x Psychic overload
+
+Mawloc (135 points)
+
+• 1x Distensible jaw
+
+1x Mawloc scything talons
+
+Mawloc (135 points)
+
+• 1x Distensible jaw
+
+1x Mawloc scything talons
+
+Neurolictor (80 points)
+
+• 1x Piercing claws and talons
+
+Neurolictor (80 points)
+
+• 1x Piercing claws and talons
+
+Zoanthropes (90 points)
+
+• 1x Neurothrope
+
+• 1x Chitinous claws and teeth
+
+1x Warp Blast
+
+• 2x Zoanthrope
+
+• 2x Chitinous claws and teeth
+
+2x Warp Blast
+
+Zoanthropes (90 points)
+
+• 1x Neurothrope
+
+• 1x Chitinous claws and teeth
+
+1x Warp Blast
+
+• 2x Zoanthrope
+
+• 2x Chitinous claws and teeth
+
+2x Warp Blast
+
+Exported with App Version: v2.5.0 (140), Data Version: v931
+
+------------------------------------
+
+I'm an uppie downie shooty army with charge from 6" DS.
+
+My detachment rule is to re-roll 1s to hit, and to make tunnels:
+
+- The Red Terror and the Mawlocs make a 40mm tunnel marker within 1" when they arrive from DS.
+
+- Other units in reserve can DS wholly within 9" of tunnel markers, and then arrive outside 6" of your units.
+
+- Charging is allowed.
+
+- If on of your units end a move within 3" of a tunnel marker it dies.
+
+My strats are, in order of importance:
+
+- Uppie downie, either both Mawlocs or any one unit
+
+- On board teleport between tunnels
+
+- Sus 1 and ignore cover on unit arriving from reserves
+
+- 6" re-roll charge aura on a monster that arrived from reserves
+
+- Heal/rez d3+1 wholly within 9" of a tunnel
+
+- Synapse on a Mawloc
+
+Important tricks:
+
+- The Red Terror has innate uppie downie if unenganged, on _both_ player's turns
+
+- Swarmy has vect
+
+- Maleceptors have a 6" aura of -1 to hit, also -1 to wound if you are below half strength.
+
+- Neurolictors cause a command phase BS test within 12", and give battle-shocked units within 12" -1 to hit and +1 to be wounded.
+
+- On arriving from DS, Mawlocs roll a d6 for each unit within 12" and deal mortals. 1: nothing, 2-4: d3, 5+: 3 and a BS test.

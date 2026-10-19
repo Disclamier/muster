@@ -1,0 +1,321 @@
+"What plays like an elf, but doesn't have pointy ears?"
+
+(2000 points)
+
+Space Marines
+
+White Scars
+
+Assault Brethren, Stormlance Task Force and Terminator Storm Force (3 Detachment Points)
+
+Take and Hold
+
+Strike Force (2000 points)
+
+Attached Units
+
+Attached Unit 1
+
+Suboden Khan (105 points)
+
+• Attached as: Leader (Character)
+
+• Warlord
+
+• 1x Heavy Bolt Pistol
+
+1x Onslaught gatling cannon
+
+1x Power Sword
+
+1x Stormtooth
+
+Outrider Squad (80 points)
+
+• Attached as: Bodyguard
+
+• 2x Outrider
+
+• 2x Chainsword
+
+2x Heavy Bolt Pistol
+
+2x Twin Bolt Rifle
+
+• 1x Outrider Sergeant
+
+• 1x Plasma Pistol
+
+1x Thunder Hammer
+
+1x Twin Bolt Rifle
+
+Attached Unit 2
+
+Chaplain on Bike (95 points)
+
+• Attached as: Leader (Character)
+
+• 1x Absolvor Bolt Pistol
+
+1x Crozius Arcanum
+
+1x Twin Bolt Rifle
+
+• Enhancement: Imperium's Sword
+
+Outrider Squad (80 points)
+
+• Attached as: Bodyguard
+
+• 2x Outrider
+
+• 2x Chainsword
+
+2x Heavy Bolt Pistol
+
+2x Twin Bolt Rifle
+
+• 1x Outrider Sergeant
+
+• 1x Plasma Pistol
+
+1x Thunder Hammer
+
+1x Twin Bolt Rifle
+
+Attached Unit 3
+
+Ancient in Terminator Armour (75 points)
+
+• Attached as: Support (Character)
+
+• 1x Master-crafted Power Weapon
+
+1x Storm Bolter
+
+Terminator Assault Squad (380 points)
+
+• Attached as: Bodyguard
+
+• Enhancement: Furious Assault (Upgrade)
+
+• 1x Terminator Sergeant
+
+• 1x Storm Shield
+
+1x Thunder Hammer
+
+• 9x Terminator
+
+• 5x Storm Shield
+
+5x Thunder Hammer
+
+4x Twin Lightning Claws
+
+CHARACTERS
+
+Librarian in Phobos Armour (75 points)
+
+• 1x Bolt Pistol
+
+1x Force Weapon
+
+1x Smite
+
+Librarian in Phobos Armour (75 points)
+
+• 1x Bolt Pistol
+
+1x Force Weapon
+
+1x Smite
+
+DEDICATED TRANSPORTS
+
+Impulsor (70 points)
+
+• 1x Armoured Hull
+
+1x Bellicatus Missile Array
+
+1x Ironhail Heavy Stubber
+
+1x Storm Bolters
+
+Impulsor (70 points)
+
+• 1x Armoured Hull
+
+1x Bellicatus Missile Array
+
+1x Ironhail Heavy Stubber
+
+1x Storm Bolters
+
+OTHER DATASHEETS
+
+Eradicator Squad with melta rifles (100 points)
+
+• 1x Eradicator Sergeant
+
+• 1x Bolt Pistol
+
+1x Ceramite Fists
+
+1x Melta Rifle
+
+• 2x Eradicator
+
+• 2x Bolt Pistol
+
+2x Ceramite Fists
+
+1x Melta Rifle
+
+1x Multi-melta
+
+Eradicator Squad with melta rifles (100 points)
+
+• 1x Eradicator Sergeant
+
+• 1x Bolt Pistol
+
+1x Ceramite Fists
+
+1x Melta Rifle
+
+• 2x Eradicator
+
+• 2x Bolt Pistol
+
+2x Ceramite Fists
+
+1x Melta Rifle
+
+1x Multi-melta
+
+Incursor Squad (90 points)
+
+• 4x Incursor
+
+• 4x Bolt Pistol
+
+4x Occulus Bolt Carbine
+
+4x Paired Combat Blades
+
+• 1x Incursor Sergeant
+
+• 1x Bolt Pistol
+
+1x Occulus Bolt Carbine
+
+1x Paired Combat Blades
+
+Incursor Squad (90 points)
+
+• 4x Incursor
+
+• 4x Bolt Pistol
+
+4x Occulus Bolt Carbine
+
+4x Paired Combat Blades
+
+• 1x Incursor Sergeant
+
+• 1x Bolt Pistol
+
+1x Occulus Bolt Carbine
+
+1x Paired Combat Blades
+
+Reiver Squad (85 points)
+
+• 1x Grapnel Launchers
+
+1x Grav-chutes
+
+• 1x Reiver Sergeant
+
+• 1x Bolt Carbine
+
+1x Monomolecular Combat Knife
+
+1x Special-issue Bolt Pistol
+
+• 4x Reiver
+
+• 4x Bolt Carbine
+
+4x Monomolecular Combat Knife
+
+4x Special-issue Bolt Pistol
+
+Reiver Squad (85 points)
+
+• 1x Grapnel Launchers
+
+1x Grav-chutes
+
+• 1x Reiver Sergeant
+
+• 1x Bolt Carbine
+
+1x Monomolecular Combat Knife
+
+1x Special-issue Bolt Pistol
+
+• 4x Reiver
+
+• 4x Bolt Carbine
+
+4x Monomolecular Combat Knife
+
+4x Special-issue Bolt Pistol
+
+Scout Squad (65 points)
+
+• 1x Scout Sergeant
+
+• 1x Bolt Pistol
+
+1x Combat Knife
+
+1x Shotgun
+
+• 4x Scout
+
+• 4x Bolt Pistol
+
+4x Combat Knife
+
+1x Heavy Bolter
+
+2x Shotgun
+
+1x Sniper Rifle
+
+Storm Speeder Thunderstrike (140 points)
+
+• 1x Armoured Impact
+
+1x Stormfury Missile Launcher
+
+1x Thunderstrike Icarus Rocket Pod
+
+1x Thunderstrike Las-talon
+
+Storm Speeder Thunderstrike (140 points)
+
+• 1x Armoured Impact
+
+1x Stormfury Missile Launcher
+
+1x Thunderstrike Icarus Rocket Pod
+
+1x Thunderstrike Las-talon
+
+Exported with App Version: v2.7.1 (146), Data Version: v972

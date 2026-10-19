@@ -1,0 +1,160 @@
++++++++++++++++++++++++++++++++++++++++++++++++
++ FACTION KEYWORD: Xenos - Tyranids
++ DETACHMENT: Invasion Fleet (Hyper Adaptions)
++ FORCE DISPOSITION: Take and Hold
++ TOTAL ARMY POINTS: 2000pts
++
++ WARLORD: Char1: Hive Tyrant
++ NUMBER OF UNITS: 16
++ SECONDARY: - Bring It Down: (4x2) + (2x4) - Assassination: 5 Characters
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Attached Units
+
+Attached Unit 1
+
+Hyperadapted Raveners (165 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Ravener Prime
+
+• 1x Prime claws and talons
+
+• 4x Ravener
+
+• 4x Ravener heavy claws and talons
+
+• 1x Venom bolt
+
+Raveners (125 pts)
+
+• Attached as: Bodyguard
+
+• 5x Ravener
+
+• 5x Ravener claws and talons
+
+Attached Unit 2
+
+Hyperadapted Raveners (165 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Ravener Prime
+
+• 1x Prime claws and talons
+
+• 4x Ravener
+
+• 4x Ravener heavy claws and talons
+
+• 1x Venom bolt
+
+Raveners (125 pts)
+
+• Attached as: Bodyguard
+
+• 5x Ravener
+
+• 5x Ravener claws and talons
+
+Attached Unit 3
+
+Tyranid Prime with Lash Whip (75 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Lash whip
+
+• 1x Rending claw
+
+• 1x Scything talons
+
+Hormagaunts (70 pts)
+
+• Attached as: Bodyguard
+
+• 10x Hormagaunts
+
+• 10x Hormagaunt talons
+
+Attached Unit 4
+
+Tyranid Prime with Lash Whip (75 pts)
+
+• Attached as: Leader (Character)
+
+• 1x Lash whip
+
+• 1x Rending claw
+
+• 1x Scything talons
+
+Hormagaunts (70 pts)
+
+• Attached as: Bodyguard
+
+• 10x Hormagaunts
+
+• 10x Hormagaunt talons
+
+CHARACTER
+
+Hive Tyrant (195 pts)
+
+• 1x Monstrous bonesword and lash whip
+
+• 1x Heavy venom cannon
+
+• Warlord
+
+OTHER DATASHEETS
+
+Biovores (60 pts)
+
+• 1x Biovore
+
+• 1x Chitin-barbed limbs
+
+• 1x Spore mine launcher
+
+Exocrine (135 pts)
+
+• 1x Bio-plasmic cannon
+
+• 1x Powerful limbs
+
+Exocrine (135 pts)
+
+• 1x Bio-plasmic cannon
+
+• 1x Powerful limbs
+
+Exocrine (145 pts)
+
+• 1x Bio-plasmic cannon
+
+• 1x Powerful limbs
+
+Neurolictor (80 pts)
+
+• 1x Piercing claws and talons
+
+Tyrannofex (190 pts)
+
+• 1x Powerful limbs
+
+• 1x Stinger salvoes
+
+• 1x Rupture cannon
+
+Tyrannofex (190 pts)
+
+• 1x Powerful limbs
+
+• 1x Stinger salvoes
+
+• 1x Rupture cannon
+
+Created with newrecruit.eu v35.70

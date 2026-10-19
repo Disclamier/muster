@@ -1,0 +1,151 @@
+(2,000 Points)
+
+Necrons
+
+Awakened Dynasty (3 Detachment Points)
+
+Take and Hold
+
+Strike Force (2,000 Points)
+
+ATTACHED UNITS
+
+Attached unit 1
+
+Overlord (90 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Resurrection orb
+
+• 1x Voidscythe
+
+Immortals (65 Points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 5x Immortal
+
+◦ 5x Close combat weapon
+
+◦ 5x Gauss blaster
+
+Attached unit 2
+
+Overlord (90 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Resurrection orb
+
+• 1x Voidscythe
+
+Plasmancer (60 Points)
+
+• Attached as: Support (Character)
+
+• 1x Plasmic lance
+
+Immortals (130 Points)
+
+• Attached as: Bodyguard (Battleline)
+
+• 10x Immortal
+
+◦ 10x Close combat weapon
+
+◦ 10x Gauss blaster
+
+Attached unit 3
+
+Lokhust Lord (80 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Lord's blade
+
+• 1x Resurrection orb
+
+Lokhust Destroyers (190 Points)
+
+• Attached as: Bodyguard
+
+• 6x Lokhust Destroyer
+
+◦ 6x Close combat weapon
+
+◦ 6x Gauss cannon
+
+Attached unit 4
+
+Lokhust Lord (100 Points)
+
+• Attached as: Leader (Character)
+
+• 1x Lord's blade
+
+• 1x Resurrection orb
+
+• Enhancements: Veil of Darkness
+
+Lokhust Heavy Destroyers (165 Points)
+
+• Attached as: Bodyguard
+
+• 3x Destroyer
+
+◦ 3x Close combat weapon
+
+◦ 3x Enmitic exterminator
+
+CHARACTERS
+
+C'tan Shard of the Nightbringer (360 Points)
+
+• 1x Gaze of death
+
+• 1x Scythe of the Nightbringer
+
+Illuminor Szeras (175 Points)
+
+• 1x Eldritch lance
+
+• 1x Impaling legs
+
+Imotekh the Stormlord (100 Points)
+
+• Warlord
+
+• 1x Gauntlet of Fire
+
+• 1x Staff of the Destroyer
+
+Nekrosor Ammentar (195 Points)
+
+• 1x Blade tail and whip coils
+
+• 1x Enmitic disintegrators
+
+• 1x Nullstone field generator
+
+• 1x Unmaker gauntlet
+
+Skorpekh Lord (125 Points)
+
+• 1x Enmitic annihilator
+
+• 1x Flensing claw
+
+• 1x Hyperphase harvester
+
+• Enhancements: Enaegic Dermal Bond
+
+OTHER DATASHEETS
+
+Canoptek Reanimator (75 Points)
+
+• 2x Atomiser beam
+
+• 1x Reanimator's claws
+
+Exported with New Recruit v36.41, Data Version: v26
