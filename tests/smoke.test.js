@@ -2323,6 +2323,27 @@ function statsSb(o) {
 }
 const signedIn = (uid, email) => ({ "muster.auth": JSON.stringify({ access_token: `at-${uid}-0`, refresh_token: `rt-${uid}`, expires_at: Math.floor(Date.now() / 1000) + 3600, user: { id: uid, email } }), "muster.sync.owner": uid });
 
+test("stats: our automated visits are never counted (headless / crawler UA, webdriver, ?nocount=1, muster.stats.bot flag)", () => {
+  const MSx = makeApp().w.MusterStats;
+  const store = () => { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v); }, removeItem: (k) => { delete m[k]; }, m }; };
+  const win = (ua, o) => Object.assign({ location: { hostname: "disclamier.github.io", protocol: "https:", search: "", hash: "" }, navigator: { userAgent: ua }, localStorage: store() }, o || {});
+  const real = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+  assert.equal(MSx.shouldCount(win(real)), true);
+  assert.equal(MSx.shouldCount(win("Mozilla/5.0 (Linux; Android 12; Cubot X30) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36")), true);
+  assert.equal(MSx.shouldCount(win("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36")), false);
+  assert.equal(MSx.shouldCount(win("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")), false);
+  assert.equal(MSx.shouldCount(win(real, { navigator: { userAgent: real, webdriver: true } })), false);
+  const w1 = win(real); w1.location.search = "?nocount=1";
+  assert.equal(MSx.shouldCount(w1), false); assert.equal(w1.localStorage.m["muster.stats.bot"], "1", "flag remembered");
+  w1.location.search = ""; assert.equal(MSx.shouldCount(w1), false, "still ours after the flag is set");
+  const w2 = win(real); w2.location.hash = "#/lists?nocount=1"; assert.equal(MSx.shouldCount(w2), false);
+  // headless helper scripts set the flag before the app loads
+  for (const f of ["headless/cdp.py", "headless/cdp2.py"]) assert.match(fs.readFileSync(path.join(__dirname, f), "utf8"), /addScriptToEvaluateOnNewDocument[^\n]*muster\.stats\.bot/);
+  const sql = fs.readFileSync(path.join(__dirname, "../supabase/stats_exclude_bots.sql"), "utf8");
+  assert.match(sql, /from public\.page_views_human where ts >= a and ts < b/); assert.match(sql, /from public\.page_views_human v/);
+  assert.doesNotMatch(sql, /\bdelete\s+from\b|\bdrop\s+table\s+public\.page_views\b|\bupdate\s+public\.page_views\b/i, "filters only, never deletes");
+});
+
 test("stats: device classification follows the app layout (phone = narrow, pc = wide + mouse, tablet = wide + touch)", async () => {
   const fake = (q) => ({ matchMedia: (x) => ({ matches: q(x) }) });
   const MSx = makeApp().w.MusterStats;

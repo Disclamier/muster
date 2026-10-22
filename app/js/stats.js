@@ -1,11 +1,19 @@
 /* Muster owner-only traffic counting (cookieless). Each app load / main view change sends ONE anonymous row to the
    Supabase table page_views (supabase/page_views.sql) with the public anon key: view, device class, referrer host and a
    random visitor id that is replaced every day. No IP, user id, e-mail, list data or user agent is sent. Skipped on
-   localhost / previews, with Do Not Track / Global Privacy Control, and when "Don't count my visits" is on. Any failure
+   localhost / previews, with Do Not Track / Global Privacy Control, when "Don't count my visits" is on, and for automated
+   browsers: headless / crawler user agents, navigator.webdriver, or our scripts' flag (localStorage muster.stats.bot = "1",
+   set by visiting once with ?nocount=1). Any failure
    (table not created yet, offline, blocked) is silent. */
 (function (root) {
   "use strict";
-  const LS_VID = "muster.stats.vid", LS_NOCOUNT = "muster.stats.noCount", LS_OWNER = "muster.stats.owner";
+  const LS_VID = "muster.stats.vid", LS_NOCOUNT = "muster.stats.noCount", LS_OWNER = "muster.stats.owner", LS_BOT = "muster.stats.bot";
+  /* automated browsers (our own headless checks, crawlers, link previews) are never counted */
+  const BOT_UA = /HeadlessChrome|PhantomJS|Puppeteer|Playwright|Selenium|Lighthouse|[a-z]bot\/|\bbot\b|crawler|spider|slurp|facebookexternalhit|embedly/i;
+  /* "?nocount=1" (or "nocount=1" in the hash) marks this browser as ours for good (sets LS_BOT) */
+  function urlBotFlag(win) {
+    try { const l = win.location || {}; return /(?:^|[?&#/])nocount=1\b/.test(String(l.search || "") + "#" + String(l.hash || "")); } catch (e) { return false; }
+  }
   const VIEWS = ["signin", "lists", "editor", "meta", "share", "other"];
   const PC_MQ = "(min-width: 761px) and (hover: hover) and (pointer: fine)";
   const mm = (win, q) => { try { return !!(win.matchMedia && win.matchMedia(q).matches); } catch (e) { return false; } };
@@ -61,6 +69,9 @@
     const nav = win.navigator || {};
     if (isPreviewHost(win.location)) return false;
     if (nav.webdriver) return false;
+    if (BOT_UA.test(String(nav.userAgent || ""))) return false;
+    if (urlBotFlag(win)) { lsSet(win, LS_BOT, "1"); return false; }
+    if (lsGet(win, LS_BOT) === "1") return false;
     if (nav.doNotTrack === "1" || win.doNotTrack === "1" || nav.globalPrivacyControl === true) return false;
     return !noCount(win);
   }
@@ -107,7 +118,7 @@
     }
     return { track, payload, disabled: () => dead };
   }
-  root.MusterStats = { create, deviceClass, refHost, viewOf, visitorId, shouldCount, isPreviewHost, localDay, LS_VID, LS_NOCOUNT, LS_OWNER,
+  root.MusterStats = { create, deviceClass, refHost, viewOf, visitorId, shouldCount, isPreviewHost, localDay, LS_VID, LS_NOCOUNT, LS_OWNER, LS_BOT, BOT_UA,
     noCount: (win) => noCount(win || root), setNoCount: (on, win) => lsSet(win || root, LS_NOCOUNT, on ? "1" : "0"),
     owner: (win) => lsGet(win || root, LS_OWNER), setOwner: (uid, win) => lsSet(win || root, LS_OWNER, uid || null) };
 })(typeof self !== "undefined" ? self : this);

@@ -14,6 +14,8 @@ class B:
         if mob: s.cmd('Emulation.setTouchEmulationEnabled',enabled=True,maxTouchPoints=5)
         s.cmd('Emulation.setEmulatedMedia',features=[{'name':'prefers-color-scheme','value':'dark'}])
         s.cmd('Runtime.enable'); s.cmd('Log.enable')
+        # our automated visits are never counted in Muster's traffic stats (app/js/stats.js reads this flag)
+        s.cmd('Page.enable'); s.cmd('Page.addScriptToEvaluateOnNewDocument',source="try{localStorage.setItem('muster.stats.bot','1')}catch(e){}")
     def cmd(s,m,**pr):
         s.i+=1; s.ws.send(json.dumps({'id':s.i,'method':m,'params':pr}))
         while True:
