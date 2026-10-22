@@ -339,6 +339,40 @@ test("attached group: clicking a unit or a character shows only its own stats/we
   assert.doesNotMatch(g.textContent, /Tainted Narthecium/);
 });
 
+test("stats view in a list: only the weapons the unit carries per its loadout (default when unset; swaps respected; always-carried kept)", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, S = w.Muster.S;
+  const F = S.idx.factions["death-guard"], FC = S.idx.factions["adeptus-custodes"];
+  const l = C.newList({ name: "DG", faction: "death-guard", sub: "death-guard" });
+  const pm = C.newEntry(F.units["Plague Marines"]), ps = C.newEntry(F.units["Plague Surgeon"]);
+  ps.attach = pm.uid; l.entries.push(pm, ps); S.lists.push(l);
+  await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor"));
+  const weapons = async (uid) => { click(w, d.querySelector(`[data-action=select-entry][data-uid="${uid}"]`)); await until(() => d.querySelector(".panel [data-testid=ds-stats]"));
+    return [...d.querySelectorAll(".panel [data-testid=profiles] tr[data-weapon]")].map((x) => x.dataset.weapon); };
+  let ws = await weapons(pm.uid);
+  assert.ok(ws.includes("Boltgun") && ws.includes("Plague knives"), ws.join());
+  for (const x of ["Plague spewer", "Blight launcher", "Meltagun", "Plasma gun"]) assert.ok(!ws.includes(x), x + " not carried by default");
+  assert.ok(d.querySelector(".panel [data-testid=ds-eq-note]"));
+  assert.ok(![...d.querySelectorAll(".panel [data-testid=profiles] tr")].some((t) => t.classList.contains("uneq")), "no dimmed rows");
+  ws = await weapons(ps.uid);
+  assert.deepEqual(ws.sort(), ["Balesword", "Bolt pistol"]);
+  // Caladius: swap the twin lastrum bolt cannon for neutronium cascade projectors
+  const l2 = C.newList({ name: "Cus", faction: "adeptus-custodes", sub: "adeptus-custodes" });
+  const ca = C.newEntry(FC.units["Caladius Grav-tank"]); l2.entries.push(ca); S.lists.push(l2);
+  await go(w, "#/list/" + l2.id); await until(() => d.querySelector(".editor"));
+  ws = await weapons(ca.uid);
+  assert.ok(ws.includes("Twin Lastrum Bolt Cannon") && ws.includes("Iliastus Accelerator Cannon") && !ws.includes("Twin Neutronium Cascade Projectors"), ws.join());
+  const radio = [...d.querySelectorAll(".panel input[data-change=lo-pick]")].find((x) => x.dataset.opt === "Twin Neutronium Cascade Projectors");
+  radio.checked = true; radio.dispatchEvent(new w.Event("change", { bubbles: true }));
+  await until(() => [...d.querySelectorAll(".panel tr[data-weapon]")].some((x) => x.dataset.weapon === "Twin Neutronium Cascade Projectors"));
+  ws = [...d.querySelectorAll(".panel [data-testid=profiles] tr[data-weapon]")].map((x) => x.dataset.weapon);
+  assert.ok(!ws.includes("Twin Lastrum Bolt Cannon"), ws.join());
+  // the catalog preview (no list context) still lists every option
+  const html = w.Muster.datasheetHtml(FC, FC.units["Caladius Grav-tank"], null);
+  assert.match(html, /Twin Lastrum Bolt Cannon/); assert.match(html, /Twin Neutronium Cascade Projectors/);
+});
+
 test("every faction: editor + all panel types render without errors", async () => {
   const { w, d } = makeApp();
   await until(() => d.querySelector(".lists-page"));
@@ -942,11 +976,12 @@ test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highli
   // default loadout: Chainblade + Bolt pistol equipped (highlighted), eviscerator/plasma shown dimmed
   const wrow = (tab, n) => tab.querySelector(`tr[data-weapon="${n}"]`);
   assert.ok(wrow(melee, "Chainblade").classList.contains("eq")); assert.ok(wrow(ranged, "Bolt pistol").classList.contains("eq"));
-  assert.ok(wrow(melee, "Khornate eviscerator").classList.contains("uneq"));
-  assert.match(wrow(ranged, "Plasma pistol").nextElementSibling.textContent, /supercharge/, "multi-profile weapon rows");
+  assert.equal(wrow(melee, "Khornate eviscerator"), null, "options not taken are hidden in a list");
+  { const box = d.createElement("div"); box.innerHTML = w.Muster.datasheetHtml(w.MusterCore.getFaction(w.Muster.S.idx, l), w.MusterCore.getFaction(w.Muster.S.idx, l).units["Khorne Berzerkers"], null);
+    assert.match(box.querySelector('tr[data-weapon="Plasma pistol"]').nextElementSibling.textContent, /supercharge/, "multi-profile weapon rows"); }
   assert.match(ranged.textContent, /Pistol/);
   const ab = prof.querySelector("[data-testid=ds-abilities]"); assert.match(ab.querySelector("[data-testid=ab-datasheet]").textContent, /Blood Surge/); assert.match(ab.querySelector("[data-testid=ab-faction]").textContent, /Blessings of Khorne/);
-  assert.match(ab.querySelector("[data-testid=ab-wargear]").textContent, /Icon of Khorne/);
+  assert.equal(ab.querySelector("[data-testid=ab-wargear]"), null, "Icon of Khorne not carried by default");
   assert.match(prof.querySelector("[data-testid=ds-keywords]").textContent, /Infantry/i);
   assert.match(prof.querySelector("[data-testid=ds-keywords]").textContent, /World Eaters/i);
   assert.match(ab.querySelector("[data-testid=ab-leader]").textContent, /Can be joined by.*Lord on Juggernaut/);
@@ -1055,11 +1090,11 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   const m = d.querySelector("#modal .modal.float-ds");
   const secs = [...m.querySelectorAll("[data-testid=ds-abilities]")];
   assert.equal(secs.length, 1);
-  assert.ok(secs[0].querySelector("[data-testid=ab-wargear]") && secs[0].querySelector("[data-testid=ab-leader]"));
+  assert.ok(secs[0].querySelector("[data-testid=ab-leader]"));
   assert.ok(m.querySelector("[data-testid=ds-gained]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v65/);
+  assert.match(read("sw.js"), /muster-shell-v66/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2710,7 +2745,7 @@ test("Tomb Blades: eye on Shieldvanes shows its text + bearer profile (Sv 3+, M 
   click(w, d.querySelector(`.roster .urow[data-uid="${e.uid}"]`));
   const p = d.querySelector(".panel");
   const wg = p.querySelector("[data-testid=ds-wargear-ab]"); assert.ok(wg, "wargear abilities under the weapons");
-  assert.match(wg.textContent, /Shieldvanes[\s\S]*Save characteristic/); assert.match(wg.textContent, /Shadowloom/); assert.match(wg.textContent, /Nebuloscope/);
+  assert.match(wg.textContent, /Shieldvanes[\s\S]*Save characteristic/); assert.match(wg.textContent, /Shadowloom/); assert.doesNotMatch(wg.textContent, /Nebuloscope/);
   assert.ok(wg.compareDocumentPosition(p.querySelector("[data-testid=ds-abilities]")) & 4, "before Abilities");
   assert.match(p.querySelector("[data-testid=ds-abilities] [data-testid=ab-wargear]").textContent, /Shieldvanes/);
   assert.doesNotMatch(p.querySelector("[data-testid=ds-abilities] [data-testid=ab-datasheet]").textContent, /Shieldvanes/);
@@ -2742,7 +2777,13 @@ test("CSM: Chaos Lord / Cultist Firebrand show no Daemon Prince Mark of Chaos ca
   click(w, d.querySelector(`.roster .urow[data-uid="${l.entries[2].uid}"]`));
   const p = d.querySelector(".panel");
   assert.ok([...p.querySelectorAll(".slh")].some((x) => /Mark of Chaos/.test(x.textContent)), "DP mark slot");
-  assert.match(p.querySelector("[data-testid=ds-wargear-ab]").textContent, /Tzeentch[\s\S]*infernal cannon/);
+  // stats view shows only the chosen mark's wargear ability
+  assert.ok(![...p.querySelectorAll("[data-testid=ds-wargear-ab] .ab-n")].some((x) => /Tzeentch/.test(x.textContent)), "unchosen mark hidden");
+  const tz = [...p.querySelectorAll("input[data-change=lo-pick]")].find((x) => /Tzeentch/.test(x.dataset.opt));
+  assert.ok(tz, "Tzeentch option"); tz.checked = true; tz.dispatchEvent(new w.Event("change", { bubbles: true }));
+  const wg = await until(() => d.querySelector(".panel [data-testid=ds-wargear-ab]"));
+  assert.match(wg.textContent, /Tzeentch[\s\S]*infernal cannon/);
+  assert.ok(![...wg.querySelectorAll(".ab-n")].some((x) => /Khorne|Nurgle|Slaanesh/.test(x.textContent)));
 });
 
 test("Pactbound Zealots: Mark of Chaos picker with each mark's effect; mismatched attach greyed; mark card in profile; none outside Pactbound", async () => {
