@@ -1116,6 +1116,37 @@
     return at.map((x) => `<div class="ds-join ds-lead" data-testid="ds-joined"><div class="ds-jh">${esc(x.name)} <span class="tag">${x.attachKind === "support" ? "Support" : "Leader"}</span> ${pts(x.total)}</div>${datasheetHtml(F, x.unit, x, { noPoints: true })}</div>`).join("") +
       `<div class="ds-join ds-body" data-testid="ds-bodyguard"><div class="ds-jh">+ ${esc(r.name)} <span class="tag">Bodyguard</span> ${pts(r.total)}</div>${datasheetHtml(F, r.unit, r)}</div>`;
   }
+  /* attached groups: the clicked unit/character's own datasheet (its statline, weapons, wargear) plus the abilities it gains from
+     the others in its group (a Leader's "while this model is leading a unit" abilities, the bodyguard's unit-wide abilities,
+     unit-wide enhancements). Stats changed by the group (Hyperstimm Trafficker +1 T) are already highlighted by entryStatMods. */
+  function groupOf(r) { const b = r.attachedTo || r; return [b].concat(b.attached || []); }
+  function gainedAbilities(F, r) {
+    if (!r || (!r.attachedTo && !(r.attached && r.attached.length))) return "";
+    const leadRe = /\b(?:while this model is leading|this model'?s unit|leading a unit|leading this unit|bearer'?s unit|while (?:the )?bearer is leading)\b/i;
+    const unitRe = /\b(?:this unit|models? in this unit|leading this unit|this model'?s unit|bearer'?s unit)\b/i;
+    const enhText = (x) => { const e = x.entry && x.entry.enh; if (!e) return null; const d = F.dets[e.det]; const h = d && (d.d ? d.d.enh : d.enh); const row = (h || (F.f.dets.find((y) => y.n === e.det) || {}).enh || []).find((y) => y[0] === e.name); return row ? [row[0], row[2] || ""] : null; };
+    const cards = [];
+    for (const x of groupOf(r)) {
+      if (x === r || !x.unit) continue;
+      const ds = dsOf(F, x.unit); const role = x.attachedTo ? (x.attachKind === "support" ? "Support" : "Leader") : "Bodyguard";
+      const want = (t) => (x.attachedTo ? leadRe : unitRe).test(clean(t || ""));
+      for (const a of (ds && ds.ab) || []) if (!/^(damaged\b|leader$|support$)/i.test(a[0] || "") && want(a[1]))
+        cards.push(`<div class="ab-card granted" data-testid="ab-gained-card"><div class="ab-n">${esc(a[0])} <span class="muted">(${esc(x.name)} · ${role})</span></div><div class="ab-t">${esc(clean(a[1]))}</div></div>`);
+      const et = enhText(x);
+      if (et && (unitRe.test(clean(et[1])) || leadRe.test(clean(et[1]))))
+        cards.push(`<div class="ab-card granted enh" data-testid="ab-gained-card"><div class="ab-n">${esc(et[0])} <span class="muted">(enhancement · ${esc(x.name)})</span></div><div class="ab-t">${esc(clean(et[1]))}</div></div>`);
+    }
+    const others = groupOf(r).filter((x) => x !== r).map((x) => x.name);
+    return `<div class="ds-sec" data-testid="ds-gained"><div class="ds-h">From the attached unit <span class="muted">(${esc(others.join(", "))})</span></div>${cards.join("") || `<div class="muted">No abilities from ${esc(others.join(", "))} apply to ${esc(r.name)}.</div>`}</div>`;
+  }
+  function memberDatasheet(F, r) {
+    const g = gainedAbilities(F, r);
+    const h = datasheetHtml(F, r.unit, r);
+    if (!g) return h;
+    // gained abilities right after the unit's own Abilities section
+    const i = h.indexOf('<div class="ds-sec" data-testid="ds-keywords">');
+    return i > 0 ? h.slice(0, i) + g + h.slice(i) : h.replace(/<\/div>$/, g + "</div>");
+  }
   function pointsTable(u) {
     return `<table class="ptable"><tr><th>Copies</th><th>Size</th><th>Points</th></tr>${(u.t || []).map((t) => t[2].map((r, i) => `<tr><td>${i ? "" : esc(t[1] === null ? (t[0] === 1 ? "any" : `${t[0]}+`) : t[0] === t[1] ? `#${t[0]}` : `${t[0]}–${t[1]}`)}</td>
       <td>${esc(r[2] || (r[0] === 1 ? "1 model" : r[0] + " models"))}</td><td>${esc(r[1])}</td></tr>`).join("")).join("")}
@@ -1215,7 +1246,7 @@
         ${markHtml}${attachHtml}${attachedHere}
         ${enhHtml}
         <div class="grp"><div class="gh">Notes</div><div class="gb"><textarea class="note" placeholder="Notes (included in exports)" data-change="note">${esc(e.note || "")}</textarea></div></div>
-        <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(led by ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : ""}</summary><div class="cb">${combinedDatasheet(F, r)}</div></details>
+        <details class="coll profiles" open data-testid="profiles"><summary>Profiles${r.attached && r.attached.length ? ` <span class="muted">(led by ${esc(r.attached.map((x) => x.name).join(", "))})</span>` : r.attachedTo ? ` <span class="muted">(attached to ${esc(r.attachedTo.name)})</span>` : ""}</summary><div class="cb">${memberDatasheet(F, r)}</div></details>
         ${unitStratsHtml(F, u, dets)}
       </div>`;
   }
@@ -2133,7 +2164,7 @@
       if (t.dataset.uid) {
         const c = C.calcList(CUR, S.idx); const r = c.entries.find((x) => x.uid === t.dataset.uid); if (!r || !r.unit) return;
         const dets = (CUR.dets || []).map((n) => F.dets[n]).filter(Boolean);
-        modal(r.attached && r.attached.length ? `${r.attached.map((x) => x.name).join(" + ")} + ${r.name}` : r.name, combinedDatasheet(F, r) + unitStratsHtml(F, r.unit, dets), floatOpts("ds"));
+        modal(r.name, memberDatasheet(F, r) + unitStratsHtml(F, r.unit, dets), floatOpts("ds"));
       } else {
         const u = F.units[t.dataset.unit]; if (!u) return;
         const c = C.calcList(CUR, S.idx); const r = S.ui.panel && S.ui.panel.uid ? c.entries.find((x) => x.uid === S.ui.panel.uid && x.unit === u) : null;
@@ -2316,6 +2347,6 @@
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open], details.cfg-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
     if (ev.key === "Escape") { if (dialogOpen()) closeModal(); else if (topFloat()) closeFloat(topFloat()); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
 
-  window.Muster = { S, SY, datasheetHtml, combinedDatasheet, dsOf, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
+  window.Muster = { S, SY, datasheetHtml, combinedDatasheet, memberDatasheet, dsOf, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

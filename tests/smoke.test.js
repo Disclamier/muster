@@ -316,6 +316,29 @@ test("Lists page: full list name wraps (no ellipsis), points total sits under th
   assert.match(css, /\.lrow \.lmain \.name \{[^}]*white-space: normal/);
 });
 
+test("attached group: clicking a unit or a character shows only its own stats/weapons, plus the abilities it gains (Death Guard)", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, S = w.Muster.S, F = S.idx.factions["death-guard"];
+  const l = C.newList({ name: "DG", faction: "death-guard", sub: "death-guard" });
+  const pm = C.newEntry(F.units["Plague Marines"]), ps = C.newEntry(F.units["Plague Surgeon"]), mp = C.newEntry(F.units["Malignant Plaguecaster"]);
+  ps.attach = pm.uid; mp.attach = pm.uid; l.entries.push(pm, ps, mp); S.lists.push(l);
+  await go(w, "#/list/" + l.id); await until(() => d.querySelector(".editor"));
+  const panel = async (uid) => { click(w, d.querySelector(`[data-action=select-entry][data-uid="${uid}"]`)); return until(() => d.querySelector(".panel [data-testid=ds-gained]")); };
+  let g = await panel(pm.uid);
+  let p = d.querySelector(".panel [data-testid=profiles]");
+  assert.equal(p.querySelectorAll("[data-testid=ds-stats]").length, 1);
+  assert.match(p.querySelector("[data-testid=ds-stats]").textContent, /Plague Marine/); assert.doesNotMatch(p.querySelector("[data-testid=ds-stats]").textContent, /Surgeon|Plaguecaster/);
+  assert.doesNotMatch(p.querySelector("[data-testid=ds-ranged]")?.textContent || "", /Plague Wind/);
+  assert.match(g.textContent, /Tainted Narthecium/); assert.match(g.textContent, /Gift of Contagion/); assert.doesNotMatch(g.textContent, /Inflamed Infections|Pestilent Fallout/);
+  g = await panel(ps.uid);
+  p = d.querySelector(".panel [data-testid=profiles]");
+  assert.equal(p.querySelectorAll("[data-testid=ds-stats]").length, 1); assert.match(p.querySelector("[data-testid=ds-stats]").textContent, /Plague Surgeon/);
+  assert.match(p.querySelector("[data-testid=ds-abilities]").textContent, /Tainted Narthecium/);
+  assert.match(g.textContent, /Infused with the Blessings of Nurgle/); assert.match(g.textContent, /Gift of Contagion/);
+  assert.doesNotMatch(g.textContent, /Tainted Narthecium/);
+});
+
 test("every faction: editor + all panel types render without errors", async () => {
   const { w, d } = makeApp();
   await until(() => d.querySelector(".lists-page"));
@@ -934,16 +957,16 @@ test("datasheet view: Profiles (stats incl. invuln, weapons with equipped highli
   // attach the Lord -> combined card on the bodyguard + combined points chip in the roster
   loj.attach = kb.uid; w.Muster.route();
   click(w, rowOf(0));
-  assert.ok(d.querySelector(".panel [data-testid=ds-joined]"));
+  assert.ok(!d.querySelector(".panel [data-testid=ds-joined]"), "only the clicked unit's own profile");
+  assert.equal(d.querySelectorAll(".panel [data-testid=ds-stats]").length, 1);
+  assert.match(d.querySelector(".panel [data-testid=ds-gained]").textContent, /Lord on Juggernaut/);
   const c = C.calcList(l, w.Muster.S.idx); const rk = c.entries.find((x) => x.uid === kb.uid), rl = c.entries.find((x) => x.uid === loj.uid);
   assert.match(d.querySelector(".roster [data-testid=combo-pts]").textContent, new RegExp(`Σ ${rk.total + rl.total} pts`));
   // roster eye icon -> popup sheet with the combined datasheet
   click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
-  const m = d.querySelector("#modal .modal.float-ds"); assert.ok(m); assert.match(m.textContent, /Lord on Juggernaut \+ Khorne Berzerkers/);
-  { const jn = m.querySelector("[data-testid=ds-joined]"), bg = m.querySelector("[data-testid=ds-bodyguard]");
-    assert.ok(jn && bg && (jn.compareDocumentPosition(bg) & w.Node.DOCUMENT_POSITION_FOLLOWING), "Leader datasheet above the bodyguard's");
-    assert.match(jn.querySelector(".ds-jh").textContent, /Lord on Juggernaut/); assert.match(bg.querySelector(".ds-jh").textContent, /Khorne Berzerkers/); }
-  assert.ok(m.querySelector("[data-testid=ds-stats]")); assert.equal(m.querySelectorAll("[data-testid=ds-joined]").length, 1);
+  const m = d.querySelector("#modal .modal.float-ds"); assert.ok(m); assert.match(m.querySelector(".mh, h2, .modal-title, header")?.textContent || m.textContent, /Khorne Berzerkers/);
+  assert.equal(m.querySelectorAll("[data-testid=ds-stats]").length, 1); assert.equal(m.querySelectorAll("[data-testid=ds-joined]").length, 0);
+  assert.ok(m.querySelector("[data-testid=ds-gained]"));
   click(w, d.querySelector("#modal [data-action=close-modal]"));
   // option eye icon -> just that wargear's profile
   click(w, rowOf(0));
@@ -1027,17 +1050,16 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   // every plain ability is its own card with a bold name
   const plain = A.ab.filter((a) => !/aura/i.test(a[0]) && !/^damaged/i.test(a[0]));
   assert.equal(ab.querySelectorAll("[data-testid=ab-datasheet] .ab-card").length, plain.length);
-  // combined card: attached Leader + bodyguard each get their own structured sections
+  // attached bodyguard: only its own structured sections, plus what it gains from its Leader
   click(w, d.querySelector(`.roster [data-action=ds-pop][data-uid="${kb.uid}"]`));
   const m = d.querySelector("#modal .modal.float-ds");
   const secs = [...m.querySelectorAll("[data-testid=ds-abilities]")];
-  assert.equal(secs.length, 2);
-  // character above the unit: the attached Leader's sections come first, the bodyguard's second
-  assert.match(secs[0].querySelector("[data-testid=ab-leader]").textContent, /Leader[\s\S]*Khorne Berzerkers[\s\S]*Attached/);
-  assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
+  assert.equal(secs.length, 1);
+  assert.ok(secs[0].querySelector("[data-testid=ab-wargear]") && secs[0].querySelector("[data-testid=ab-leader]"));
+  assert.ok(m.querySelector("[data-testid=ds-gained]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v64/);
+  assert.match(read("sw.js"), /muster-shell-v65/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
@@ -2539,10 +2561,14 @@ test("enhancement stat changes are highlighted in the unit panel and datasheet (
   l3.entries[0].attach = l3.entries[1].uid;
   await go(w, "#/list/" + l3.id); await until(() => d.querySelector(".editor"));
   click(w, d.querySelector(`[data-action=select-entry][data-uid="${l3.entries[1].uid}"]`));
-  const body = await until(() => d.querySelector(".panel [data-testid=ds-bodyguard]"));
-  const t = body.querySelector('[data-testid=ds-stats] [data-testid=emod][data-stat="T"]');
+  const body = await until(() => d.querySelector(".panel [data-testid=ds-stats]"));
+  const t = body.querySelector('[data-testid=emod][data-stat="T"]');
   assert.ok(t, "bodyguard T highlighted"); assert.equal(t.firstChild.textContent, "4"); assert.match(t.title, /from Succubus/);
-  assert.equal(d.querySelector('.panel [data-testid=ds-joined] [data-testid=ds-stats] [data-testid=emod][data-stat="T"]').firstChild.textContent, "4");
+  assert.match(d.querySelector(".panel [data-testid=ds-gained]").textContent, /Hyperstimm Trafficker/);
+  click(w, d.querySelector(`[data-action=select-entry][data-uid="${l3.entries[0].uid}"]`));
+  await until(() => d.querySelector(".panel [data-testid=ds-gained]"));
+  assert.equal(d.querySelectorAll(".panel [data-testid=ds-stats]").length, 1);
+  assert.equal(d.querySelector('.panel [data-testid=ds-stats] [data-testid=emod][data-stat="T"]').firstChild.textContent, "4");
   // no enhancement -> no highlight; exports unchanged (display only)
   assert.equal(C.calcList(l3, S.idx).total, C.calcList(Object.assign({}, l3, { entries: l3.entries }), S.idx).total);
 });
