@@ -556,8 +556,8 @@
             const size = c && c.size;
             return `<div class="lrow${l.disposition ? " has-disp" : ""}"${dispAttr(l)} data-action="open-list" data-id="${esc(l.id)}">
               ${factionImg(l) ? `<img class="lthumb" src="${esc(factionImg(l))}" alt="">` : icon(ROLE_ICON)}
-              <span class="lmain"><span class="name">${esc(l.name)}</span>${l.disposition ? dispChip(l.disposition, "sm") : ""}</span>
-              ${c ? `<span class="pts${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"}</span>${ptsLeftHtml(c.total, size, true)}
+              <span class="lmain"><span class="name">${esc(l.name)}</span>${c ? `<span class="pts${size && c.total > size.points ? " over" : ""}">${c.total} / ${size ? size.points : "?"}</span>` : ""}${l.disposition ? dispChip(l.disposition, "sm") : ""}</span>
+              ${c ? `${ptsLeftHtml(c.total, size, true)}
                 <span class="dot ${c.errors.length ? "err" : "ok"}" title="${c.errors.length ? esc(c.errors.length + " issue(s)") : "Valid"}">${c.errors.length ? "!" : "✓"}</span>` : ""}
               <span class="time">${esc(ago(l.updated))}</span>
               <button class="ibtn" data-action="rename-list" data-id="${esc(l.id)}" title="Rename">${icon("pencil")}</button>

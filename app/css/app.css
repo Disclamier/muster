@@ -1199,3 +1199,11 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .imprev .impguess { color: #c98f00; } .imprev .impbad { color: var(--red); } .imprev .impok { color: var(--green); } .imprev .impw { font-weight: 700; }
 .imprev .implines { margin: 8px 0; font-size: 13px; } .imprev .implines ul { margin: 4px 0; padding-left: 20px; overflow-wrap: anywhere; }
 @media (max-width: 600px) { .imprev .improw > span:first-child { min-width: 0; width: 100%; } }
+
+/* Lists page: full list name (wraps, no ellipsis) with the points total directly under it */
+.lrow .lmain .name { overflow: visible; text-overflow: clip; white-space: normal; overflow-wrap: break-word; word-break: normal; hyphens: auto; line-height: 1.25; }
+.lrow .lmain .pts { white-space: nowrap; }
+@media (max-width: 640px) {
+  .lrow .lmain { min-width: 25%; }
+  .lrow .time { white-space: normal; text-align: center; max-width: 4.2em; line-height: 1.15; }
+}

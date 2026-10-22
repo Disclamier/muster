@@ -302,6 +302,20 @@ test("plain-text import: review screen (matched / guessed / unmatched), remove a
   assert.ok(l.entries.some((e) => e.unit === "Blade Champion" && e.attach));
 });
 
+test("Lists page: full list name wraps (no ellipsis), points total sits under the name, points-left unchanged", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const long = "Golden Boyz of the Emperor's Eternal Watch — Lions of the Emperor tournament list v3 (final)";
+  const l = w.MusterCore.newList({ name: long, faction: "orks", sub: "orks" });
+  w.Muster.S.lists.push(l); await go(w, "#/list/" + l.id); await go(w, "#/lists");
+  const row = await until(() => d.querySelector(`.lrow[data-id="${l.id}"]`));
+  assert.equal(row.querySelector(".lmain .name").textContent, long);
+  assert.ok(row.querySelector(".lmain .name + .pts"), "pts directly under the name");
+  assert.ok(row.querySelector(":scope > .pleft"), "points-left stays in the row");
+  const css = fs.readFileSync(path.join(APP, "css/app.css"), "utf8");
+  assert.match(css, /\.lrow \.lmain \.name \{[^}]*white-space: normal/);
+});
+
 test("every faction: editor + all panel types render without errors", async () => {
   const { w, d } = makeApp();
   await until(() => d.querySelector(".lists-page"));
@@ -1023,7 +1037,7 @@ test("datasheet abilities: separate Core / Faction / Abilities / Auras / Wargear
   assert.ok(secs[1].querySelector("[data-testid=ab-wargear]") && secs[1].querySelector("[data-testid=ab-leader]"));
   const css = read("css/app.css");
   assert.match(css, /\.ab-card\.aura \{/); assert.match(css, /html\[data-theme="dark"\] \.ab-card\.aura/);
-  assert.match(read("sw.js"), /muster-shell-v63/);
+  assert.match(read("sw.js"), /muster-shell-v64/);
 });
 
 /* ---------------------------------------------------------------- accounts + cloud sync (Supabase REST, mocked) */
