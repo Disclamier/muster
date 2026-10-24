@@ -1191,11 +1191,13 @@
     const used = {}; for (const x of c.entries) if (x.uid !== uid && x.entry.enh) used[x.entry.enh.name] = (used[x.entry.enh.name] || 0) + 1;
     // Enhancements: every enhancement of every selected detachment. Characters see all of them, greyed with the
     // reason when they can't take one (keyword restriction in the text, already taken, one per attached unit,
-    // army limit); other units only see the ones they can take (Upgrades, enhancements written for them).
+    // army limit); other units see the Upgrades (greyed when not eligible) and the enhancements written for them.
     const isChar = C.isCharacter(u);
     const choices = C.enhancementChoices(l, S.idx, uid);
     const elig = (ch) => C.enhEligible(u, ch.en, F).ok;
-    const shown = choices.filter((ch) => (isChar && !C.isEpicHero(u)) || elig(ch) || (e.enh && e.enh.det === ch.d.n && e.enh.name === ch.en[0]));
+    // Upgrades (unit, not Character, enhancements: Contagion Engines' Lancet of the Worldsore / Parasitic Woe-reaper) are shown to
+    // every non-Character unit, greyed with the reason (keyword restriction) when this unit can't take them
+    const shown = choices.filter((ch) => (isChar && !C.isEpicHero(u)) || elig(ch) || (ch.en[3] && !isChar) || (e.enh && e.enh.det === ch.d.n && e.enh.name === ch.en[0]));
     let enhHtml = "";
     if (shown.length || (isChar && !C.isEpicHero(u)) || e.enh) {
       // New Recruit-style dropdown: one collapsed row showing the current pick (or None) + its points; opening it
