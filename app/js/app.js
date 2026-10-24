@@ -770,7 +770,7 @@
   }
   function renderCatalogBody(l, F, c) {
     const copies = {}; for (const e of l.entries) copies[e.unit] = (copies[e.unit] || 0) + 1;
-    let units = F.f.units.filter((u) => l.showLegends || !u.lg || copies[u.n]);
+    let units = F.f.units.filter((u) => l.showLegends || !u.lg || copies[u.n]).map((u) => C.allyView(u, l, F));   // detachment ally rules (Reaper's Wager Harlequins)
     // units that need a detachment the list doesn't have (e.g. Blood Legions daemons -> Khorne Daemonkin)
     const lockedAll = units.filter((u) => !C.unitAllowed(u, l).ok);
     units = units.filter((u) => C.unitAllowed(u, l).ok || copies[u.n] || l.showLocked);
@@ -1309,7 +1309,7 @@
       <button class="btn secondary small" data-action="lo-reset">Reset to default loadout</button></div></div>`;
   }
   function previewPanel(l, F, c, name) {
-    const u = F.units[name]; if (!u) return phead("Unit not found");
+    const u = C.allyView(F.units[name], l, F); if (!u) return phead("Unit not found");
     const n = l.entries.filter((e) => e.unit === name).length;
     return phead(esc(u.n), `${pts(C.minCost(u, n + 1), "big")} <span class="muted">${esc(u.r)}</span>`) + `<div class="pbody scroll" data-sk="panel">
       ${C.unitAllowed(u, l).ok ? `<button class="btn" data-action="add-unit" data-unit="${esc(u.n)}">${icon("plus")} Add to roster</button>` : `<div class="warn">🔒 ${esc(C.unitAllowed(u, l).reason)}</div>`}

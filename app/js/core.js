@@ -50,7 +50,39 @@
   /* ---------------------------------------------------------------- detachment-restricted units */
   /* u.req = detachments that unlock the unit (derived at build time, e.g. World Eaters Blood Legions daemons ->
      Khorne Daemonkin). Allowed when any of them is selected. */
+  /* detachment rules that swap an allied rule (Reaper's Wager: "You can include HARLEQUINS units in your army ...
+     Incursion: Up to 500 pts / Strike Force: Up to 1000 pts / Onslaught: Up to 1500 pts ... you cannot use the Corsairs
+     and Travelling Players army rule") -> [{kw, caps, swap, label, text, nw}] */
+  const _detAlly = new Map();
+  function detAllyRules(d) {
+    if (!d) return null;
+    if (_detAlly.has(d)) return _detAlly.get(d);
+    const t = stripMd((d.rule || []).join("\n")); let r = null;
+    const m = t.match(/You can include ([A-Z][A-Z' -]*?) units in your army[^\n]*\n?[^]*?Incursion:\s*Up to (\d+)[^]*?Strike Force:\s*Up to (\d+)[^]*?Onslaught:\s*Up to (\d+)/);
+    if (m) {
+      const sw = (t.match(/you cannot use the ([^.]*?) army rule/i) || [])[1] || null;
+      const nw = new RegExp(`No ${m[1]} models? from your army can be your WARLORD`, "i").test(t);
+      r = { kw: kwNorm(m[1]), caps: { incursion: +m[2], strikeforce: +m[3], onslaught: +m[4] }, swap: sw, label: `${m[1].charAt(0) + m[1].slice(1).toLowerCase()} (${d.n})`,
+        text: `${d.n}: you can include ${m[1]} units in your army. Combined points: Incursion up to ${m[2]}, Strike Force up to ${m[3]}, Onslaught up to ${m[4]}.${nw ? ` No ${m[1]} model can be your WARLORD.` : ""}${sw ? ` You cannot use the ${sw} army rule.` : ""}`, nw: nw ? 1 : 0 };
+    }
+    _detAlly.set(d, r);
+    return r;
+  }
+  const allyKwHas = (u, kw) => [u.fk, ...(u.kw || [])].filter(Boolean).some((k) => { const x = kwNorm(k); return x === kw || x === kw.replace(/S$/, "") || x.startsWith(kw.replace(/S$/, "") + " "); });
+  /* the unit as seen by a list: an allied unit whose rule a detachment replaces gets that detachment's rule, or is
+     blocked (blk) when the detachment switches the allied rule off and the unit lacks the detachment's keyword */
+  function allyView(u, list, idx) {
+    if (!u || !u.ally || !list || !(list.dets || []).length) return u;
+    const F = idx && idx.factions ? getFaction(idx, list) : idx; if (!F || !F.dets) return u;
+    for (const dn of list.dets) {
+      const r = detAllyRules(F.dets[dn]); if (!r) continue;
+      if (allyKwHas(u, r.kw)) return Object.assign({}, u, { ally: { label: r.label, caps: r.caps, text: r.text, nw: r.nw } });
+      if (r.swap && norm(u.ally.label) === norm(r.swap)) return Object.assign({}, u, { blk: `${dn}: you cannot use the ${r.swap} army rule (only ${r.kw} units can be included)` });
+    }
+    return u;
+  }
   function unitAllowed(u, list) {
+    if (u && u.blk) return { ok: false, reason: u.blk };
     if (!u || !u.req || !u.req.length) return { ok: true, reason: "" };
     const ok = u.req.some((d) => (list.dets || []).includes(d));
     return { ok, reason: ok ? "" : `Only with the ${u.req.join(" or ")} detachment` };
@@ -180,7 +212,7 @@
     const t = stripMd(en[2]);
     const m = t.match(/(?:^|[.!?:]\s+|\n)\s*([A-Za-z][^.!?\n:]*?)\s+(?:models?|units?)\s+only\b\s*(?:\(\s*excluding\s+([^)]*)\))?/i);
     if (m) {
-      const alts = m[1].split(/\s*,\s*|\s*\/\s*|\s+or\s+|\s+and\/or\s+/i).map((x) => kwNorm(x.replace(/^(a|an|the)\s+/i, ""))).filter(Boolean);
+      const alts = m[1].split(/\s*,\s*|\s*\/\s*|\s+or\s+|\s+and\/or\s+/i).map((x) => kwNorm(x.replace(/^(friendly\s+)?(a|an|the)\s+/i, "").replace(/^friendly\s+/i, ""))).filter(Boolean);
       const excl = m[2] ? m[2].split(/\s*,\s*|\s*\/\s*|\s+or\s+|\s+and\s+/i).map((x) => kwNorm(x.replace(/\b(units?|models?)\b/gi, ""))).filter(Boolean) : [];
       res = { alts, excl, text: m[0].replace(/^[.!?:\s]+/, "").trim().replace(/\.?$/, ".") };
     }
@@ -196,7 +228,7 @@
   function unitKwSet(u, F) {
     // the army's name counts as a keyword for its own units (a Captain in a Space Wolves list is SPACE WOLVES), not
     // for units from a separate group (World Eaters' Blood Legions daemons are not WORLD EATERS)
-    const s = new Set([...(u.kw || []), u.n, u.fk || (F && F.mainFk) || "", F && !u.grp && !u.req ? F.f.name : ""].filter(Boolean).map(kwNorm));
+    const s = new Set([...(u.kw || []), u.n, u.fk || (F && F.mainFk) || "", F && !u.grp && !u.req && !u.ally ? F.f.name : ""].filter(Boolean).map(kwNorm));
     for (const x of [...s]) { if (x.endsWith("S")) s.add(x.slice(0, -1)); else s.add(x + "S"); }
     return s;
   }
@@ -222,6 +254,15 @@
     const have = _unitAb.get(F.f.id + "|" + u.n); if (!have) return null;   // no datasheet: unknown, allowed
     return [...have].some((x) => x === norm(a) || x.startsWith(norm(a))) ? null : `${a} ability only (this unit's datasheet has no ${a}).`;
   }
+  const _detGr = new Map();
+  function detGrants(d) {
+    if (!d) return [];
+    if (_detGr.has(d)) return _detGr.get(d);
+    const out = []; const t = stripMd((d.rule || []).join("\n"));
+    for (const m of t.matchAll(/Friendly ([A-Z][A-Z0-9' \/-]*?) units have ([A-Z][A-Z' -]*?[A-Z])\.(?=\s|$)/g))
+      out.push({ kw: kwNorm(m[2]), alts: m[1].split(/\s*\/\s*/).map(kwNorm).filter(Boolean) });
+    _detGr.set(d, out); return out;
+  }
   function enhEligible(u, en, F) {
     if (!u) return { ok: false, reason: "" };
     const gate = abilityGate(u, en, F);
@@ -232,9 +273,13 @@
     const r = enhRestriction(en);
     if (!r) return base ? { ok: false, reason: base } : { ok: true, reason: "" };
     if (!F.mainFk) { const c = {}; for (const x of F.f.units) if (x.fk && !x.grp) c[x.fk] = (c[x.fk] || 0) + 1; F.mainFk = Object.keys(c).sort((a, b) => c[b] - c[a])[0] || ""; }
-    const vocab = factionVocab(F);
+    // keywords the enhancement's own detachment gives ("Friendly FOETID BLOAT-DRONE/.../MYPHITIC BLIGHT-HAULER units have
+    // CONTAGION ENGINE" -> Parasitic Woe-reaper's "CONTAGION ENGINE unit only")
+    const grants = detGrants(Object.values(F.dets || {}).find((d) => (d.enh || []).includes(en)));
+    const vocab = grants.length ? new Set([...factionVocab(F), ...grants.map((g) => g.kw)]) : factionVocab(F);
     if (r.alts.some((a) => !coveredBy(a, vocab))) return base ? { ok: false, reason: base } : { ok: true, reason: "" };   // wording we can't map -> only the base rules
-    const matches = (x) => { const k = unitKwSet(x, F); return !r.excl.some((e) => coveredBy(e, k)) && r.alts.some((a) => coveredBy(a, k)); };
+    const kwsOf = (x) => { const k = unitKwSet(x, F); for (const g of grants) if (g.alts.some((a) => coveredBy(a, k))) k.add(g.kw); return k; };
+    const matches = (x) => { const k = kwsOf(x); return !r.excl.some((e) => coveredBy(e, k)) && r.alts.some((a) => coveredBy(a, k)); };
     if (!matches(u)) return { ok: false, reason: r.text };
     if (!base) return { ok: true, reason: "" };
     // The text targets units that normally can't take enhancements (Headhunter vehicle enhancements, C'tan Shards in
@@ -249,7 +294,7 @@
   /* state of each enhancement for one entry: {d, en, ok, reason, taken} (for the options panel) */
   function enhancementChoices(list, idx, uid) {
     const F = getFaction(idx, list); const e = list.entries.find((x) => x.uid === uid); if (!F || !e) return [];
-    const u = findUnit(F, e.unit); if (!u) return [];
+    const u = allyView(findUnit(F, e.unit), list, F); if (!u) return [];
     const dets = (list.dets || []).map((n) => F.dets[n]).filter(Boolean);
     const c = calcList(list, idx);
     const used = {}; for (const x of list.entries) if (x.uid !== uid && x.enh) used[x.enh.name] = (used[x.enh.name] || 0) + 1;
@@ -576,7 +621,7 @@
     const copies = {}, enhUse = {};
     let warlords = 0; const allySum = {};
     for (const e of list.entries) {
-      const u = F.units[e.unit] || findUnit(F, e.unit);
+      const u = allyView(F.units[e.unit] || findUnit(F, e.unit), list, F);
       const row = { uid: e.uid, entry: e, unit: u, name: e.unit, role: u ? u.r : "Other", copy: 0, base: 0,
         wargear: 0, addons: 0, enh: 0, enhName: null, total: 0, missing: !u, modelsLabel: "" };
       if (!u) {
@@ -2706,7 +2751,7 @@
   }
   /* ==== end text import ==== */
 
-  return { parseListText, buildFromParse, importSummary, tiKey, tiSim, tiDetectFormat, TI_FORMAT_NAMES, allyGodCounts, allyRatioIssues, allyAddCheck, unitMark, markEffects, wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
+  return { allyView, detAllyRules, parseListText, buildFromParse, importSummary, tiKey, tiSim, tiDetectFormat, TI_FORMAT_NAMES, allyGodCounts, allyRatioIssues, allyAddCheck, unitMark, markEffects, wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
     EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
