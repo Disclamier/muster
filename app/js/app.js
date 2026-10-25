@@ -1279,7 +1279,7 @@
     const priceOf = (o) => o.w !== null && o.w !== undefined && u.w && u.w[o.w] ? ` ${pts(u.w[o.w][1] * (o.wn || 1))}` : "";   // e.g. "2 ectoplasma cannons" = 2 x the MFM per-item cost
     const slotHtml = (s, key, k) => {
       if (!k) return "";
-      const picks = lo.p[key] || {}; const [a, b] = C.slotRange(s, k);
+      const picks = lo.p[key] || {}; const [a, b] = C.slotRange(s, k, N);
       const sum = Object.values(picks).reduce((x, y) => x + y, 0);
       const desc = (o) => o.text ? `<span class="desc">${esc(clean(o.text))}</span>` : "";
       let body;
@@ -2257,7 +2257,7 @@
   }
   function loInc(u, lo, key, opt, d, N) {
     const { s, t } = slotOf(u, key); if (!s) return lo;
-    const k = t ? lo.c[t.name] || 0 : 1; const [a, b] = C.slotRange(s, k);
+    const k = t ? lo.c[t.name] || 0 : 1; const [a, b] = C.slotRange(s, k, N);
     const p = { ...(lo.p[key] || {}) }; const sum = Object.values(p).reduce((x, y) => x + y, 0);
     const o = s.opts.find((x) => x.name === opt); if (!o) return lo;
     const donor = () => { const pref = s.defaults.find((n) => n !== opt && p[n] > 0); if (pref) return pref;

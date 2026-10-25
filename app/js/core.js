@@ -412,9 +412,11 @@
     atSize(o.max, o.mas, N) * (s && k > 1 && s.defaults.includes(o.name) ? k : 1);
   /* MFM and GrimSlate sometimes count models differently (e.g. Marneus Calgar = 1 model in MFM, 3 in GrimSlate) */
   const loN = (M, N) => (M.mn != null && N < M.mn ? M.mn : M.mx != null && N > M.mx ? M.mx : N);
-  function slotRange(s, k) {
+  function slotRange(s, k, N) {
     const perMin = s.minT !== null && s.minT !== undefined ? s.minT : (s.optional ? 0 : 1);
     const perMax = s.maxT !== null && s.maxT !== undefined ? s.maxT : Math.max(1, perMin);
+    // options whose limit scales with unit size ("For every 3 models ... 1 Plasmacyte"): the slot can't hold more than they allow
+    if (N != null && s.opts.some((o) => o.mas)) { const cap = s.opts.reduce((t, o) => t + optMax(o, N, s, k), 0); return [Math.min(k * perMin, cap), Math.min(k * perMax, cap)]; }
     return [k * perMin, k * perMax];
   }
   /* "3 Headtakers, 3 Hunting Wolves" -> counts by model type */
