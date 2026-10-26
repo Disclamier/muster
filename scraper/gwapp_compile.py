@@ -87,7 +87,8 @@ def parse(path):
     SHOP = {"Discover more", "Warhammer 40,000 miniatures", "Warhammer 40,000 books", "Warhammer merchandise", "Shop Miniatures", "Forge World models", "Play Tabletop RPGs",
             "Warhammer model kits", "Warhammer rulebooks", "games", "Games",
             "Faction guides", "game", "Try New Games", "Marines", "Join the Marines", "Support Veterans", "File a Trademark",
-            "Become a supporter and remove ads"}  # 40k.app ad lines (Oct 12/17/19 2026)
+            "Become a supporter and remove ads",
+            "Warhammer game guides", "Tabletop game accessories", "Multiplayer game platform"}  # 40k.app ad lines (Oct 12/17/19/26 2026)
     L = [l for l in L if l not in SHOP]                 # shop-link block the site inserts between sections
     i = L.index("CREATE LIST")
     hdr = L[:i]
