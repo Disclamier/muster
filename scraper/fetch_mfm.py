@@ -262,10 +262,14 @@ def parse_detachment_card(card):
             det["force_dispositions"].append(t)
         elif bk and clean(text_of(bk[0])) == "ENHANCEMENTS":
             # an enhancement may carry 'LEADER: X, Y' / 'SUPPORT: X' (the bearer can join those units) right after its <li>
-            seq = [e for e in iter_elements(blk) if e[1] == "li" or (e[1] == "div" and "mx-3" in cls(e))]
+            # (since Oct 26, 2026 that attach row is itself an <li class="mx-3 ..."> rather than a <div class="mx-3">)
+            def is_attach(e):
+                return e[1] in ("li", "div") and "mx-3" in cls(e).split() and \
+                    re.match(r"(LEADER|SUPPORT)\b", clean(text_of(e)), re.I)
+            seq = [e for e in iter_elements(blk) if e[1] == "li" or is_attach(e)]
             lis = []
             for e in seq:
-                if e[1] == "li":
+                if e[1] == "li" and not is_attach(e):
                     lis.append(e)
                 elif lis and not isinstance(lis[-1], tuple):
                     mm = re.match(r"(LEADER|SUPPORT):?\s*(.*)", clean(text_of(e)), re.I)
@@ -368,7 +372,9 @@ def parse_index(tree):
         if isinstance(href, str):
             slug = href.strip("/").split("/")[-1]
             name = clean(text_of(el))
-            if slug and name and not any(f["id"] == slug for f in factions) and slug not in ("en",):
+            # the site footer (since Oct 26, 2026) links legal pages that are not factions and often 500
+            legal = "#" in slug or re.search(r"terms|privacy|cookie|policy|legal", slug)
+            if slug and name and not legal and not any(f["id"] == slug for f in factions) and slug not in ("en",):
                 factions.append({"id": slug, "name": name})
         if el[2] and re.fullmatch(r"[0-9a-f-]{36}", str(el[2])) and "navigation-menu" in str(p.get("data-slot", "")):
             uuid_names[el[2]] = clean(text_of(el))

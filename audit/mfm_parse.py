@@ -40,6 +40,10 @@ def parse_page(html):
             title = st.get_text(" ", strip=True) if st else ""
             rows = []
             for li in sec.find_all("li"):
+                # MFM (Oct 26, 2026) renders an enhancement's 'LEADER: X' / 'SUPPORT: X' attach row as its own
+                # <li class="mx-3 ..."> right after the enhancement; it is not an enhancement row
+                if "mx-3" in (li.get("class") or []) and re.match(r"\s*(LEADER|SUPPORT)\b", li.get_text(" ", strip=True), re.I):
+                    continue
                 parts = [x for x in li.find_all("span") if not x.find("span")]
                 txts = [p.get_text(" ", strip=True) for p in parts if p.get_text(strip=True)]
                 if not txts:
