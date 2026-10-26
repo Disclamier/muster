@@ -54,7 +54,8 @@ insert into public.muster_stats_bot_windows (from_ts, to_ts, note) values
   ('2026-10-19T04:47:31Z'::timestamptz, '2026-10-19T04:47:31Z'::timestamptz + interval '30 minutes', 'post-deploy live check: v62 Army rules row'),
   ('2026-10-19T05:58:03Z'::timestamptz, '2026-10-19T05:58:03Z'::timestamptz + interval '30 minutes', 'post-deploy live check: v63 text import'),
   ('2026-10-22T05:15:23Z'::timestamptz, '2026-10-22T05:15:23Z'::timestamptz + interval '30 minutes', 'post-deploy live check: v64 list names'),
-  ('2026-10-22T11:07:52Z'::timestamptz, '2026-10-22T11:07:52Z'::timestamptz + interval '30 minutes', 'post-deploy live check: v66 attached stats')
+  ('2026-10-22T11:07:52Z'::timestamptz, '2026-10-22T11:07:52Z'::timestamptz + interval '30 minutes', 'post-deploy live check: v66 attached stats'),
+  ('2026-10-25T21:20:24Z'::timestamptz, '2026-10-25T21:20:24Z'::timestamptz + interval '30 minutes', 'post-deploy live check: v67 Reaper''s Wager / Contagion Engines / Plasmacyte')
 on conflict (from_ts, to_ts) do nothing;
 
 -- 2. filtered view (owner rights; used only inside the security-definer stats functions)
