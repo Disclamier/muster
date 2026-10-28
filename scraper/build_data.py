@@ -32,6 +32,7 @@ BSDATA_WARGEAR = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__f
 # option limits that scale with unit size where GrimSlate only gives the 6-model maximum
 # ("For every 3 models in this unit, this unit can have 1 Plasmacyte." - GW app / 40k.app / BSData)
 OPTION_MAS = {("Skorpekh Destroyers", "Plasmacyte"): [[3, 1], [6, 2]], ("Ophydian Destroyers", "Plasmacyte"): [[3, 1], [6, 2]]}
+OPTION_MAS_CI = {(k[0].lower(), k[1].lower()): v for k, v in OPTION_MAS.items()}
 BSDATA_LEADERS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "overrides", "bsdata_leaders.json")))
 for _f, _v in BSDATA_LEADERS.get("xl", {}).items():
     for _n, _x in _v.items():
@@ -365,8 +366,10 @@ def merge(mfm, gs):
             if lo:
                 for sl in lo.get("u", []) + [s for m in lo["m"] for s in m[4]]:
                     for o in sl[1]:
-                        if (u["name"], o[0]) in OPTION_MAS:
-                            o[4] = OPTION_MAS[(u["name"], o[0])]
+                        # MFM unit names are upper-case ("SKORPEKH DESTROYERS"): match case-insensitively on the display name
+                        mas = OPTION_MAS_CI.get((name.lower(), o[0].lower()))
+                        if mas:
+                            o[4] = json.loads(json.dumps(mas))
                 cu["lo"] = lo
                 stats["units_with_loadout"] += 1
                 stats["loadout_options"] += sum(len(sl[1]) for m in lo["m"] for sl in m[4]) + sum(len(sl[1]) for sl in lo.get("u", []))
