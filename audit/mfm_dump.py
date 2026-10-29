@@ -37,16 +37,23 @@ def main():
     port = 9444
     p = subprocess.Popen([chrome_bin(), "--headless=new", "--disable-gpu", "--no-sandbox", f"--remote-debugging-port={port}",
                           "--remote-allow-origins=*", f"--user-data-dir={prof}", f"--user-agent={UA}", "about:blank"],
-                         stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+                         stderr=open(os.path.join(prof, "chrome.log"), "wb"), stdout=subprocess.DEVNULL)
     try:
         tabs = None
-        for _ in range(100):
+        # a cold runner can take well over 20 s to bring headless Chrome up; wait up to ~90 s
+        for _ in range(450):
+            if p.poll() is not None:
+                break
             try:
-                tabs = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json")); break
+                tabs = json.load(urllib.request.urlopen(f"http://127.0.0.1:{port}/json", timeout=5)); break
             except Exception:
                 time.sleep(0.2)
         if not tabs:
-            sys.exit("audit: Chrome did not start")
+            try:
+                log = open(os.path.join(prof, "chrome.log"), errors="replace").read()[-2000:]
+            except Exception:
+                log = ""
+            sys.exit(f"audit: Chrome did not start (exit={p.poll()})\n{log}")
         ws = websocket.create_connection([t for t in tabs if t["type"] == "page"][0]["webSocketDebuggerUrl"], timeout=120)
         n = [0]
 
