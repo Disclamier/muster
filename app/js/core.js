@@ -1311,6 +1311,12 @@
     return out;
   }
   /* .rosz bytes for Yellowscribe: {bytes, xml, issues, filename} */
+  /* the TTS paste code from a Yellowscribe makeArmyAndReturnCode / getArmyCode reply ({"code":"660b9701"}) */
+  function ysCodeFrom(txt) {
+    let o = null; try { o = typeof txt === "string" ? JSON.parse(txt) : txt; } catch (e) { return null; }
+    const c = o && typeof o.code === "string" ? o.code.trim() : "";
+    return /^[0-9a-z]{4,16}$/i.test(c) ? c : null;
+  }
   function exportYellowscribeRosz(list, idx, ds, meta) {
     const r = exportYellowscribe(list, idx, ds, meta);
     const base = String(list.name || "list").replace(/[^\w\- ]+/g, "").trim().replace(/\s+/g, "_") || "list";
@@ -2756,5 +2762,5 @@
   return { allyView, detAllyRules, parseListText, buildFromParse, importSummary, tiKey, tiSim, tiDetectFormat, TI_FORMAT_NAMES, allyGodCounts, allyRatioIssues, allyAddCheck, unitMark, markEffects, wargearAbilities, favouredKatah, armyRuleBody, gearWeapons, allyCapText, allyCountIssues, MARKS, markChoices, markRuleActive, leadersOk, enhAttach, detFits, detStatMods, detModEligible, pointsLeft, enhStatMods, applyStatMod, weaponMatches, entryStatMods, pickedGearTexts, setUnitAbilities, statWithMods, rulesIndex, rulesSearch, rulesMarks, ruleText, ruleNorm, scrubList, scrubSourceName, syncTime, pendingPush, syncRow, mergeLists, attachText, unitAllowed, attachKind, canAttach, attachTargets, enhRestriction, enhEligible, enhancementChoices, groupOf, findUnit, loadoutSummary, fmtLocal, loModel, hasLoadout, getLoadout, setModelCount, loadoutIssues, loadoutWargear, linkedWargear, loadoutLines, loadoutText, defaultCounts, effMin, loN, slotRange, typeMax, optMax, sortRows, metaFaction, metaDetachment, metaRanges, metaHasRtt, metaView, metaDetail, fmtPct, ROLE_ORDER, norm, uid, indexData, getFaction, getSize, tierFor, modelOptions, pickModelOption, stratTargetText, unitKeywords, unitStratMatch, unitStratagems, addonOptions, defaultModels,
     minCost, unitLimit, isCharacter, isEpicHero, isBattleline, isTransport, newList, newEntry, calcList, searchUnits,
     diffData, diffLists, costSummary, listToText, exportLists, importLists, duplicateList,
-    EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
+    EXPORT_FORMATS, exportText, exportYellowscribe, exportYellowscribeRosz, ysCodeFrom, ysResolveGear, zipStore, crc32, discordBlocks, toMarkdown, b64urlEncode, b64urlDecode, shareableList, listFromShareable };
 });

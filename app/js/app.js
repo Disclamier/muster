@@ -843,7 +843,7 @@
     const allDets = F ? F.f.dets.filter((d) => d.dp !== null && d.dp !== undefined) : [];
     const selDet = new Set(l.dets || []);
     const detOpt = (d) => { const fits = !F || C.detFits(l, F, d, c.size); return `<label class="opt${selDet.has(d.n) ? " sel" : ""}${fits ? "" : " dis"}" data-testid="det-opt" data-det="${esc(d.n)}"${fits ? "" : ` aria-disabled="true" title="Would exceed ${c.dpLimit} Detachment Points with the current picks"`}><input type="checkbox" value="${esc(d.n)}" ${selDet.has(d.n) ? "checked" : ""}${fits ? "" : " disabled"} data-change="det">
-        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selDet.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</span></label>`; };
+        <span class="on"><span class="dn">${esc(d.n)}</span> <span class="dpchip">${d.dp} DP</span>${d.fd && d.fd.length ? ` <span class="fdchips" data-testid="det-fd">${fdChips(d.fd, selDet.has(d.n) ? l : null)}</span>` : ""}${metaChip(l, d.n)}</span><button type="button" class="ibtn eye-s det-eye" data-action="det-pop" data-det="${esc(d.n)}" title="Preview ${esc(d.n)} rules" aria-label="Preview ${esc(d.n)} rules" data-testid="det-eye">${icon("eye")}</button></label>`; };
     const mfmDets = allDets.filter((d) => d.src !== "gs"), gsDets = allDets.filter((d) => d.src === "gs");
     const ds = c.dispositions || [];
     const cfg = `<div class="card cfgcard${collKey("cfg")}"><div class="sect-h" data-action="toggle-sect" data-key="cfg">${icon("gear")} Configuration${!dets.length ? ` <span class="need" title="Error: select a detachment">!</span>` : !l.disposition && ds.length ? ` <span class="need warn" title="Warning: no Force Disposition selected">!</span>` : ""}<span class="tri"></span></div><div class="sect-body">
@@ -1491,11 +1491,38 @@
       <ol><li>Open <a href="${YS_URL}" target="_blank" rel="noopener">yellowscribe.link</a> and choose <b>Upload</b>, then pick <b>${esc(r.filename)}</b> (on a phone it's in your Downloads / Files).</li>
         <li>Check the units, then press <b>Submit</b> at the bottom and copy the code.</li>
         <li>In Tabletop Simulator, load the <b>Yellowscribe v2</b> mod from the Steam Workshop, paste the code, pick a model for each model type and press <b>Create Army</b>.</li></ol>
+      <div class="ys-code" data-testid="ys-code-box"><b>Tabletop Simulator code</b>
+        <div class="ys-coderow"><input type="text" readonly class="ys-code-in" data-testid="ys-code" placeholder="Getting code…" aria-label="Yellowscribe code for Tabletop Simulator"><button class="btn small" data-action="ys-copy" data-testid="ys-copy" disabled>Copy</button></div>
+        <small class="muted ys-code-st" data-testid="ys-code-st">Asking yellowscribe.link for a code…</small></div>
       <p class="muted">Yellowscribe keeps the upload for about 10 minutes. Stats, weapons and abilities come from Muster's datasheets.</p>
       ${r.issues.length ? `<details class="ys-issues"><summary>${r.issues.length} item${r.issues.length === 1 ? "" : "s"} exported without full profiles</summary><ul>${r.issues.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}
       </div><div class="mfoot wrap"><a class="btn" href="${YS_URL}" target="_blank" rel="noopener">Open yellowscribe.link</a>
         <button class="btn secondary" data-action="exp-ys">Download again</button><button class="btn secondary" data-action="close-modal">Close</button></div>`);
+    ysFetchCode(r, m);
     return m;
+  }
+
+  /* one-step code: POST the .rosz to Yellowscribe's makeArmyAndReturnCode (same defaults as its site: all models,
+     700x1200 UI, Matched Play) -> {"code":"xxxxxxxx"}, the 8-character code the Yellowscribe v2 TTS mod takes.
+     Browsers only get the answer if yellowscribe.link sends CORS headers; when it doesn't, the box turns into a
+     paste field for the code the site gives after Upload -> Submit, so it can still be copied from here. */
+  async function ysFetchCode(r, m) {
+    const box = document.querySelector('[data-testid="ys-code-box"]'); if (!box) return;
+    const inp = box.querySelector(".ys-code-in"), btn = box.querySelector('[data-action="ys-copy"]'), st = box.querySelector(".ys-code-st");
+    const manual = (why) => { inp.readOnly = false; inp.placeholder = "Paste the code from yellowscribe.link"; btn.disabled = false;
+      st.textContent = why + " Follow the steps above, then paste the code here to keep it handy."; };
+    if (!navigator.onLine) return manual("Offline –");
+    try {
+      const code = C.ysCodeFrom(await (await fetch(YS_URL + "makeArmyAndReturnCode?filename=" + encodeURIComponent(r.filename), { method: "POST", body: r.bytes })).text());
+      if (!code) throw new Error("no code");
+      inp.value = code; btn.disabled = false; st.textContent = "Paste this code into the Yellowscribe v2 mod in Tabletop Simulator and press Create Army (valid ~10 minutes).";
+    } catch (e) { manual("Couldn't get a code automatically."); }
+  }
+  async function ysCopy() {
+    const inp = document.querySelector(".ys-code-in"); if (!inp || !inp.value.trim()) { toast("No code yet"); return; }
+    inp.select();
+    try { await navigator.clipboard.writeText(inp.value.trim()); } catch (e) { try { document.execCommand("copy"); } catch (e2) { /* selected */ } }
+    toast("Code copied");
   }
 
   /* ------------------------------------------------------------------ list options menu */
@@ -2197,6 +2224,15 @@
     "unlink": (t, ev) => { if (ev) ev.stopPropagation(); const uid = t.dataset.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (e) delete e.attach; }); toast("Detached"); },
     "open-panel": (t) => { S.ui.panel = { type: t.dataset.panel }; renderEditor(CUR.id); },
     "close-panel": () => { S.ui.panel = null; renderEditor(CUR.id); },
+    // eye on a detachment in the Configuration picker: its rule, enhancements and stratagems in a sheet, without
+    // ticking/unticking it (the eye sits inside the option's <label>, so the default label activation is cancelled)
+    "det-pop": (t, ev) => {
+      if (ev) { ev.preventDefault(); ev.stopPropagation(); }
+      const F = C.getFaction(S.idx, CUR); if (!F) return; const d = F.dets[t.dataset.det]; if (!d) return;
+      const sel = (CUR.dets || []).includes(d.n);
+      modal(d.n, `<div class="det-pop" data-testid="det-pop">${detBlock(d, { open: true, preview: !sel })}</div>`, floatOpts("ds"));
+    },
+    "ys-copy": () => ysCopy(),
     "focus-det": (t) => { S.ui.focusDet = t.dataset.det; renderEditor(CUR.id); },
     "wg": (t) => { const uid = S.ui.panel.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); e.wargear = e.wargear || {};
       const v = Math.max(0, (e.wargear[t.dataset.w] || 0) + +t.dataset.d); if (v) e.wargear[t.dataset.w] = v; else delete e.wargear[t.dataset.w]; }); },
