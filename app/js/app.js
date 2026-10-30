@@ -1513,10 +1513,23 @@
       st.textContent = why + " Follow the steps above, then paste the code here to keep it handy."; };
     if (!navigator.onLine) return manual("Offline –");
     try {
-      const code = C.ysCodeFrom(await (await fetch(YS_URL + "makeArmyAndReturnCode?filename=" + encodeURIComponent(r.filename), { method: "POST", body: r.bytes })).text());
+      const code = await ysProxyCode(r);
       if (!code) throw new Error("no code");
       inp.value = code; btn.disabled = false; st.textContent = "Paste this code into the Yellowscribe v2 mod in Tabletop Simulator and press Create Army (valid ~10 minutes).";
     } catch (e) { manual("Couldn't get a code automatically."); }
+  }
+  /* Supabase Edge Function "ys-code" (supabase/functions/ys-code) forwards the .rosz to Yellowscribe and adds CORS;
+     direct yellowscribe.link is tried second in case it ever sends CORS headers itself */
+  async function ysProxyCode(r) {
+    const cfg = window.MUSTER_CONFIG || {}, base = String(cfg.SUPABASE_URL || "").replace(/\/$/, ""), key = String(cfg.SUPABASE_ANON_KEY || "").trim();
+    const q = "?filename=" + encodeURIComponent(r.filename);
+    if (base && key) {
+      try {
+        const res = await fetch(base + "/functions/v1/ys-code" + q, { method: "POST", body: r.bytes, headers: { "Content-Type": "application/octet-stream", apikey: key, Authorization: "Bearer " + key } });
+        const c = res.ok ? C.ysCodeFrom(await res.text()) : null; if (c) return c;
+      } catch (e) { /* fall through */ }
+    }
+    return C.ysCodeFrom(await (await fetch(YS_URL + "makeArmyAndReturnCode" + q, { method: "POST", body: r.bytes })).text());
   }
   async function ysCopy() {
     const inp = document.querySelector(".ys-code-in"); if (!inp || !inp.value.trim()) { toast("No code yet"); return; }
