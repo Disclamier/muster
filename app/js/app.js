@@ -581,8 +581,8 @@
     else $$(":scope > .modal-wrap:not(.floatwrap)", m).forEach((x) => x.remove());
     const box = document.createElement("div");
     box.innerHTML = `<div class="modal-wrap${opts && opts.sheet ? " sheetwrap" : ""}${fl ? " floatwrap" : ""}"${fl ? ` data-fk="${esc(fk)}"` : ` data-action="modal-bg"`}><div class="modal${opts && opts.wide ? " wide" : ""}${opts && opts.sheet ? " sheet" : ""}${fl ? ` float float-${fk}` : ""}" role="dialog" aria-label="${esc(titleText)}">
-      <div class="mtitle"><span>${esc(titleText)}</span><button class="ibtn" data-action="close-modal" title="Close">${icon("x")}</button></div>
-      <div class="mbody">${body}</div></div></div>`;
+      <div class="mtitle"><span>${esc(titleText)}</span></div>
+      <div class="mbody">${body}</div><button class="backfab" data-action="close-modal" title="Back" aria-label="Back" data-testid="back-btn">${icon("back")}</button></div></div>`;
     const wrap = box.firstElementChild; m.appendChild(wrap);
     const el = $(".modal", wrap);
     // touch devices: never focus a text field by itself (that pops the keyboard) - only when the user taps it
@@ -913,8 +913,8 @@
 
   /* ------------------------------------------------------------------ right panel */
   function phead(t, sub, extra) {
-    return `<div class="phead"><button class="ibtn phone-only" data-action="close-panel" title="Back">${icon("back")}</button><span class="t">${t}${sub ? `<div class="psub">${sub}</div>` : ""}</span>${extra || ""}
-      <button class="ibtn" data-action="close-panel" title="Close">${icon("x")}</button></div>`;
+    return `<div class="phead"><span class="t">${t}${sub ? `<div class="psub">${sub}</div>` : ""}</span>${extra || ""}
+      <button class="backfab" data-action="close-panel" title="Back" aria-label="Back" data-testid="back-btn">${icon("back")}</button></div>`;
   }
   function renderPanel(l, F, c) {
     const P = S.ui.panel;

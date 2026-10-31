@@ -1212,3 +1212,11 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .ys-code{margin:10px 0;padding:10px;border:1px solid var(--line,#444);border-radius:8px}
 .ys-coderow{display:flex;gap:6px;margin:6px 0}
 .ys-code-in{flex:1;min-width:0;font:600 18px/1.2 ui-monospace,monospace;letter-spacing:.08em;padding:6px 8px;user-select:all}
+/* v70: boxed back arrow bottom-right (New Recruit style) replaces the top-right X on sheets, dialogs and panels */
+.backfab { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 40px; padding: 0; border: 1px solid var(--border); border-radius: 6px; background: var(--sect); color: var(--text); cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.backfab svg { width: 22px; height: 22px; }
+.backfab:hover, .backfab:focus-visible { border-color: var(--accent, #3b82f6); }
+.modal > .backfab { align-self: flex-end; margin: 4px 8px 8px; flex: none; }
+.panel { position: relative; }
+.panel .phead > .backfab { position: absolute; right: 10px; bottom: 10px; z-index: 5; }
+.panel .pbody { padding-bottom: 60px; }
