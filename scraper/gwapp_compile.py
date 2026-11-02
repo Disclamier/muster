@@ -23,6 +23,10 @@ def fix(s):
     s = re.sub(r"\[([^\[\]]*)\[([^\]]*)\]\]\(#\w+\)", r"[\1\2]", s)   # '[ANTI-non-[VEHICLE 4+]](#kw)' -> '[ANTI-non-VEHICLE 4+]'
     s = re.sub(r"\]\(#\w+\)", "]", s)
     s = re.sub("[\u2010\u2011\u2012]", "-", s)   # typographic hyphens (keyword matching needs '-')
+    # Nov 2 2026: 40k.app started printing keyword qualifiers in caps ('[ANTI-NON-VEHICLE 4+]', '[LETHAL HITS: NON-MONSTER/VEHICLE]');
+    # keep the app's own casing ('[ANTI-non-VEHICLE 4+]', '[LETHAL HITS: non-Monster/Vehicle]') so the text doesn't churn
+    s = s.replace("[ANTI-NON-", "[ANTI-non-")   # in-text only; bare weapon-keyword lines stay caps for tables()
+    s = re.sub(r": NON-([A-Z/ ]+)\]", lambda m: ": non-" + "/".join(w.title() for w in m.group(1).split("/")) + "]", s)
     return s.replace("\u2011", "-").replace("’", "'").replace("‘", "'").replace("”", '"').replace("“", '"').strip()
 
 
@@ -84,11 +88,14 @@ def parse(path):
     url = L[0]
     if "Become a supporter" in L:                       # site footer
         L = L[:L.index("Become a supporter")]
+    # footer tagline the site added above "Become a supporter" (Nov 2 2026)
+    L = [l for l in L if not l.startswith("Army lists, datasheets, rules and a battle tracker")]
     SHOP = {"Discover more", "Warhammer 40,000 miniatures", "Warhammer 40,000 books", "Warhammer merchandise", "Shop Miniatures", "Forge World models", "Play Tabletop RPGs",
             "Warhammer model kits", "Warhammer rulebooks", "games", "Games",
             "Faction guides", "game", "Try New Games", "Marines", "Join the Marines", "Support Veterans", "File a Trademark",
             "Become a supporter and remove ads",
-            "Warhammer game guides", "Tabletop game accessories", "Multiplayer game platform"}  # 40k.app ad lines (Oct 12/17/19/26 2026)
+            "Warhammer game guides", "Tabletop game accessories", "Multiplayer game platform",
+            "Warhammer strategy guides"}  # 40k.app ad lines (Oct 12/17/19/26, Nov 2 2026)
     L = [l for l in L if l not in SHOP]                 # shop-link block the site inserts between sections
     i = L.index("CREATE LIST")
     hdr = L[:i]
