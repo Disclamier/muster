@@ -1220,3 +1220,66 @@ html[data-theme="dark"] .emod.det { border-color: var(--c-det, #39ff14); backgro
 .panel { position: relative; }
 .panel .phead > .backfab { position: absolute; right: 10px; bottom: 10px; z-index: 5; }
 .panel .pbody { padding-bottom: 60px; }
+
+/* ---------------------------------------------------------------- Play mode (#/list/<id>/play): read-only game view */
+.titlebar .act.playbtn { background: var(--green); color: #fff; font-weight: 700; padding: 4px 10px; }
+.titlebar .act.playbtn:hover { background: #367f36; }
+.titlebar .act.playbtn svg.i { width: 15px; height: 15px; }
+.lrow .ibtn.lplay { color: var(--green); }
+.play { display: flex; flex-direction: column; gap: 6px; padding: 6px 6px 76px; }
+.play .ptitle .pmode { display: inline-flex; align-items: center; gap: 3px; background: var(--green); color: #fff; font-weight: 700; font-size: 12px; padding: 2px 8px 2px 6px; border-radius: 4px; }
+.play .ptitle .pmode svg.i { width: 13px; height: 13px; }
+.ptrack { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 5px 8px; }
+.ptrack .grow { flex: 1; }
+.ptrack .ctr { display: inline-flex; align-items: center; gap: 0; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.ptrack .ctr .cl { padding: 0 8px; font-size: 12px; font-weight: 700; color: var(--gray); }
+.ptrack .ctr button { width: 36px; height: 34px; border: 0; border-left: 1px solid var(--border); background: var(--sect); font-size: 18px; font-weight: 700; cursor: pointer; }
+.ptrack .ctr button:disabled { opacity: .35; cursor: default; }
+.ptrack .ctr b { min-width: 30px; text-align: center; font-size: 16px; border-left: 1px solid var(--border); line-height: 34px; }
+.ptrack .btn.sm { padding: 6px 10px; font-size: 12px; }
+.ptrack .pdc { font-size: 12px; }
+.pdisp { font-size: 12px; padding: 0 2px; }
+.pcols { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 8px; align-items: start; }
+.pcol { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pcard .sect-h { cursor: default; }
+.prow { background: var(--row); margin: 0 0 1px; padding: 5px 8px 6px; cursor: pointer; }
+.prow:hover, .prow:focus-visible { background: var(--row-hover); outline: none; }
+.prow .pl1 { display: flex; align-items: center; gap: 5px; }
+.prow .pl1 .n { font-weight: 700; font-size: 13.5px; }
+.prow .pl1 .grow { flex: 1; }
+.prow .tag.wl { color: var(--warn); border-color: var(--warn); }
+html[data-c-list] .prow .pl1 .n { color: var(--c-list); }
+.prow .penh { font-size: 12px; margin-top: 2px; color: var(--gray); }
+html[data-c-enh] .prow .penh .enh-n, html[data-c-enh] .play-ds .enh-n { color: var(--c-enh); }
+.pstats { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+.pst { display: inline-flex; flex-direction: column; align-items: center; min-width: 36px; padding: 1px 4px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-weight: 700; font-size: 13px; line-height: 1.25; }
+.pst i { font-style: normal; font-weight: 600; font-size: 9.5px; color: var(--gray); text-transform: uppercase; }
+.prow .pgear { display: flex; flex-wrap: wrap; gap: 0 10px; margin-top: 3px; font-size: 11.5px; color: var(--gray); }
+.prow .pdead { font-size: 16px; line-height: 1; padding: 4px 6px; opacity: .45; border: 1px solid transparent; }
+.prow .pdead:hover { opacity: .9; }
+.prow .pdead.on { opacity: 1; color: var(--red); border-color: var(--red); }
+.prow.dead { opacity: .5; }
+.prow.dead .pl1 .n { text-decoration: line-through; }
+.play .phint { padding: 2px 4px; }
+.play .prules .detfocus { border: 0; padding: 0; margin: 0 0 6px; }
+.play-ds > .ab-card.lead { margin-bottom: 6px; }
+.backfab.playback { position: fixed; right: max(14px, env(safe-area-inset-right)); bottom: max(14px, env(safe-area-inset-bottom)); z-index: 25; width: 52px; height: 46px; }
+@media (max-width: 760px) {
+  .titlebar .act.playbtn { padding: 4px 7px; gap: 3px; }
+  /* phone: room for the list name next to the Play button (tapping the name still renames) */
+  .editor .titlebar > .ibtn[data-action=rename-cur] { display: none; }
+  .editor .titlebar .lname { min-width: 40px; flex: 0 1 auto; }
+}
+@media (max-width: 480px) {
+  /* narrow phones: Play becomes a green ▶ icon button so the name, points and Options menu still fit */
+  .editor .titlebar .act.playbtn .plbl { display: none; }
+  .editor .titlebar .act.playbtn { padding: 5px 9px; }
+  .editor .titlebar .act.playbtn svg.i { width: 17px; height: 17px; }
+  .editor .titlebar .pleft { display: none; }   /* points left stays in the faction banner right below and in the total */
+  .pcols { grid-template-columns: minmax(0, 1fr); }
+  .ptabs { display: flex; }
+  .pcols[data-tab="units"] .prules, .pcols[data-tab="rules"] .punits { display: none; }
+  .ptrack .ctr button { width: 40px; height: 38px; } .ptrack .ctr b { line-height: 38px; }
+  .play .ptitle .lname { font-size: 14px; }
+}
+@media print { .backfab.playback, .ptrack { display: none !important; } }

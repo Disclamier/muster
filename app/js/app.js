@@ -509,11 +509,12 @@
     const parts = h.replace(/^#\/?/, "").split("/");
     closeMenus();
     // the editor is a fixed-height app view (header/title row stay put, each column scrolls on its own)
-    document.body.classList.toggle("app-fixed", parts[0] === "list" && !!parts[1]);
+    document.body.classList.toggle("app-fixed", parts[0] === "list" && !!parts[1] && parts[2] !== "play");
     // per-faction colors: the open list's faction picks the color set (no list open = only the shared disposition colors)
     const cl = parts[0] === "list" && parts[1] ? findList(decodeURIComponent(parts[1])) : null;
     if (MC.setScope(cl ? cl.sub || cl.faction : null) && $("#modal [data-testid=colors]")) openColors();
-    if (parts[0] === "list" && parts[1]) renderEditor(decodeURIComponent(parts[1]));
+    if (parts[0] === "list" && parts[1] && parts[2] === "play") renderPlay(decodeURIComponent(parts[1]));
+    else if (parts[0] === "list" && parts[1]) renderEditor(decodeURIComponent(parts[1]));
     else if (parts[0] === "meta") { renderMeta(parts[1] ? decodeURIComponent(parts[1]) : null); }
     else if (parts[0] === "rules") renderRules(parts[1] ? decodeURIComponent(parts[1]) : null);
     else if (parts[0] === "share" && parts[1]) openShared(parts.slice(1).join("/"));
@@ -560,6 +561,7 @@
               ${c ? `${ptsLeftHtml(c.total, size, true)}
                 <span class="dot ${c.errors.length ? "err" : "ok"}" title="${c.errors.length ? esc(c.errors.length + " issue(s)") : "Valid"}">${c.errors.length ? "!" : "✓"}</span>` : ""}
               <span class="time">${esc(ago(l.updated))}</span>
+              <button class="ibtn lplay" data-action="play" data-id="${esc(l.id)}" title="Play this list" aria-label="Play ${esc(l.name)}" data-testid="list-play">${icon("play")}</button>
               <button class="ibtn" data-action="rename-list" data-id="${esc(l.id)}" title="Rename">${icon("pencil")}</button>
               <button class="ibtn" data-action="dup-list" data-id="${esc(l.id)}" title="Duplicate">${icon("copy")}</button>
               <button class="ibtn danger" data-action="del-list" data-id="${esc(l.id)}" title="Delete">${icon("trash")}</button>
@@ -735,6 +737,7 @@
               ${c.errors.length ? `<ul>${c.errors.map((x) => `<li class="err">${esc(x.msg)}</li>`).join("")}</ul>` : ""}
               ${c.warnings.length ? `<div class="vh">${c.warnings.length} warning${c.warnings.length === 1 ? "" : "s"}</div><ul>${c.warnings.slice(0, 8).map((x) => `<li class="warn">${esc(x.msg)}</li>`).join("")}${c.warnings.length > 8 ? `<li>…</li>` : ""}</ul>` : ""}
               <div class="muted">Red = errors, amber = warnings only, green = valid. <a href="#" data-action="open-panel" data-panel="errors">Open validation panel</a></div></div></span>
+          <button class="act playbtn" data-action="play" data-testid="play-btn" title="Play – game-time view: tap a unit to see its stats">${icon("play")}<span class="plbl">Play</span></button>
           <button class="act" data-action="export" title="Export">${icon("export")}<span class="lbl">Export</span></button>
           <button class="act" data-action="list-menu" title="List options">${icon("kebab")}<span class="lbl">Options</span></button>
         </div>
@@ -745,6 +748,102 @@
           ${panel ? `<section class="col panel">${renderPanel(l, F, c)}</section>` : ""}
         </div></div>`;
     });
+  }
+
+  /* ------------------------------------------------------------------ Play mode (#/list/<id>/play)
+     Game-time view of a finished list (War Organ "viewer mode" style, James Nov 16): read-only, units grouped as on the
+     table (Leaders/Support inside their bodyguard), tap a unit = its full datasheet + the stratagems it can use; army rule,
+     detachment rule(s) and stratagems one tap away. Small game trackers (CP, battle round, destroyed units) are kept per
+     list on this device only (localStorage muster.play – never synced, never part of the list). */
+  const LS_PLAY = "muster.play";
+  function playAll() { try { const o = JSON.parse(localStorage.getItem(LS_PLAY) || "{}"); return o && typeof o === "object" && !Array.isArray(o) ? o : {}; } catch (e) { return {}; } }
+  function playState(id) { const p = playAll()[id] || {}; return { cp: Math.max(0, +p.cp || 0), round: Math.min(5, Math.max(1, +p.round || 1)), dead: Array.isArray(p.dead) ? p.dead.filter((x) => typeof x === "string") : [] }; }
+  function savePlay(id, st) { const o = playAll(); o[id] = st; try { localStorage.setItem(LS_PLAY, JSON.stringify(o)); } catch (e) { /* ignore */ } }
+  const playHash = (id) => `#/list/${encodeURIComponent(id)}/play`;
+  function keepPlayScroll(fn) { const y = window.scrollY || 0; const cols = $$(".pcol").map((e) => e.scrollTop); fn(); $$(".pcol").forEach((e, i) => { e.scrollTop = cols[i] || 0; }); try { window.scrollTo(0, y); } catch (e) { /* ignore */ } }
+  // a unit's own enhancement text (name + rules) for the Play datasheet
+  function enhOf(F, r) {
+    const e = r.entry && r.entry.enh; if (!e) return null;
+    const d = F.dets[e.det]; const h = d && (d.d ? d.d.enh : d.enh);
+    const row = (h || (F.f.dets.find((y) => y.n === e.det) || {}).enh || []).find((y) => y[0] === e.name);
+    return row ? [row[0], row[2] || "", e.det] : [e.name, "", e.det];
+  }
+  // compact profile line on each Play row (base stats with enhancement/attachment changes highlighted, as on the datasheet)
+  function playStats(F, r) {
+    const ds = r.unit && dsOf(F, r.unit); if (!ds || !ds.s) return "";
+    const s = ds.s; let mm = [];
+    try { mm = C.entryStatMods(F, r, (CUR && CUR.dets) || [], ds.wp.map((x) => x[0])); } catch (e) { mm = []; }
+    const cell = (k, lbl, v) => `<span class="pst"><i>${lbl}</i>${statCell(k, v, mm).replace(/^<td[^>]*>|<\/td>$/g, "")}</span>`;
+    return `<div class="pstats" data-testid="play-stats">${cell("M", "M", s.M)}${cell("T", "T", s.T)}${cell("SV", "Sv", s.SV || s.Sv)}${cell("W", "W", s.W)}${cell("LD", "Ld", s.LD || s.Ld)}${cell("OC", "OC", s.OC)}${ds.inv ? cell("INV", "InSv", ds.inv) : ""}</div>`;
+  }
+  function renderPlay(id) {
+    const l = findList(id);
+    if (!l) { $("#main").innerHTML = `<div class="empty">List not found. <a href="#/lists">Back to My Lists</a></div>`; return; }
+    CUR = l;
+    const F = C.getFaction(S.idx, l);
+    const c = C.calcList(l, S.idx);
+    const sub = subOf(l);
+    const P = playState(l.id), dead = new Set(P.dead);
+    const dets = F ? (l.dets || []).map((n) => F.dets[n]).filter(Boolean) : [];
+    const phone = isPhone(), tab = S.ui.playTab || "units";
+    const row = (r, nested) => {
+      const e = r.entry || {}, isDead = dead.has(r.uid);
+      const tags = [e.warlord ? `<span class="tag wl">Warlord</span>` : "", nested ? `<span class="tag">${r.attachKind === "support" ? "Support" : r.attachKind === "join" ? "Joined" : "Leader"}</span>` : ""].join("");
+      const gear = (r.loLines || []).map((x) => C.loadoutText(x)).filter(Boolean);
+      const extra = [!gear.length && r.modelsLabel && r.unit && C.modelOptions(r.unit, r.copy).length > 1 ? r.modelsLabel : ""].filter(Boolean).concat(gear);
+      return `<div class="prow${nested ? " attached" : ""}${isDead ? " dead" : ""}" data-action="play-unit" data-uid="${esc(r.uid)}" data-testid="play-row" role="button" tabindex="0" title="Show ${esc(r.name)} datasheet">
+        <div class="pl1"><span class="n">${esc(r.name)}</span>${tags}<span class="grow"></span>${pts(r.total)}
+          <button class="ibtn pdead${isDead ? " on" : ""}" data-action="play-dead" data-uid="${esc(r.uid)}" title="${isDead ? "Bring back (undo destroyed)" : "Mark destroyed"}" aria-label="${isDead ? "Undo destroyed" : "Mark destroyed"}" aria-pressed="${isDead}" data-testid="play-dead">☠</button></div>
+        ${r.enhName ? `<div class="penh" data-testid="play-enh">★ <b class="enh-n">${esc(r.enhName)}</b></div>` : ""}
+        ${playStats(F, r)}
+        ${extra.length ? `<div class="pgear">${extra.map((x) => `<span>• ${esc(x)}</span>`).join("")}</div>` : ""}</div>`;
+    };
+    const roles = !F ? "" : C.ROLE_ORDER.filter((role) => c.byRole[role] && c.byRole[role].entries.some((x) => !x.attachedTo)).map((role) => {
+      const top = c.byRole[role].entries.filter((x) => !x.attachedTo && !x.missing);
+      if (!top.length) return "";
+      return `<div class="card pcard"><div class="sect-h">${esc(role)} <span class="muted">(${top.length})</span></div><div class="sect-body">
+        ${top.map((r) => (r.attached && r.attached.length ? `<div class="ugroup" data-testid="play-group">${r.attached.map((x) => (x.attached || []).map((y) => row(y, true)).join("") + row(x, true)).join("")}${row(r, false)}</div>` : row(r, false))).join("")}</div></div>`;
+    }).join("");
+    const fr = F ? factionRules(F) : [];
+    const core = coreStrats();
+    const rulesCol = !F ? "" : `
+      ${fr.length ? `<div class="card pcard" data-testid="play-army"><div class="sect-h">${icon("book")} Army rules</div><div class="sect-body">${fr.map((r) => `<details class="ab-card fac ar"><summary class="ab-n">${esc(r[0])}</summary><div class="ab-t">${armyRuleHtml(r, l, F)}</div></details>`).join("")}</div></div>` : ""}
+      <div class="card pcard" data-testid="play-dets"><div class="sect-h">${icon("text")} Detachment${dets.length > 1 ? "s" : ""}</div><div class="sect-body">
+        ${dets.length ? dets.map((d) => detBlock(d, { noEnh: true, open: false })).join("") : `<div class="muted">No detachment picked – choose one in the editor.</div>`}</div></div>
+      ${core.length ? `<div class="card pcard" data-testid="play-core"><div class="sect-h">${icon("text")} Core stratagems</div><div class="sect-body"><details class="coll st-coll"><summary>Core stratagems (${core.length})</summary><div class="cb">${core.map(stratHtml).join("")}</div></details></div></div>` : ""}`;
+    const nDead = c.entries.filter((r) => dead.has(r.uid)).length;
+    $("#main").innerHTML = `<div class="play${l.disposition ? " has-disp" : ""}"${dispAttr(l)} data-testid="play">
+      <div class="titlebar ptitle">
+        ${factionImg(l) ? `<img class="lthumb" src="${esc(factionImg(l))}" alt="">` : icon(ROLE_ICON)}
+        <span class="pmode">${icon("play")}Play</span><span class="lname">${esc(l.name)}</span>
+        <span class="grow"></span>
+        <span class="pts big">${c.total} pts</span>
+      </div>
+      <div class="ptrack" data-testid="play-track">
+        <span class="ctr" data-testid="play-cp"><span class="cl">CP</span><button data-action="play-cp" data-d="-1" aria-label="Spend 1 CP" ${P.cp <= 0 ? "disabled" : ""}>−</button><b data-testid="play-cp-v">${P.cp}</b><button data-action="play-cp" data-d="1" aria-label="Gain 1 CP">+</button></span>
+        <span class="ctr" data-testid="play-round"><span class="cl">Round</span><button data-action="play-round" data-d="-1" aria-label="Previous round" ${P.round <= 1 ? "disabled" : ""}>−</button><b data-testid="play-round-v">${P.round}</b><button data-action="play-round" data-d="1" aria-label="Next round" ${P.round >= 5 ? "disabled" : ""}>+</button></span>
+        <span class="muted pdc" data-testid="play-dead-count">${nDead ? `☠ ${nDead} destroyed` : ""}</span>
+        <span class="grow"></span>
+        <button class="btn secondary sm" data-action="play-reset" data-testid="play-reset" title="New game: CP 0, round 1, no destroyed units">New game</button>
+      </div>
+      ${l.disposition ? `<div class="pdisp">Force Disposition: ${dispChip(l.disposition)}</div>` : ""}
+      ${phone ? `<div class="mtabs ptabs"><button class="${tab === "units" ? "on" : ""}" data-action="play-tab" data-tab="units" data-testid="play-tab-units">Units (${c.entries.length})</button><button class="${tab === "rules" ? "on" : ""}" data-action="play-tab" data-tab="rules" data-testid="play-tab-rules">Rules &amp; Stratagems</button></div>` : ""}
+      <div class="pcols" data-tab="${esc(tab)}">
+        <section class="pcol punits" data-testid="play-units">${roles || `<div class="empty">This list has no units yet.</div>`}<div class="muted small phint">Tap a unit for its full datasheet and stratagems.</div></section>
+        <section class="pcol prules" data-testid="play-rules">${rulesCol}</section>
+      </div>
+      <button class="backfab playback" data-action="play-exit" title="Back to editing" aria-label="Back to editing" data-testid="back-btn">${icon("back")}</button>
+    </div>`;
+  }
+  function playUnit(uid) {
+    const F = C.getFaction(S.idx, CUR); if (!F) return;
+    const c = C.calcList(CUR, S.idx); const r = c.entries.find((x) => x.uid === uid); if (!r || !r.unit) return;
+    const dets = (CUR.dets || []).map((n) => F.dets[n]).filter(Boolean);
+    const en = enhOf(F, r);
+    const head = (r.entry && r.entry.warlord ? `<div class="ab-card lead" data-testid="play-ds-warlord"><div class="ab-n">Warlord</div></div>` : "") +
+      (en ? `<div class="ds-sec" data-testid="play-ds-enh"><div class="ds-h">Enhancement</div><div class="ab-card enh"><div class="ab-n"><span class="enh-n">${esc(en[0])}</span> <span class="muted">(${esc(en[2])})</span></div>${en[1] ? `<div class="ab-t">${esc(clean(en[1]))}</div>` : ""}</div></div>` : "");
+    const g = groupOf(r).filter((x) => x !== r).map((x) => x.name);
+    modal(r.name + (g.length ? ` (+ ${g.join(", ")})` : ""), `<div class="play-ds" data-testid="play-ds">${head}${memberDatasheet(F, r, { play: true })}${unitStratsHtml(F, r.unit, dets)}</div>`, floatOpts("ds"));
   }
 
   /* slim rail shown in place of the minimized catalog (side-by-side layout only) */
@@ -1108,7 +1207,7 @@
           ds.tr ? card("Transport", esc(clean(typeof ds.tr === "string" ? ds.tr : JSON.stringify(ds.tr))), "lead") : ""].join("");
         html += `<div class="ds-sec" data-testid="ds-abilities"><div class="ds-h">Abilities</div>
           ${sub("core", "Core", core)}${sub("faction", "Faction", fac)}${sub("datasheet", "Abilities", plain)}${sub("aura", "Auras", auras)}${sub("psychic", "Psychic Abilities", psy)}${sub("wargear", "Wargear Abilities", waHtml)}${sub("damaged", "Damaged", dmg)}${sub("leader", "Leader &amp; attachment", lead)}</div>`;
-        if (ds.wo && ds.wo.length) html += `<div class="ds-sec" data-testid="ds-wargear-options"><div class="ds-h">Wargear Options</div><ul class="ds-ul">${ds.wo.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
+        if (ds.wo && ds.wo.length && !o.play) html += `<div class="ds-sec" data-testid="ds-wargear-options"><div class="ds-h">Wargear Options</div><ul class="ds-ul">${ds.wo.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
         if (ds.comp && ds.comp.length) html += `<div class="ds-sec" data-testid="ds-composition"><div class="ds-h">Unit Composition</div><ul class="ds-ul">${ds.comp.map((x) => `<li>${esc(clean(x))}</li>`).join("")}</ul></div>`;
         // wargear abilities next to the weapons/loadout for quick reference (also kept in Abilities below)
         if (waHtml) html = html.slice(0, wgAt) + `<div class="ds-sec" data-testid="ds-wargear-ab"><div class="ds-h">Wargear abilities</div>${waHtml}</div>` + html.slice(wgAt);
@@ -1125,7 +1224,7 @@
       html += `<div class="ds-sec" data-testid="ds-keywords"><div class="ds-h">Keywords</div><div class="ds-ab">${esc((dk.kwm ? u.kw.filter((k) => !dk.kwm.some((m) => m[1].includes(k))) : u.kw || []).join(", ") || "—")}</div>
         ${(dk.kwm || []).map((m) => `<div class="ds-ab"><b>${esc(m[0])}:</b> ${esc(m[1].join(", "))}</div>`).join("")}
         <div class="ds-ab"><b>Faction keywords:</b> ${esc(dk.fkw ? dk.fkw.join(", ") : u.fk || F.f.name)}</div></div>`;
-      if (!o.noPoints) html += `<div class="ds-sec"><div class="ds-h">Points (MFM)</div>${pointsTable(u)}</div>`;
+      if (!o.noPoints && !o.play) html += `<div class="ds-sec"><div class="ds-h">Points (MFM)</div>${pointsTable(u)}</div>`;
     }
     return `<div class="ds" data-testid="datasheet">${html}</div>`;
   }
@@ -1160,9 +1259,9 @@
     const others = groupOf(r).filter((x) => x !== r).map((x) => x.name);
     return `<div class="ds-sec" data-testid="ds-gained"><div class="ds-h">From the attached unit <span class="muted">(${esc(others.join(", "))})</span></div>${cards.join("") || `<div class="muted">No abilities from ${esc(others.join(", "))} apply to ${esc(r.name)}.</div>`}</div>`;
   }
-  function memberDatasheet(F, r) {
+  function memberDatasheet(F, r, o) {
     const g = gainedAbilities(F, r);
-    const h = datasheetHtml(F, r.unit, r);
+    const h = datasheetHtml(F, r.unit, r, o);
     if (!g) return h;
     // gained abilities right after the unit's own Abilities section
     const i = h.indexOf('<div class="ds-sec" data-testid="ds-keywords">');
@@ -2237,6 +2336,16 @@
     "unlink": (t, ev) => { if (ev) ev.stopPropagation(); const uid = t.dataset.uid; mutate((l) => { const e = l.entries.find((x) => x.uid === uid); if (e) delete e.attach; }); toast("Detached"); },
     "open-panel": (t) => { S.ui.panel = { type: t.dataset.panel }; renderEditor(CUR.id); },
     "close-panel": () => { S.ui.panel = null; renderEditor(CUR.id); },
+    // Play mode
+    "play": (t, ev) => { if (ev) ev.stopPropagation(); const id = t.dataset.id || (CUR && CUR.id); if (!id) return; S.ui.playTab = "units"; location.hash = playHash(id); },
+    "play-exit": () => { if (CUR) location.hash = `#/list/${encodeURIComponent(CUR.id)}`; },
+    "play-tab": (t) => { S.ui.playTab = t.dataset.tab; if (CUR) renderPlay(CUR.id); },
+    "play-unit": (t) => playUnit(t.dataset.uid),
+    "play-dead": (t, ev) => { if (ev) ev.stopPropagation(); if (!CUR) return; const st = playState(CUR.id), i = st.dead.indexOf(t.dataset.uid);
+      if (i >= 0) st.dead.splice(i, 1); else st.dead.push(t.dataset.uid); savePlay(CUR.id, st); keepPlayScroll(() => renderPlay(CUR.id)); },
+    "play-cp": (t) => { if (!CUR) return; const st = playState(CUR.id); st.cp = Math.max(0, Math.min(99, st.cp + (+t.dataset.d || 0))); savePlay(CUR.id, st); keepPlayScroll(() => renderPlay(CUR.id)); },
+    "play-round": (t) => { if (!CUR) return; const st = playState(CUR.id); st.round = Math.max(1, Math.min(5, st.round + (+t.dataset.d || 0))); savePlay(CUR.id, st); keepPlayScroll(() => renderPlay(CUR.id)); },
+    "play-reset": () => { if (!CUR) return; const id = CUR.id; confirmModal("Start a new game? CP goes back to 0, round 1, and no units are marked destroyed.", "New game", () => { savePlay(id, { cp: 0, round: 1, dead: [] }); renderPlay(id); }); },
     // eye on a detachment in the Configuration picker: its rule, enhancements and stratagems in a sheet, without
     // ticking/unticking it (the eye sits inside the option's <label>, so the default label activation is cancelled)
     "det-pop": (t, ev) => {
@@ -2417,7 +2526,9 @@
     if (d.open) S.ui.enhOpen = d.dataset.uid; else if (S.ui.enhOpen === d.dataset.uid) S.ui.enhOpen = null;
     const sm = d.querySelector("summary"); if (sm) sm.setAttribute("aria-label", sm.getAttribute("aria-label").replace(/(Open|Close) to change$/, d.open ? "Close to change" : "Open to change")); }, true);
   document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") { const dd = ev.target.closest && ev.target.closest("details.enh-dd[open], details.cfg-dd[open]"); if (dd) { dd.open = false; const sm = dd.querySelector("summary"); if (sm) sm.focus(); return; } }
-    if (ev.key === "Escape") { if (dialogOpen()) closeModal(); else if (topFloat()) closeFloat(topFloat()); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } } });
+    if (ev.key === "Escape") { if (dialogOpen()) closeModal(); else if (topFloat()) closeFloat(topFloat()); else if (S.ui.panel && CUR) { S.ui.panel = null; renderEditor(CUR.id); } else if (CUR && $(".play[data-testid=play]")) location.hash = `#/list/${encodeURIComponent(CUR.id)}`; }
+    // Play rows are role="button": Enter/Space open the datasheet like a tap
+    if ((ev.key === "Enter" || ev.key === " ") && ev.target.classList && ev.target.classList.contains("prow")) { ev.preventDefault(); playUnit(ev.target.dataset.uid); } });
 
   window.Muster = { S, SY, datasheetHtml, combinedDatasheet, memberDatasheet, dsOf, isGuest, GUEST_MAX, applyMerge, route, checkForUpdates, applyNewData, setData, encodeShare, decodeShare, boot, idb, actions, changes };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
