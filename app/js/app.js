@@ -505,8 +505,14 @@
     if (authWall()) { closeMenus(); renderAuth(); if (ST) ST.track("#/signin"); return; }
     document.body.classList.remove("auth-wall");
     if (!S.data) { if ($(".auth-page")) $("#main").innerHTML = `<div class="empty">Loading…</div>`; return; }
-    const h = location.hash || "#/lists";
-    const parts = h.replace(/^#\/?/, "").split("/");
+    let h = location.hash || "#/lists";
+    let parts = h.replace(/^#\/?/, "").split("/");
+    // Play mode is phones + tablets only (James, Nov 16): on PC #/list/<id>/play goes to the editor, exactly as before v71
+    if (parts[0] === "list" && parts[1] && parts[2] === "play" && isPC()) {
+      if ($("[data-testid=play-ds]")) closeModal();
+      h = `#/list/${parts[1]}`; parts = ["list", parts[1]];
+      try { history.replaceState(null, "", h); } catch (e) { /* ignore */ }
+    }
     closeMenus();
     // the editor is a fixed-height app view (header/title row stay put, each column scrolls on its own)
     document.body.classList.toggle("app-fixed", parts[0] === "list" && !!parts[1] && parts[2] !== "play");
@@ -561,7 +567,7 @@
               ${c ? `${ptsLeftHtml(c.total, size, true)}
                 <span class="dot ${c.errors.length ? "err" : "ok"}" title="${c.errors.length ? esc(c.errors.length + " issue(s)") : "Valid"}">${c.errors.length ? "!" : "✓"}</span>` : ""}
               <span class="time">${esc(ago(l.updated))}</span>
-              <button class="ibtn lplay" data-action="play" data-id="${esc(l.id)}" title="Play this list" aria-label="Play ${esc(l.name)}" data-testid="list-play">${icon("play")}</button>
+              ${isPC() ? "" : `<button class="ibtn lplay" data-action="play" data-id="${esc(l.id)}" title="Play this list" aria-label="Play ${esc(l.name)}" data-testid="list-play">${icon("play")}</button>`}
               <button class="ibtn" data-action="rename-list" data-id="${esc(l.id)}" title="Rename">${icon("pencil")}</button>
               <button class="ibtn" data-action="dup-list" data-id="${esc(l.id)}" title="Duplicate">${icon("copy")}</button>
               <button class="ibtn danger" data-action="del-list" data-id="${esc(l.id)}" title="Delete">${icon("trash")}</button>
@@ -701,6 +707,10 @@
   // phones and touch tablets (e.g. iPad) keep full-screen sheets, one at a time
   const PC_MQ = "(min-width: 761px) and (hover: hover) and (pointer: fine)";
   const isPC = () => typeof matchMedia === "function" && matchMedia(PC_MQ).matches;
+  // crossing the PC breakpoint (window resized, mouse/touch mode switched): re-render the views where Play shows or hides,
+  // so a Play view on a window that becomes a PC exits cleanly to the editor (route() redirects it)
+  try { const pcq = matchMedia(PC_MQ), onPc = () => { const h = location.hash || "#/lists"; if (/^#\/(list\/|lists$)/.test(h)) route(); };
+    if (pcq.addEventListener) pcq.addEventListener("change", onPc); else if (pcq.addListener) pcq.addListener(onPc); } catch (e) { /* ignore */ }
   function keepScroll(fn) {
     const pos = {}; $$("[data-sk]").forEach((e) => { pos[e.getAttribute("data-sk")] = e.scrollTop; });
     fn();
@@ -737,7 +747,7 @@
               ${c.errors.length ? `<ul>${c.errors.map((x) => `<li class="err">${esc(x.msg)}</li>`).join("")}</ul>` : ""}
               ${c.warnings.length ? `<div class="vh">${c.warnings.length} warning${c.warnings.length === 1 ? "" : "s"}</div><ul>${c.warnings.slice(0, 8).map((x) => `<li class="warn">${esc(x.msg)}</li>`).join("")}${c.warnings.length > 8 ? `<li>…</li>` : ""}</ul>` : ""}
               <div class="muted">Red = errors, amber = warnings only, green = valid. <a href="#" data-action="open-panel" data-panel="errors">Open validation panel</a></div></div></span>
-          <button class="act playbtn" data-action="play" data-testid="play-btn" title="Play – game-time view: tap a unit to see its stats">${icon("play")}<span class="plbl">Play</span></button>
+          ${isPC() ? "" : `<button class="act playbtn" data-action="play" data-testid="play-btn" title="Play – game-time view: tap a unit to see its stats">${icon("play")}<span class="plbl">Play</span></button>`}
           <button class="act" data-action="export" title="Export">${icon("export")}<span class="lbl">Export</span></button>
           <button class="act" data-action="list-menu" title="List options">${icon("kebab")}<span class="lbl">Options</span></button>
         </div>
@@ -2337,7 +2347,7 @@
     "open-panel": (t) => { S.ui.panel = { type: t.dataset.panel }; renderEditor(CUR.id); },
     "close-panel": () => { S.ui.panel = null; renderEditor(CUR.id); },
     // Play mode
-    "play": (t, ev) => { if (ev) ev.stopPropagation(); const id = t.dataset.id || (CUR && CUR.id); if (!id) return; S.ui.playTab = "units"; location.hash = playHash(id); },
+    "play": (t, ev) => { if (ev) ev.stopPropagation(); if (isPC()) return; const id = t.dataset.id || (CUR && CUR.id); if (!id) return; S.ui.playTab = "units"; location.hash = playHash(id); },
     "play-exit": () => { if (CUR) location.hash = `#/list/${encodeURIComponent(CUR.id)}`; },
     "play-tab": (t) => { S.ui.playTab = t.dataset.tab; if (CUR) renderPlay(CUR.id); },
     "play-unit": (t) => playUnit(t.dataset.uid),

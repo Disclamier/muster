@@ -17,8 +17,11 @@ function makeApp(opts) {
   const dom = new JSDOM(HTML, { url: "http://localhost:8765/" + (opts.hash || ""), runScripts: "dangerously", pretendToBeVisual: true,
     beforeParse(w) {
       for (const [k, v] of Object.entries(opts.storage || {})) w.localStorage.setItem(k, v);
-      const touch = !!opts.phone;
-      w.matchMedia = (q) => ({ matches: /max-width/.test(q) ? !!opts.phone : /hover: hover/.test(q) ? !touch : /hover: none|pointer: coarse/.test(q) ? touch : false, media: q, addEventListener() {}, removeEventListener() {} });
+      // device can be switched mid-test (w.__setDevice) to emulate crossing the PC breakpoint; "change" listeners fire
+      const dev = { phone: !!opts.phone, touch: !!(opts.phone || opts.tablet) }, ls = [];
+      const mq = (q) => /max-width/.test(q) ? dev.phone : /hover: hover/.test(q) ? !dev.touch : /hover: none|pointer: coarse/.test(q) ? dev.touch : false;
+      w.matchMedia = (q) => ({ get matches() { return mq(q); }, media: q, addEventListener(t, f) { ls.push(f); }, removeEventListener() {} });
+      w.__setDevice = (o) => { Object.assign(dev, o); ls.forEach((f) => f({})); };
       w.TextEncoder = TextEncoder; w.TextDecoder = TextDecoder; w.scrollTo = () => {};
       w.fetch = async (url) => { const k = Object.keys(DATA).find((x) => String(url).split("?")[0].endsWith(x)); return k ? { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(DATA[k])) } : { ok: false, status: 404, json: async () => ({}) }; };
     } });
@@ -44,8 +47,8 @@ function necronList(w) {
   return { l, ch, bl, det, e1, e2 };
 }
 
-test("Play button opens a read-only game view; tapping a unit shows its datasheet, not the editor", async () => {
-  const { w, d } = makeApp();
+test("tablet: Play button opens a read-only game view; tapping a unit shows its datasheet, not the editor", async () => {
+  const { w, d } = makeApp({ tablet: true });
   await until(() => d.querySelector(".lists-page"));
   const { l, ch, bl, det, e1, e2 } = necronList(w);
   await go(w, "#/list/" + l.id);
@@ -115,5 +118,39 @@ test("Play assets: icon, styles, service worker bump", () => {
   const css = read("css/app.css");
   assert.match(css, /\.backfab\.playback \{ position: fixed; right: max\(14px/);
   assert.match(css, /html\[data-c-list\] \.prow \.pl1 \.n \{ color: var\(--c-list\); \}/);
-  assert.match(read("sw.js"), /muster-shell-v71/);
+  assert.match(read("sw.js"), /muster-shell-v72/);
+});
+
+test("PC (wide + mouse) looks like v70: no Play button, no list-row Play, #/list/<id>/play opens the editor", async () => {
+  const { w, d } = makeApp();
+  await until(() => d.querySelector(".lists-page"));
+  const { l } = necronList(w);
+  w.Muster.route();
+  assert.equal(d.querySelector("[data-testid=list-play]"), null);
+  await go(w, "#/list/" + l.id);
+  await until(() => d.querySelector(".editor"));
+  assert.equal(d.querySelector("[data-testid=play-btn]"), null);
+  assert.equal(d.querySelectorAll(".editor .titlebar .act").length, 2, "Export + Options only, as in v70");
+  await go(w, "#/list/" + l.id + "/play");
+  assert.ok(d.querySelector(".editor"));
+  assert.equal(d.querySelector("[data-testid=play]"), null);
+  assert.equal(w.location.hash, "#/list/" + l.id);
+  assert.ok(d.body.classList.contains("app-fixed"));
+});
+
+test("crossing the PC breakpoint: Play view exits to the editor on PC, Play button comes back on tablet", async () => {
+  const { w, d } = makeApp({ tablet: true });
+  await until(() => d.querySelector(".lists-page"));
+  const { l, e2 } = necronList(w);
+  await go(w, "#/list/" + l.id + "/play");
+  await until(() => d.querySelector("[data-testid=play]"));
+  click(w, d.querySelector(`[data-testid=play-row][data-uid="${e2.uid}"]`));
+  await until(() => d.querySelector("#modal [data-testid=play-ds]"));
+  w.__setDevice({ touch: false });            // window becomes a PC
+  await until(() => d.querySelector(".editor"));
+  assert.equal(w.location.hash, "#/list/" + l.id);
+  assert.equal(d.querySelector("[data-testid=play-btn]"), null);
+  assert.equal(d.querySelector("#modal [data-testid=play-ds]"), null, "Play datasheet closed");
+  w.__setDevice({ touch: true });             // back to tablet
+  await until(() => d.querySelector("[data-testid=play-btn]"));
 });
