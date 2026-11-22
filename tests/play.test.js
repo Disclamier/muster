@@ -118,7 +118,7 @@ test("Play assets: icon, styles, service worker bump", () => {
   const css = read("css/app.css");
   assert.match(css, /\.backfab\.playback \{ position: fixed; right: max\(14px/);
   assert.match(css, /html\[data-c-list\] \.prow \.pl1 \.n \{ color: var\(--c-list\); \}/);
-  assert.match(read("sw.js"), /muster-shell-v72/);
+  assert.match(read("sw.js"), /muster-shell-v73/);
 });
 
 test("PC (wide + mouse) looks like v70: no Play button, no list-row Play, #/list/<id>/play opens the editor", async () => {
@@ -153,4 +153,45 @@ test("crossing the PC breakpoint: Play view exits to the editor on PC, Play butt
   assert.equal(d.querySelector("#modal [data-testid=play-ds]"), null, "Play datasheet closed");
   w.__setDevice({ touch: true });             // back to tablet
   await until(() => d.querySelector("[data-testid=play-btn]"));
+});
+
+test("tapping the check tag shows why without opening the stratagem", async () => {
+  const { w, d } = makeApp({ phone: true });
+  await until(() => d.querySelector(".lists-page"));
+  const C = w.MusterCore, S = w.Muster.S, F = S.idx.factions.necrons;
+  const ch = F.units["Overlord"] ? F.f.units.find((u) => u.n === "Overlord") : F.f.units.find((u) => u.r === "Character" && !u.lg);
+  const bl = F.f.units.find((u) => u.r === "Battleline" && !u.lg);
+  const det = F.f.dets.find((x) => x.n === "Hypercrypt Legion");
+  const l = C.newList({ name: "Check tag", faction: "necrons", sub: "necrons", size: "strikeforce" });
+  l.dets = [det.n];
+  const e1 = C.newEntry(F.units[ch.n]); e1.warlord = true;
+  l.entries.push(e1, C.newEntry(F.units[bl.n])); S.lists.push(l);
+  await go(w, "#/list/" + l.id + "/play");
+  await until(() => d.querySelector("[data-testid=play]"));
+  click(w, d.querySelector(`[data-testid=play-row][data-uid="${e1.uid}"]`));
+  const ds = await until(() => d.querySelector("#modal [data-testid=play-ds]"));
+  const row = [...ds.querySelectorAll("[data-testid=ust]")].find((x) => x.dataset.st === "Reanimation Crypts");
+  assert.ok(row, "Reanimation Crypts is listed for the Overlord");
+  const tag = row.querySelector("[data-testid=ust-check]");
+  const tip = row.querySelector("[data-testid=ust-tip]");
+  assert.ok(tag && tip, "check tag and reason are present");
+  assert.match(tag.textContent, /check/);
+  assert.ok(tag.classList.contains("tip"));
+  assert.equal(tip.hidden, true);
+  assert.equal(row.open, false);
+  click(w, tag);
+  assert.equal(row.open, false, "tag tap does not open the stratagem");
+  assert.equal(tip.hidden, false);
+  assert.match(tip.textContent, /Needs the WARLORD keyword\. Check your Warlord can use this/);
+  assert.equal(tag.getAttribute("aria-expanded"), "true");
+  click(w, tag);
+  assert.equal(tip.hidden, true, "tapping again closes the reason");
+  assert.equal(row.open, false);
+  click(w, tag);
+  assert.equal(tip.hidden, false);
+  click(w, ds.querySelector("[data-testid=datasheet]") || ds);
+  assert.equal(tip.hidden, true, "tapping elsewhere closes the reason");
+  click(w, row.querySelector("summary .n"));
+  assert.equal(row.open, true, "tapping the name still opens the stratagem");
+  assert.equal(tip.hidden, true);
 });

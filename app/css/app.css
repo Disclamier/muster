@@ -955,6 +955,28 @@ details.ust > summary .n { font-weight: 700; font-size: 12.5px; flex: 1 1 auto; 
 details.ust > summary .ph { color: var(--gray); font-size: 11px; }
 details.ust > summary .tag { font-size: 10px; }
 details.ust > summary .tag.warn { color: var(--warn, #e6a700); border-color: currentColor; }
+details.ust > summary .tag.tip {
+  cursor: pointer; text-decoration: underline; text-underline-offset: 2px;
+  background: none; appearance: none; -webkit-appearance: none;
+  font: inherit; font-size: 10px; line-height: 1.3; padding: 1px 5px;
+  display: inline-flex; align-items: center; gap: 3px; min-height: 22px;
+}
+details.ust > summary .tag.tip:hover, details.ust > summary .tag.tip:focus-visible { background: var(--row-hover); }
+details.ust > summary .tag.tip.warn:hover, details.ust > summary .tag.tip.warn:focus-visible { background: var(--warn-bg); }
+details.ust > summary .tag.tip .tip-i {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 12px; height: 12px; border: 1px solid currentColor; border-radius: 50%;
+  font-size: 8px; font-weight: 700; font-style: normal; line-height: 1;
+  text-decoration: none; flex: none;
+}
+details.ust > summary .ust-tip {
+  flex: 1 0 100%; margin: 2px 0; padding: 6px 8px; font-size: 12px; font-weight: 400;
+  line-height: 1.35; color: var(--text); background: var(--warn-bg);
+  border-left: 3px solid var(--warn, #e6a700); border-radius: 3px;
+  white-space: normal; cursor: default; text-decoration: none;
+}
+details.ust > summary .ust-tip[hidden] { display: none; }
+details.ust > summary .tag.tip:not(.warn) + .ust-tip { background: var(--sect); border-left-color: var(--border); }
 details.ust .meta { color: var(--gray); font-size: 11px; margin: 0 0 2px; }
 details.ust .txt { font-size: 12px; white-space: pre-line; padding-bottom: 6px; }
 .ust-note { margin-top: 4px; }

@@ -1045,13 +1045,28 @@
       <div class="cb">${d.enh.length ? `<div class="enhs" data-testid="det-rule-enh"><div class="enhs-h">Enhancements</div>${d.enh.map((e) => `<div class="opt"><span class="on"><b class="enh-n">${esc(e[0])}</b>${e[3] ? ` <span class="tag">Upgrade</span>` : ""}${e[2] ? `<span class="desc">${esc(clean(e[2]))}</span>` : ""}</span>${pts(e[1])}</div>`).join("")}</div>` : ""}
         ${d.rule ? `<div class="rules" data-testid="det-rule-text"><div class="enhs-h">Detachment rule</div><b>${esc(d.rule[0])}:</b> ${esc(clean(d.rule[1]))}</div>` : ""}</div></details>`;
   }
+  /* plain-language reason for the "check" / "any unit" tags (the raw m.why is a short matcher note) */
+  function stratTipText(m) {
+    const w = String((m && m.why) || "").trim();
+    if (m && m.any) return "The target names no keyword – any of your units can use this.";
+    const rules = /^(.*?)\s*\(keyword from rules, check\)\s*$/i.exec(w);
+    if (rules) return `Needs a keyword from your detachment rules (${rules[1].trim()}). Check the unit has it.`;
+    if (/\bWARLORD\b/i.test(w)) return "Needs the WARLORD keyword. Check your Warlord can use this.";
+    if (w) return /[.?!]$/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1) + ".";
+    return "Check this stratagem's target line – the app isn't sure this unit can use it.";
+  }
+  function ustTag(m, kind) {
+    const label = kind === "check" ? "check" : "any unit";
+    const tip = stratTipText(m);
+    return `<button type="button" class="tag${kind === "check" ? " warn" : ""} tip" data-action="ust-tip" data-testid="ust-${kind === "check" ? "check" : "any"}" title="${esc(tip)}" aria-expanded="false" aria-label="${esc(label + ". " + tip)}">${esc(label)} <span class="tip-i" aria-hidden="true">i</span></button><span class="ust-tip" hidden data-testid="ust-tip">${esc(tip)}</span>`;
+  }
   /* "Stratagems for this unit": the picked detachments' stratagems (first, per detachment) then Core, filtered by the
      stratagem's TARGET text vs the unit's keywords (C.unitStratMatch) */
   function unitStratsHtml(F, u, dets, o) {
     o = o || {};
     const res = C.unitStratagems(u, F, dets, coreStrats());
     const n = res.groups.reduce((a, g) => a + g.items.length, 0) + res.core.items.length;
-    const item = ({ s, m }) => `<details class="ust" data-testid="ust" data-st="${esc(s[0])}"><summary><span class="cp">${esc(s[1])} CP</span><span class="n">${esc(s[0])}</span><span class="ph">${esc(s[2] || "")}</span>${m.any ? `<span class="tag" title="The target names no keyword – any of your units">any unit</span>` : ""}${m.unsure ? `<span class="tag warn" title="${esc(m.why)}">check</span>` : ""}</summary>
+    const item = ({ s, m }) => `<details class="ust" data-testid="ust" data-st="${esc(s[0])}"><summary><span class="cp">${esc(s[1])} CP</span><span class="n">${esc(s[0])}</span><span class="ph">${esc(s[2] || "")}</span>${m.any ? ustTag(m, "any") : ""}${m.unsure ? ustTag(m, "check") : ""}</summary>
       <div class="meta">${[s[3], s[4]].filter(Boolean).map(esc).join(" · ")}</div><div class="txt">${esc(clean(s[5]))}</div></details>`;
     const grp = (h, items, total, attrs) => `<div class="stgrp" ${attrs}><div class="stgrp-h">${h} <span class="muted">· ${items.length} of ${total}</span></div>${items.length ? items.map(item).join("") : `<div class="muted small">None of these target this unit.</div>`}</div>`;
     const body = res.groups.map((g) => grp(esc(g.det.n), g.items, g.total, `data-det="${esc(g.det.n)}"`)).join("") +
@@ -2492,6 +2507,27 @@
       renderRulesBody(); }, 70); },
     "meta-q": (t) => { S.ui.metaQ = t.value; const pos = t.selectionStart; renderMeta(null); const n = $("[data-input=meta-q]"); if (n) { n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } } },
   };
+  /* "check" / "any unit" tags: tap shows the reason; must not toggle the <details> row. Tap again or elsewhere closes. */
+  function closeUstTips() {
+    document.querySelectorAll(".ust-tip").forEach((el) => { el.hidden = true; });
+    document.querySelectorAll("[data-action=ust-tip][aria-expanded=true]").forEach((el) => el.setAttribute("aria-expanded", "false"));
+  }
+  document.addEventListener("click", (ev) => {
+    const tag = ev.target.closest && ev.target.closest("[data-action=ust-tip]");
+    const note = ev.target.closest && ev.target.closest(".ust-tip");
+    if (tag) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      const wrap = tag.closest("details.ust") || tag.parentElement;
+      const tip = wrap && wrap.querySelector(":scope > summary > .ust-tip, :scope > .ust-tip, .ust-tip");
+      const open = tip && !tip.hidden;
+      closeUstTips();
+      if (tip && !open) { tip.hidden = false; tag.setAttribute("aria-expanded", "true"); }
+      return;
+    }
+    if (note) { ev.preventDefault(); ev.stopPropagation(); return; }
+    closeUstTips();
+  }, true);
   document.addEventListener("click", (ev) => {
     if (!ev.target.closest(".menu")) closeMenus();
     const t = ev.target.closest("[data-action]"); if (!t) return;
